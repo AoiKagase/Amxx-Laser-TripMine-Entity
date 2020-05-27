@@ -1,3 +1,0 @@
-[en]
-CM_PLANT_GROUND = ^4%s ^1You must plant the %s on a ground!
-CM_LONG_NAME 	= Claymore

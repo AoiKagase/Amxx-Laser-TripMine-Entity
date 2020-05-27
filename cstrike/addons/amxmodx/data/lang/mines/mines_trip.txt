@@ -1,3 +1,0 @@
-[en]
-TM_PLANT_WALL= ^4%s ^1You must plant the ^3%s ^1 on a wall!
-TM_LONG_NAME = TripMine

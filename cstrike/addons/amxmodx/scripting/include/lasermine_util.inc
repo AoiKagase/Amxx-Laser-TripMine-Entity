@@ -479,6 +479,11 @@ stock lm_remove_entity(iEnt)
 	engfunc(EngFunc_RemoveEntity, iEnt);
 }
 
+stock CsTeams:lm_get_laser_team(iEnt)
+{
+	return lm_get_user_team(pev(iEnt, LASERMINE_OWNER));
+}
+
 #if AMXX_VERSION_NUM < 190
 stock fmt(const szString[], any:...)
 {

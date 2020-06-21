@@ -80,7 +80,7 @@
 //
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.11a"
+#define VERSION 					"3.12"
 
 //#define STR_MINEDETNATED 			"Your mine has detonated.",
 //#define STR_MINEDETNATED2			"detonated your mine.",
@@ -857,7 +857,6 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 	set_pev(iEnt, pev_netname, authid);
 	// Save results to be used later.
 	set_pev(iEnt, LASERMINE_OWNER, uID );
-	set_pev(iEnt, LASERMINE_TEAM, int:cs_get_user_team(uID));
 
 	// Reset powoer on delay time.
 	new Float:fCurrTime = get_gametime();
@@ -1033,7 +1032,7 @@ public RemoveMine(id)
 		case ALLOW_FRIENDLY:
 		{
 			// Check. is friendly team?
-			if(CsTeams:pev(target, LASERMINE_TEAM) != cs_get_user_team(uID))
+			if(lm_get_laser_team(target) != cs_get_user_team(uID))
 				return 1;
 		}		
 	}
@@ -1136,7 +1135,7 @@ bool:check_for_remove(id)
 		case ALLOW_FRIENDLY:
 		{
 			// is team friendly?
-			if(CsTeams:pev(target, LASERMINE_TEAM) != cs_get_user_team(id))
+			if(lm_get_laser_team(target) != cs_get_user_team(id))
 				return false;
 		}
 	}
@@ -1442,7 +1441,7 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 		case 1:
 		{
 			// If the team of the one who put the mine and the one who attacked match.
-			if(CsTeams:pev(victim, LASERMINE_TEAM) != cs_get_user_team(attacker))
+			if(lm_get_laser_team(victim) != cs_get_user_team(attacker))
 				return HAM_SUPERCEDE;
 		}
 		// 2 = Enemy.
@@ -1453,7 +1452,7 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 		// 3 = Enemy Only.
 		case 3:
 		{
-			if(iOwner == attacker || CsTeams:pev(victim, LASERMINE_TEAM) == cs_get_user_team(attacker))
+			if(iOwner == attacker || lm_get_laser_team(victim) == cs_get_user_team(attacker))
 				return HAM_SUPERCEDE;
 		}
 		default:
@@ -1473,7 +1472,7 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 	new sColor	[4];
 	new sRGBLen 	= charsmax(sRGB);
 	new sColorLen	= charsmax(sColor);
-	new CsTeams:teamid = CsTeams:pev(iEnt, LASERMINE_TEAM);
+	new CsTeams:teamid = lm_get_laser_team(iEnt);
 	new width 		= get_pcvar_num(gCvar[CVAR_LASER_WIDTH]);
 	new i = 0, n = 0, iPos = 0;
 	// Color mode. 0 = team color.
@@ -2205,7 +2204,7 @@ stock mine_glowing(iEnt)
 	new sColor	[4];
 	new sRGBLen 	= charsmax(sRGB);
 	new sColorLen	= charsmax(sColor);
-	new CsTeams:teamid = CsTeams:pev(iEnt, LASERMINE_TEAM);
+	new CsTeams:teamid = lm_get_laser_team(iEnt);
 
 	new i = 0, n = 0, iPos = 0;
 

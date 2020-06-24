@@ -312,7 +312,7 @@ public plugin_init()
 	// Mine design.
 	gCvar[CVAR_MINE_HEALTH]    	= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_health"),			"500"		);	// Tripmine Health. (Can break.)
 	gCvar[CVAR_MINE_GLOW]      	= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow"),			"1"			);	// Tripmine glowing. 0 = off, 1 = on.
-	gCvar[CVAR_MINE_GLOW_MODE]  = register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_mode"),	"0"			);	// Mine glow coloer 0 = team color, 1 = green.
+	gCvar[CVAR_MINE_GLOW_MODE]  = register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_mode"),	"0"			);	// Mine glow coloer 0 = team color, 1 = green, 2 = Health Indicater(green to red).
 	gCvar[CVAR_MINE_GLOW_TR]  	= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_t"),	"255,0,0"	);	// Team-Color for Terrorist. default:red (R,G,B)
 	gCvar[CVAR_MINE_GLOW_CT]  	= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_ct"),	"0,0,255"	);	// Team-Color for Counter-Terrorist. default:blue (R,G,B)
 	gCvar[CVAR_MINE_BROKEN]		= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_broken"),			"0"			);	// Can broken Mines.(0 = mines, 1 = Team, 2 = Enemy)
@@ -1447,6 +1447,8 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 		// 2 = Enemy.
 		case 2:
 		{
+			if (get_pcvar_num(gCvar[CVAR_MINE_GLOW_MODE]) == 2)
+				IndicateGlow(victim);
 			return HAM_IGNORED;
 		}
 		// 3 = Enemy Only.
@@ -1456,7 +1458,11 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 				return HAM_SUPERCEDE;
 		}
 		default:
+		{
+			if (get_pcvar_num(gCvar[CVAR_MINE_GLOW_MODE]) == 2)
+				IndicateGlow(victim);
 			return HAM_IGNORED;
+		}
 	}
 	return HAM_IGNORED;
 }
@@ -2515,4 +2521,26 @@ stock ClearStack(Stack:handle)
 	{
 		PopStackCell(handle, health);
 	}
+}
+
+stock IndicateGlow(iEnt)
+{
+	new Float:color[3]   = {0.0, 255.0, 0.0}
+	new Float:max_health = get_pcvar_float(gCvar[CVAR_MINE_HEALTH]);
+	new Float:cur_health = lm_get_user_health(iEnt);
+	new Float:percent	 = cur_health / max_health;
+
+	// Red
+	if (percent <= 0.5)
+		color[0] = 255.0;
+	else
+		color[0] = 255.0 * ((1.0 - percent) * 2.0);
+
+	// Green
+	if (percent >= 0.5)
+		color[1] = 255.0;
+	else
+		color[1] = 255.0 * (percent * 2.0);
+
+	lm_set_glow_rendering(iEnt, kRenderFxGlowShell, color, kRenderNormal, 5);
 }

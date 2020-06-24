@@ -80,7 +80,7 @@
 //
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.12"
+#define VERSION 					"3.13"
 
 //#define STR_MINEDETNATED 			"Your mine has detonated.",
 //#define STR_MINEDETNATED2			"detonated your mine.",
@@ -312,7 +312,7 @@ public plugin_init()
 	// Mine design.
 	gCvar[CVAR_MINE_HEALTH]    	= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_health"),			"500"		);	// Tripmine Health. (Can break.)
 	gCvar[CVAR_MINE_GLOW]      	= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow"),			"1"			);	// Tripmine glowing. 0 = off, 1 = on.
-	gCvar[CVAR_MINE_GLOW_MODE]  = register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_mode"),	"0"			);	// Mine glow coloer 0 = team color, 1 = green, 2 = Health Indicater(green to red).
+	gCvar[CVAR_MINE_GLOW_MODE]  = register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_mode"),	"0"			);	// Mine glow coloer 0 = team color, 1 = green, 2 = Health Indicator Glow(green to red).
 	gCvar[CVAR_MINE_GLOW_TR]  	= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_t"),	"255,0,0"	);	// Team-Color for Terrorist. default:red (R,G,B)
 	gCvar[CVAR_MINE_GLOW_CT]  	= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_ct"),	"0,0,255"	);	// Team-Color for Counter-Terrorist. default:blue (R,G,B)
 	gCvar[CVAR_MINE_BROKEN]		= register_cvar(fmt("%s%s", CVAR_TAG, "_mine_broken"),			"0"			);	// Can broken Mines.(0 = mines, 1 = Team, 2 = Enemy)
@@ -1448,7 +1448,7 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 		case 2:
 		{
 			if (get_pcvar_num(gCvar[CVAR_MINE_GLOW_MODE]) == 2)
-				IndicateGlow(victim);
+				IndicatorGlow(victim);
 			return HAM_IGNORED;
 		}
 		// 3 = Enemy Only.
@@ -1460,7 +1460,7 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 		default:
 		{
 			if (get_pcvar_num(gCvar[CVAR_MINE_GLOW_MODE]) == 2)
-				IndicateGlow(victim);
+				IndicatorGlow(victim);
 			return HAM_IGNORED;
 		}
 	}
@@ -2523,7 +2523,7 @@ stock ClearStack(Stack:handle)
 	}
 }
 
-stock IndicateGlow(iEnt)
+stock IndicatorGlow(iEnt)
 {
 	new Float:color[3]   = {0.0, 255.0, 0.0}
 	new Float:max_health = get_pcvar_float(gCvar[CVAR_MINE_HEALTH]);

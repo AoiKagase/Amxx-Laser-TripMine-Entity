@@ -890,14 +890,18 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 set_mine_position(uID, iEnt)
 {
 	// Vector settings.
-	new Float:vOrigin[3];
-	new	Float:vNewOrigin[3],Float:vNormal[3],
-		Float:vTraceEnd[3],Float:vEntAngles[3];
+	new Float:vOrigin	[3],Float:vViewOfs	[3];
+	new	Float:vNewOrigin[3],Float:vNormal	[3];
+	new	Float:vTraceEnd	[3],Float:vEntAngles[3];
 	new bool:mode_claymore = (get_pcvar_num(gCvar[CVAR_MODE]) == MODE_BF4_CLAYMORE);
 
 	// get user position.
 	pev(uID, pev_origin, vOrigin);
+	pev(uID, pev_view_ofs, vViewOfs);
+
 	velocity_by_aim(uID, 128, vTraceEnd);
+
+	xs_vec_add(vOrigin, vViewOfs, vOrigin);  	
 	xs_vec_add(vTraceEnd, vOrigin, vTraceEnd);
 
     // create the trace handle.
@@ -1447,8 +1451,6 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 		// 2 = Enemy.
 		case 2:
 		{
-			if (get_pcvar_num(gCvar[CVAR_MINE_GLOW_MODE]) == 2)
-				IndicatorGlow(victim);
 			return HAM_IGNORED;
 		}
 		// 3 = Enemy Only.
@@ -1459,8 +1461,6 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 		}
 		default:
 		{
-			if (get_pcvar_num(gCvar[CVAR_MINE_GLOW_MODE]) == 2)
-				IndicatorGlow(victim);
 			return HAM_IGNORED;
 		}
 	}
@@ -1757,7 +1757,7 @@ public PlayerPostThink(id)
 			if (pev_valid(gDeployingMines[id]))
 			{
 				// Vector settings.
-				static	Float:vOrigin[3];
+				static	Float:vOrigin[3], Float:vViewOfs[3];
 				static	Float:vNewOrigin[3],Float:vNormal[3],
 						Float:vTraceEnd[3],Float:vEntAngles[3];
 
@@ -1765,6 +1765,8 @@ public PlayerPostThink(id)
 				velocity_by_aim(id, 128, vTraceEnd);
 				// get user position.
 				pev(id, pev_origin, vOrigin);
+				pev(id, pev_view_ofs, vViewOfs);
+				xs_vec_add(vOrigin, vViewOfs, vOrigin);  	
 				xs_vec_add(vTraceEnd, vOrigin, vTraceEnd);
 
 			    // create the trace handle.
@@ -2392,6 +2394,9 @@ public MinesBreaked(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
     // is this lasermine? no.
 	if (!equali(entityName, ENT_CLASS_LASER))
 		return HAM_IGNORED;
+
+	if (get_pcvar_num(gCvar[CVAR_MINE_GLOW_MODE]) == 2)
+		IndicatorGlow(victim);
 
 #if defined ZP_SUPPORT
 	if (lm_get_user_health(victim) <= 0)

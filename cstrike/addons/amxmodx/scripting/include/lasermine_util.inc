@@ -272,104 +272,104 @@ stock lm_draw_laser(
 // 	message_end();
 // }
 
-stock lm_create_explosion(iEnt, const Float:fDamage, const Float:fRadius, sprExplosion1, sprExplosion2, sprBlast) 
+stock lm_create_explosion(iOrigin[3], const iDamage, const iRadius, sprExplosion1, sprExplosion2, sprBlast) 
 {
-	// Stop laser line.
-	lm_stop_laserline(iEnt);
+	new iZPos = (iDamage + ((iRadius * 3) / 2)) / 8
 
-	new Float:fOrigin[3];
-	pev(iEnt, pev_origin, fOrigin);
+	if(iZPos < 25) {
+		iZPos = 25
+	}
+	else if(iZPos > 500) {
+		iZPos = 500
+	}
 
-	new Float:fZPos = (fDamage + ((fRadius * 3.0) / 2.0)) / 8.0;
+	new iIntensity = (iDamage + ((iRadius * 7) / 4)) / 32
 
-	if(fZPos < 25.0)
-		fZPos = 25.0;
-	else
-	if(fZPos > 500.0)
-		fZPos = 500.0;
+	if(iIntensity < 12) {
+		iIntensity = 12
+	}
+	else if(iIntensity > 128) {
+		iIntensity = 128
+	}
 
-	new Float:fIntensity = (fDamage + ((fRadius * 7.0) / 4.0)) / 32.0;
+	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, iOrigin, 0);
+	write_byte(TE_EXPLOSION)
+	write_coord(iOrigin[0])
+	write_coord(iOrigin[1])
+	write_coord(iOrigin[2] + iZPos)
+	write_short(sprExplosion1)
+	write_byte(iIntensity)
+	write_byte(24)
+	write_byte(0)
+	message_end()
 
-	if(fIntensity < 12.0)
-		fIntensity = 12.0;
-	else
-	if(fIntensity > 128.0)
-		fIntensity = 128.0;
+	iZPos /= 6
 
-	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, fOrigin, 0);
-	write_byte(TE_EXPLOSION);
-	write_coord(floatround(fOrigin[0]));
-	write_coord(floatround(fOrigin[1]));
-	write_coord(floatround(fOrigin[2]) + floatround(fZPos));
-	write_short(sprExplosion1);
-	write_byte(floatround(fIntensity));
-	write_byte(24);
-	write_byte(0);
-	message_end();
+	if(iZPos < 6) {
+		iZPos = 6
+	}
+	else if(iZPos > 96) {
+		iZPos = 96
+	}
 
-	fZPos /= 6.0;
+	iIntensity = (iIntensity * 7) / 4
 
-	if(fZPos < 6.0)
-		fZPos = 6.0;
-	else
-	if(fZPos > 96.0)
-		fZPos = 96.0;
+	if(iIntensity < 24) {
+		iIntensity = 24
+	}
+	else if(iIntensity > 160) {
+		iIntensity = 160
+	}
 
-	fIntensity = (fIntensity * 7.0) / 4.0;
+	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, iOrigin, 0);
+	write_byte(TE_EXPLOSION)
+	write_coord(iOrigin[0])
+	write_coord(iOrigin[1])
+	write_coord(iOrigin[2] + iZPos)
+	write_short(sprExplosion2)
+	write_byte(iIntensity)
+	write_byte(20)
+	write_byte(0)
+	message_end()
 
-	if(fIntensity < 24.0)
-		fIntensity = 24.0;
-	else
-	if(fIntensity > 160.0)
-		fIntensity = 160.0;
+	iZPos = ((((iDamage * 3) / 2) + iRadius) * 4) / 6
 
-	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, fOrigin, 0);
-	write_byte(TE_EXPLOSION);
-	write_coord(floatround(fOrigin[0]));
-	write_coord(floatround(fOrigin[1]));
-	write_coord(floatround(fOrigin[2]) + floatround(fZPos));
-	write_short(sprExplosion2);
-	write_byte(floatround(fIntensity));
-	write_byte(20);
-	write_byte(0);
-	message_end();
+	if(iZPos < 160) {
+		iZPos = 160
+	}
+	else if(iZPos > 960) {
+		iZPos = 960
+	}
 
-	fZPos = ((((fDamage * 3.0) / 2.0) + fRadius) * 4.0) / 6.0;
+	iIntensity = iRadius / 70
 
-	if(fZPos < 160.0)
-		fZPos = 160.0;
-	else
-	if(fZPos > 960.0)
-		fZPos = 960.0;
+	if(iIntensity < 3) {
+		iIntensity = 3
+	}
+	else if(iIntensity > 10) {
+		iIntensity = 10
+	}
 
-	fIntensity = fRadius / 70.0;
-
-	if(fIntensity < 3.0) 
-		fIntensity = 3.0;
-	else 
-	if(fIntensity > 10.0)
-		fIntensity = 10.0;
-
-	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, fOrigin, 0);
-	write_byte(TE_BEAMCYLINDER);
-	write_coord(floatround(fOrigin[0]));
-	write_coord(floatround(fOrigin[1]));
-	write_coord(floatround(fOrigin[2]));
-	write_coord(floatround(fOrigin[0]));
-	write_coord(floatround(fOrigin[1]));
-	write_coord(floatround(fOrigin[2]) + floatround(fZPos));
-	write_short(sprBlast);
-	write_byte(0);
-	write_byte(2);
-	write_byte(fIntensity);
-	write_byte(255);
-	write_byte(0);
-	write_byte(255);
-	write_byte(255);
-	write_byte(165);
-	write_byte(128);
-	write_byte(0);
-	message_end();
+	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, iOrigin, 0);
+	write_byte(TE_BEAMCYLINDER)
+	write_coord(iOrigin[0])
+	write_coord(iOrigin[1])
+	write_coord(iOrigin[2])
+	write_coord(iOrigin[0])
+	write_coord(iOrigin[1])
+	write_coord(iOrigin[2] + iZPos)
+	write_short(sprBlast)
+	write_byte(0)
+	write_byte(2)
+	write_byte(iIntensity)
+	write_byte(255)
+	write_byte(0)
+	write_byte(255)
+	write_byte(255)
+	write_byte(165)
+	write_byte(128)
+	write_byte(0)
+	message_end()
 }
 
 //====================================================
@@ -703,9 +703,12 @@ stock lm_create_bubbles(const Float:vOrigin[3], const Float:flDamageMax, const F
 {
 	new Float:flMaxSize = floatclamp((flDamageMax + (flDamageRadius * 1.5)) / 13.0, 24.0, 164.0);
 	new Float:vMins[3], Float:vMaxs[3];
+	new Float:vTemp[3];
 
-	xs_vec_sub(vOrigin, {flMaxSize, flMaxSize, flMaxSize}, vMins);
-	xs_vec_add(vOrigin, {flMaxSize, flMaxSize, flMaxSize}, vMaxs);
+	vTemp[0] = vTemp[1] = vTemp[2] = flMaxSize;
+
+	xs_vec_sub(vOrigin, vTemp, vMins);
+	xs_vec_add(vOrigin, vTemp, vMaxs);
 
 	UTIL_Bubbles(vMins, vMaxs, 80, sprBubbles);
 }
@@ -779,12 +782,11 @@ stock Float:UTIL_WaterLevel(const Float:vCenter[3], Float:vMinZ, Float:vMaxZ)
 	vMiddleUp[1] = vCenter[1];
 	vMiddleUp[2] = vMinZ;
 
-	if(PointContents(vMiddleUp) != CONTENTS_WATER)
+	if(engfunc(EngFunc_PointContents, vMiddleUp) != CONTENTS_WATER)
 		return vMinZ;
 
 	vMiddleUp[2] = vMaxZ;
-
-	if(PointContents(vMiddleUp) == CONTENTS_WATER)
+	if(engfunc(EngFunc_PointContents, vMiddleUp) == CONTENTS_WATER)
 		return vMaxZ;
 
 	new Float:flDiff = vMaxZ - vMinZ;
@@ -793,7 +795,7 @@ stock Float:UTIL_WaterLevel(const Float:vCenter[3], Float:vMinZ, Float:vMaxZ)
 	{
 		vMiddleUp[2] = vMinZ + flDiff / 2.0;
 
-		if(PointContents(vMiddleUp) == CONTENTS_WATER)
+		if(engfunc(EngFunc_PointContents, vMiddleUp) == CONTENTS_WATER)
 			vMinZ = vMiddleUp[2];
 		else
 			vMaxZ = vMiddleUp[2];

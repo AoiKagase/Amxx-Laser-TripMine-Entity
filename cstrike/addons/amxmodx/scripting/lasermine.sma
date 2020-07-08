@@ -1427,9 +1427,30 @@ public LaserThink(iEnt)
 		// Count down. deployed lasermines.
 		lm_set_user_mine_deployed(iOwner, lm_get_user_mine_deployed(iOwner) - int:1);
 
+		// Stop laser line.
+		lm_stop_laserline(iEnt);
+
 		// effect explosion.
-		lm_create_explosion(iEnt, get_pcvar_float(gCvar[CVAR_EXPLODE_DMG]), get_pcvar_float(gCvar[CVAR_EXPLODE_RADIUS]), gSprExplosion1, gSprExplosion2, gSprBlast);
-	
+		static Float:fDamageMax;
+		static Float:fDamageRadius;
+		static iOrigin[3];
+
+		fDamageMax 		= get_pcvar_float(gCvar[CVAR_EXPLODE_DMG]);
+		fDamageRadius	= get_pcvar_float(gCvar[CVAR_EXPLODE_RADIUS]);
+		FVecIVec(vOrigin, iOrigin);
+
+		if(engfunc(EngFunc_PointContents, vOrigin) != CONTENTS_WATER) 
+		{
+			lm_create_explosion	(iOrigin, floatround(fDamageMax), floatround(fDamageRadius), gSprExplosion1, gSprExplosion2, gSprBlast);
+			lm_create_smoke		(iOrigin, floatround(fDamageMax), floatround(fDamageRadius), gSprSmoke);
+		}
+		else 
+		{
+			lm_create_water_explosion(iOrigin, floatround(fDamageMax), floatround(fDamageRadius), gSprExplosionWater);
+			lm_create_bubbles(vOrigin, fDamageMax * 1.0, fDamageRadius * 1.0, gSprBubble);
+		}
+		lm_create_explosion_decals(iOrigin);
+
 		// damage.
 		lm_create_explosion_damage(iEnt, iOwner, get_pcvar_float(gCvar[CVAR_EXPLODE_DMG]), get_pcvar_float(gCvar[CVAR_EXPLODE_RADIUS]));
 

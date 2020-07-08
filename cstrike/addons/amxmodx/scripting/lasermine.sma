@@ -69,8 +69,15 @@
 #define ENT_SOUND7					"weapons/ric_metal-2.wav"
 #define ENT_SOUND8					"debris/bustglass1.wav"
 #define ENT_SOUND9					"debris/bustglass2.wav"
-#define ENT_SPRITE1 				"sprites/laserbeam.spr"
-#define ENT_SPRITE2 				"sprites/eexplo.spr"
+#define ENT_SPRITE_LASER 			"sprites/laserbeam.spr"
+#define ENT_SPRITE_EXPLOSION1 		"sprites/fexplo.spr"
+#define ENT_SPRITE_EXPLOSION2 		"sprites/eexplo.spr"
+#define ENT_SPRITE_EXPLOSION_WATER 	"sprites/WXplo1.spr"
+#define ENT_SPRITE_EXPLOSION_BLAST 	"sprites/blast.spr"
+#define ENT_SPRITE_SMOKE 			"sprites/steam1.spr"
+#define ENT_SPRITE_BUBBLE 			"sprites/bubble.spr"
+#define ENT_SPRITE_BLOOD 			"sprites/blood.spr"
+#define ENT_SPRITE_BLOOD_SPRAY 		"sprites/bloodspray.spr"
 
 //=====================================
 //  MACRO AREA
@@ -229,7 +236,16 @@ new gCvar[CVAR_SETTING];
 
 new int:gNowTime;
 new gMsgBarTime;
-new gBeam, gBoom;
+new	gSprBeam;
+new	gSprExplosion1;
+new	gSprExplosion2;
+new	gSprExplosionWater;
+new	gSprBlast;
+new	gSprSmoke;
+new	gSprBubble;
+new	gSprBlood;
+new	gSprBloodSpray;
+
 new gEntMine;
 
 #if AMXX_VERSION_NUM > 183
@@ -400,6 +416,7 @@ public plugin_init()
 	// registered func_breakable
 	gEntMine = engfunc(EngFunc_AllocString, ENT_CLASS_BREAKABLE);
 
+	LoadDecals();
 	return PLUGIN_CONTINUE;
 }
 #if defined ZP_SUPPORT
@@ -524,9 +541,16 @@ public plugin_precache()
 	precache_sound(ENT_SOUND8);
 	precache_sound(ENT_SOUND9);
 	precache_model(ENT_MODELS);
-	gBeam = precache_model(ENT_SPRITE1);
-	gBoom = precache_model(ENT_SPRITE2);
-	
+	gSprBeam 			= precache_model(ENT_SPRITE_LASER);
+	gSprExplosion1 		= precache_model(ENT_SPRITE_EXPLOSION1);
+	gSprExplosion2 		= precache_model(ENT_SPRITE_EXPLOSION2);
+	gSprExplosionWater 	= precache_model(ENT_SPRITE_EXPLOSION_WATER);
+	gSprBlast 			= precache_model(ENT_SPRITE_EXPLOSION_BLAST);
+	gSprSmoke 			= precache_model(ENT_SPRITE_SMOKE);
+	gSprBubble 			= precache_model(ENT_SPRITE_BUBBLE);
+	gSprBlood 			= precache_model(ENT_SPRITE_BLOOD); 
+	gSprBloodSpray 		= precache_model(ENT_SPRITE_BLOOD_SPRAY); 
+
 	return PLUGIN_CONTINUE;
 }
 
@@ -1400,7 +1424,7 @@ public LaserThink(iEnt)
 		lm_set_user_mine_deployed(iOwner, lm_get_user_mine_deployed(iOwner) - int:1);
 
 		// effect explosion.
-		lm_create_explosion(iEnt, gBoom);
+		lm_create_explosion(iEnt, get_pcvar_float(gCvar[CVAR_EXPLODE_DMG]), get_pcvar_float(gCvar[CVAR_EXPLODE_RADIUS]), gSprExplosion1, gSprExplosion2, gSprBlast);
 	
 		// damage.
 		lm_create_explosion_damage(iEnt, iOwner, get_pcvar_float(gCvar[CVAR_EXPLODE_DMG]), get_pcvar_float(gCvar[CVAR_EXPLODE_RADIUS]));
@@ -1544,7 +1568,7 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 		const speed			= 255
 	)
 	*/
-	lm_draw_laser(iEnt, vEndOrigin, gBeam, 0, 0, 2, width, 0, tcolor, get_pcvar_num(gCvar[CVAR_LASER_BRIGHT]), 255);
+	lm_draw_laser(iEnt, vEndOrigin, gSprBeam, 0, 0, 2, width, 0, tcolor, get_pcvar_num(gCvar[CVAR_LASER_BRIGHT]), 255);
 }
 
 //====================================================

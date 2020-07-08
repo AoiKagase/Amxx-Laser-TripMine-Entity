@@ -23,6 +23,8 @@
 #define ENT_CLASS_LASER				"lasermine"
 #define ENT_CLASS_BREAKABLE			"func_breakable"
 #define MAX_LASER_ENTITY			128
+#define MAX_EXPLOSION_DECALS 		3
+#define MAX_BLOOD_DECALS 			10
 
 #define OFFSET_TEAM 				114
 #define OFFSET_MONEY				115

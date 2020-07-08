@@ -12,38 +12,42 @@
 
 #include <lasermine_const>
 
-new int:gPlayerInt[MAX_PLAYERS][PLAYER_DATA_INT];
-new Float:gPlayerFloat[MAX_PLAYERS][PLAYER_DATA_FLOAT];
+new int:gPlayerInt		[MAX_PLAYERS][PLAYER_DATA_INT];
+new Float:gPlayerFloat	[MAX_PLAYERS][PLAYER_DATA_FLOAT];
+new gDecalIndexExplosion[MAX_EXPLOSION_DECALS]
+new gDecalIndexBlood	[MAX_BLOOD_DECALS]
+new gNumDecalsExplosion
+new gNumDecalsBlood
 
 //====================================================
 //  Player Data functions
 //====================================================
-stock lm_set_user_delay_count	(id, int:value) 	{ gPlayerInt[id][PLAYER_DELAY_COUNT]	= int:value; }
-stock lm_set_user_have_mine		(id, int:value) 	{ gPlayerInt[id][PLAYER_HAVE_MINE]		= int:value; }
-stock lm_set_user_mine_deployed	(id, int:value)		{ gPlayerInt[id][PLAYER_DEPLOYED]		= int:value; }
-stock lm_set_user_deploy_state	(id, int:value)		{ gPlayerInt[id][PLAYER_MINE_SETTING]	= int:value; }
-stock lm_set_user_health		(id, Float:health)	{ health > 0 ? set_pev(id, pev_health, health) : user_kill(id, 1); }
-stock lm_set_user_frags			(id, int:frags)		{ set_pev(id, pev_frags, frags); }
-stock lm_save_user_max_speed	(id, Float:value)	{ gPlayerFloat[id][PLAYER_MAX_SPEED]	= Float:value; }
-stock lm_set_user_max_speed		(id, Float:value)	{ engfunc(EngFunc_SetClientMaxspeed, id, value);set_pev(id, pev_maxspeed, value); }
+stock lm_set_user_delay_count		(id, int:value) 	{ gPlayerInt[id][PLAYER_DELAY_COUNT]	= int:value; }
+stock lm_set_user_have_mine			(id, int:value) 	{ gPlayerInt[id][PLAYER_HAVE_MINE]		= int:value; }
+stock lm_set_user_mine_deployed		(id, int:value)		{ gPlayerInt[id][PLAYER_DEPLOYED]		= int:value; }
+stock lm_set_user_deploy_state		(id, int:value)		{ gPlayerInt[id][PLAYER_MINE_SETTING]	= int:value; }
+stock lm_set_user_health			(id, Float:health)	{ health > 0 ? set_pev(id, pev_health, health) : user_kill(id, 1); }
+stock lm_set_user_frags				(id, int:frags)		{ set_pev(id, pev_frags, frags); }
+stock lm_save_user_max_speed		(id, Float:value)	{ gPlayerFloat[id][PLAYER_MAX_SPEED]	= Float:value; }
+stock lm_set_user_max_speed			(id, Float:value)	{ engfunc(EngFunc_SetClientMaxspeed, id, value);set_pev(id, pev_maxspeed, value); }
 
-stock int:lm_get_user_delay_count	(id) 			{ return int:gPlayerInt[id][PLAYER_DELAY_COUNT]; }
-stock int:lm_get_user_have_mine	(id) 				{ return int:gPlayerInt[id][PLAYER_HAVE_MINE]; }
-stock int:lm_get_user_mine_deployed(id) 			{ return int:gPlayerInt[id][PLAYER_DEPLOYED]; }
-stock int:lm_get_user_deploy_state	(id)			{ return int:gPlayerInt[id][PLAYER_MINE_SETTING]; }
-stock Float:lm_load_user_max_speed	(id)			{ return Float:gPlayerFloat[id][PLAYER_MAX_SPEED]; }
-stock Float:lm_get_user_max_speed	(id)			{ return Float:pev(id, pev_maxspeed); }
-stock Float:lm_get_user_health	(id)
+stock int:lm_get_user_delay_count	(id) 				{ return int:gPlayerInt[id][PLAYER_DELAY_COUNT]; }
+stock int:lm_get_user_have_mine		(id) 				{ return int:gPlayerInt[id][PLAYER_HAVE_MINE]; }
+stock int:lm_get_user_mine_deployed	(id) 				{ return int:gPlayerInt[id][PLAYER_DEPLOYED]; }
+stock int:lm_get_user_deploy_state	(id)				{ return int:gPlayerInt[id][PLAYER_MINE_SETTING]; }
+stock Float:lm_load_user_max_speed	(id)				{ return Float:gPlayerFloat[id][PLAYER_MAX_SPEED]; }
+stock Float:lm_get_user_max_speed	(id)				{ return Float:pev(id, pev_maxspeed); }
+stock Float:lm_get_user_health		(id)
 {
 	new Float:health;
 	pev(id, pev_health, health);
 	return health;
 }
-stock lm_get_user_frags			(id)				{ return pev(id, pev_frags);}
-stock bool:lm_is_user_godmode	(id) 				{ return (pev(id, pev_takedamage) == DAMAGE_NO); }
-stock bool:lm_is_user_alive		(id)				{ return (pev(id,pev_deadflag) == DEAD_NO);}
-stock bool:lm_get_user_buyzone	(id)				{ return bool:(get_pdata_int(id, OFFSET_MAPZONE) & PLAYER_IN_BUYZONE);}
-stock lm_get_entity_class_name	(id)
+stock lm_get_user_frags				(id)				{ return pev(id, pev_frags);}
+stock bool:lm_is_user_godmode		(id) 				{ return (pev(id, pev_takedamage) == DAMAGE_NO); }
+stock bool:lm_is_user_alive			(id)				{ return (pev(id,pev_deadflag) == DEAD_NO);}
+stock bool:lm_get_user_buyzone		(id)				{ return bool:(get_pdata_int(id, OFFSET_MAPZONE) & PLAYER_IN_BUYZONE);}
+stock lm_get_entity_class_name		(id)
 {
 	new entityName[MAX_NAME_LENGTH];
 	pev(id, pev_classname, entityName, charsmax(entityName));
@@ -246,24 +250,124 @@ stock lm_draw_laser(
 //====================================================
 // Effect Explosion.
 //====================================================
-stock lm_create_explosion(iEnt, boom)
+// stock lm_create_explosion(iEnt, boom)
+// {
+// 	// Stop laser line.
+// 	lm_stop_laserline(iEnt);
+
+// 	// Get position.
+// 	new Float:vOrigin[3];
+// 	pev(iEnt, pev_origin, vOrigin);
+
+// 	// Boooom.
+// 	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, vOrigin, 0);
+// 	write_byte(TE_EXPLOSION);
+// 	engfunc(EngFunc_WriteCoord, vOrigin[0]);
+// 	engfunc(EngFunc_WriteCoord, vOrigin[1]);
+// 	engfunc(EngFunc_WriteCoord, vOrigin[2]);
+// 	write_short(boom);
+// 	write_byte(30);
+// 	write_byte(15);
+// 	write_byte(0);
+// 	message_end();
+// }
+
+stock lm_create_explosion(iEnt, const Float:fDamage, const Float:fRadius, sprExplosion1, sprExplosion2, sprBlast) 
 {
 	// Stop laser line.
 	lm_stop_laserline(iEnt);
 
-	// Get position.
-	new Float:vOrigin[3];
-	pev(iEnt, pev_origin, vOrigin);
+	new Float:fOrigin[3];
+	pev(iEnt, pev_origin, fOrigin);
 
-	// Boooom.
-	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, vOrigin, 0);
+	new Float:fZPos = (fDamage + ((fRadius * 3.0) / 2.0)) / 8.0;
+
+	if(fZPos < 25.0)
+		fZPos = 25.0;
+	else
+	if(fZPos > 500.0)
+		fZPos = 500.0;
+
+	new Float:fIntensity = (fDamage + ((fRadius * 7.0) / 4.0)) / 32.0;
+
+	if(fIntensity < 12.0)
+		fIntensity = 12.0;
+	else
+	if(fIntensity > 128.0)
+		fIntensity = 128.0;
+
+	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, fOrigin, 0);
 	write_byte(TE_EXPLOSION);
-	engfunc(EngFunc_WriteCoord, vOrigin[0]);
-	engfunc(EngFunc_WriteCoord, vOrigin[1]);
-	engfunc(EngFunc_WriteCoord, vOrigin[2]);
-	write_short(boom);
-	write_byte(30);
-	write_byte(15);
+	write_coord(floatround(fOrigin[0]));
+	write_coord(floatround(fOrigin[1]));
+	write_coord(floatround(fOrigin[2]) + floatround(fZPos));
+	write_short(sprExplosion1);
+	write_byte(floatround(fIntensity));
+	write_byte(24);
+	write_byte(0);
+	message_end();
+
+	fZPos /= 6.0;
+
+	if(fZPos < 6.0)
+		fZPos = 6.0;
+	else
+	if(fZPos > 96.0)
+		fZPos = 96.0;
+
+	fIntensity = (fIntensity * 7.0) / 4.0;
+
+	if(fIntensity < 24.0)
+		fIntensity = 24.0;
+	else
+	if(fIntensity > 160.0)
+		fIntensity = 160.0;
+
+	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, fOrigin, 0);
+	write_byte(TE_EXPLOSION);
+	write_coord(floatround(fOrigin[0]));
+	write_coord(floatround(fOrigin[1]));
+	write_coord(floatround(fOrigin[2]) + floatround(fZPos));
+	write_short(sprExplosion2);
+	write_byte(floatround(fIntensity));
+	write_byte(20);
+	write_byte(0);
+	message_end();
+
+	fZPos = ((((fDamage * 3.0) / 2.0) + fRadius) * 4.0) / 6.0;
+
+	if(fZPos < 160.0)
+		fZPos = 160.0;
+	else
+	if(fZPos > 960.0)
+		fZPos = 960.0;
+
+	fIntensity = fRadius / 70.0;
+
+	if(fIntensity < 3.0) 
+		fIntensity = 3.0;
+	else 
+	if(fIntensity > 10.0)
+		fIntensity = 10.0;
+
+	engfunc(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, fOrigin, 0);
+	write_byte(TE_BEAMCYLINDER);
+	write_coord(floatround(fOrigin[0]));
+	write_coord(floatround(fOrigin[1]));
+	write_coord(floatround(fOrigin[2]));
+	write_coord(floatround(fOrigin[0]));
+	write_coord(floatround(fOrigin[1]));
+	write_coord(floatround(fOrigin[2]) + floatround(fZPos));
+	write_short(sprBlast);
+	write_byte(0);
+	write_byte(2);
+	write_byte(fIntensity);
+	write_byte(255);
+	write_byte(0);
+	write_byte(255);
+	write_byte(255);
+	write_byte(165);
+	write_byte(128);
 	write_byte(0);
 	message_end();
 }
@@ -408,7 +512,7 @@ stock lm_create_explosion_damage(iEnt, iAttacker, Float:dmgMax, Float:radius)
 				}
 			}
 			// Damage Effect, Damage, Killing Logic.
-			ExecuteHamB(Ham_TakeDamage, rEnt, iEnt, iAttacker, tmpDmg, DMG_MORTAR);
+			ExecuteHamB(Ham_TakeDamage, rEnt, iEnt, iAttacker, tmpDmg, DMG_BLAST);
 		}
 	}
 	return;
@@ -482,6 +586,248 @@ stock lm_remove_entity(iEnt)
 stock CsTeams:lm_get_laser_team(iEnt)
 {
 	return lm_get_user_team(pev(iEnt, LASERMINE_OWNER));
+}
+
+//====================================================
+// Decals
+//====================================================
+LoadDecals() 
+{
+	new const szExplosionDecals[MAX_EXPLOSION_DECALS][] = 
+	{
+		"{scorch1",
+		"{scorch2",
+		"{scorch3"
+	};
+
+	new const szBloodDecals[MAX_BLOOD_DECALS][] = 
+	{
+		"{blood1",
+		"{blood2",
+		"{blood3",
+		"{blood4",
+		"{blood5",
+		"{blood6",
+		"{blood7",
+		"{blood8",
+		"{bigblood1",
+		"{bigblood2"
+	};
+
+	new iDecalIndex, i;
+
+	for(i = 0; i < MAX_EXPLOSION_DECALS; i++) 
+	{
+		gDecalIndexExplosion[gNumDecalsExplosion++] = 
+			((iDecalIndex = get_decal_index(szExplosionDecals[i]))	> 0) ? iDecalIndex : 0;
+	}
+
+	for(i = 0; i < MAX_BLOOD_DECALS; i++) 
+	{
+		gDecalIndexBlood[gNumDecalsBlood++] = 
+			((iDecalIndex = get_decal_index(szBloodDecals[i]))		> 0) ? iDecalIndex : 0;
+	}
+}
+
+stock lm_create_water_explosion(iOrigin[3], const iDamage, const iRadius, sprExplosionWater) 
+{
+	new iZPos = (iDamage + ((iRadius * 3) / 2)) / 34;
+
+	if(iZPos < 8)
+		iZPos = 8;
+	else
+	if(iZPos > 128)
+		iZPos = 128;
+
+	new iIntensity = (iDamage + ((iRadius * 7) / 4)) / 14;
+
+	if(iIntensity < 32)
+		iIntensity = 32;
+	else
+	if(iIntensity > 164)
+		iIntensity = 164;
+
+	message_begin(MSG_PAS, SVC_TEMPENTITY, iOrigin);
+	write_byte(TE_EXPLOSION);
+	write_coord(iOrigin[0]);
+	write_coord(iOrigin[1]);
+	write_coord(iOrigin[2] + iZPos);
+	write_short(sprExplosionWater);
+	write_byte(iIntensity);
+	write_byte(16);
+	write_byte(0);
+	message_end();
+}
+
+stock lm_create_smoke(iOrigin[3], const iDamage, const iRadius, sprSmoke)
+{
+	new iZPos = (iDamage + ((iRadius * 3) / 2)) / 22;
+
+	if(iZPos < 8)
+		iZPos = 8;
+	else
+	if(iZPos > 192)
+		iZPos = 192;
+
+	new iIntensity = (iDamage + ((iRadius * 7) / 4)) / 11;
+
+	if(iIntensity < 32)
+		iIntensity = 32;
+	else
+	if(iIntensity > 192)
+		iIntensity = 192;
+
+	message_begin(MSG_PAS, SVC_TEMPENTITY, iOrigin);
+	write_byte(TE_SMOKE);
+	write_coord(iOrigin[0]);
+	write_coord(iOrigin[1]);
+	write_coord(iOrigin[2] + iZPos);
+	write_short(sprSmoke);
+	write_byte(iIntensity);
+	write_byte(4);
+	message_end();
+}
+
+stock lm_create_explosion_decals(iOrigin[3]) 
+{
+	message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
+	write_byte(TE_WORLDDECAL);
+	write_coord(iOrigin[0]);
+	write_coord(iOrigin[1]);
+	write_coord(iOrigin[2]);
+	write_byte(g_iExplosionDecalIndex[random(g_iExplosionDecalsNum)]);
+	message_end();
+}
+
+stock lm_create_bubbles(const Float:vOrigin[3], const Float:flDamageMax, const Float:flDamageRadius, sprBubbles) 
+{
+	new Float:flMaxSize = floatclamp((flDamageMax + (flDamageRadius * 1.5)) / 13.0, 24.0, 164.0);
+	new Float:vMins[3], Float:vMaxs[3];
+
+	xs_vec_sub(vOrigin, {flMaxSize, flMaxSize, flMaxSize}, vMins);
+	xs_vec_add(vOrigin, {flMaxSize, flMaxSize, flMaxSize}, vMaxs);
+
+	UTIL_Bubbles(vMins, vMaxs, 80, sprBubbles);
+}
+
+stock UTIL_ScreenShake(Float:vOrigin[3], const Float:flAmplitude, const Float:flDuration, const Float:flFrequency, const Float:flRadius) 
+{
+	new iPlayers[32], iPlayersNum;
+	get_players(iPlayers, iPlayersNum, "ac");
+
+	if(iPlayersNum > 0) 
+	{
+		new iPlayer;
+		new iAmplitude;
+		new Float:flLocalAmplitude;
+		new Float:flDistance;
+		new Float:vPlayerOrigin[3];
+
+		new iDuration	= FixedUnsigned16(flDuration, 1<<12);
+		new iFrequency	= FixedUnsigned16(flFrequency, 1<<8);
+
+		for(--iPlayersNum; iPlayersNum >= 0; iPlayersNum--) 
+		{
+			iPlayer = iPlayers[iPlayersNum];
+
+			flLocalAmplitude = 0.0;
+
+			if((pev(iPlayer, EV_INT_flags) & FL_ONGROUND) == 0)
+				continue;
+
+			pev(iPlayer, pev_origin, vPlayerOrigin);
+
+			if((flDistance = get_distance_f(vOrigin, vPlayerOrigin)) < flRadius) 
+				flLocalAmplitude = flAmplitude * ((flRadius - flDistance) / 100.0);
+
+			if(flLocalAmplitude > 0.0) 
+			{
+				iAmplitude = FixedUnsigned16(flLocalAmplitude, 1<<12);
+
+				static iMsgIDScreenShake;
+				if(iMsgIDScreenShake == 0) 
+					iMsgIDScreenShake = get_user_msgid("ScreenShake");
+
+				message_begin(MSG_ONE, iMsgIDScreenShake, _, iPlayer);
+				write_short(iAmplitude);
+				write_short(iDuration);
+				write_short(iFrequency);
+				message_end();
+			}
+		}
+	}
+}
+
+stock FixedUnsigned16(Float:flValue, iScale) 
+{
+	new iOutput = floatround(flValue * iScale);
+
+	if(iOutput < 0)
+		iOutput = 0;
+
+	if(iOutput > 0xFFFF)
+		iOutput = 0xFFFF;
+
+	return iOutput;
+}
+
+stock Float:UTIL_WaterLevel(const Float:vCenter[3], Float:vMinZ, Float:vMaxZ) 
+{
+	new Float:vMiddleUp[3];
+
+	vMiddleUp[0] = vCenter[0];
+	vMiddleUp[1] = vCenter[1];
+	vMiddleUp[2] = vMinZ;
+
+	if(PointContents(vMiddleUp) != CONTENTS_WATER)
+		return vMinZ;
+
+	vMiddleUp[2] = vMaxZ;
+
+	if(PointContents(vMiddleUp) == CONTENTS_WATER)
+		return vMaxZ;
+
+	new Float:flDiff = vMaxZ - vMinZ;
+
+	while(flDiff > 1.0) 
+	{
+		vMiddleUp[2] = vMinZ + flDiff / 2.0;
+
+		if(PointContents(vMiddleUp) == CONTENTS_WATER)
+			vMinZ = vMiddleUp[2];
+		else
+			vMaxZ = vMiddleUp[2];
+
+		flDiff = vMaxZ - vMinZ;
+	}
+
+	return vMiddleUp[2];
+}
+
+UTIL_Bubbles(const Float:vMins[3], const Float:vMaxs[3], const iCount, sprBubble)
+{
+	new Float:vCenter[3];
+	xs_vec_add(vMins, vMaxs, vCenter);
+	xs_vec_mul_scalar(vCenter, 0.5, vCenter);
+
+	new Float:flPosition = UTIL_WaterLevel(vCenter, vCenter[2], vCenter[2] + 1024.0) - vMins[2];
+
+	new iCenter[3];
+	FVecIVec(vCenter, iCenter);
+
+	message_begin(MSG_PAS, SVC_TEMPENTITY, iCenter);
+	write_byte(TE_BUBBLES);
+	write_coord(floatround(vMins[0]));
+	write_coord(floatround(vMins[1]));
+	write_coord(floatround(vMins[2]));
+	write_coord(floatround(vMaxs[0]));
+	write_coord(floatround(vMaxs[1]));
+	write_coord(floatround(vMaxs[2]));
+	write_coord(floatround(flPosition));
+	write_short(sprBubble);
+	write_byte(iCount);
+	write_coord(8);
+	message_end();
 }
 
 #if AMXX_VERSION_NUM < 190

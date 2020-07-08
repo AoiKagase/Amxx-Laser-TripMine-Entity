@@ -1,4 +1,4 @@
-// #pragma semicolon 1
+//#pragma semicolon 1
 //=============================================
 //	Plugin Writed by Visual Studio Code.
 //=============================================
@@ -182,6 +182,7 @@ enum CVAR_SETTING
 	CVAR_EXPLODE_RADIUS     ,   	// Explosion Radius.
 	CVAR_EXPLODE_DMG        ,   	// Explosion Damage.
 	CVAR_FRIENDLY_FIRE      ,   	// Friendly Fire.
+	CVAR_VIOLENCE_HBLOOD	,		// Violence High blood
 	CVAR_CBT                ,   	// Can buy team. TR/CT/ALL
 	CVAR_BUY_MODE           ,   	// Buy mode. 0 = off, 1 = on.
 	CVAR_START_DELAY        ,   	// Round start delay time.
@@ -356,7 +357,8 @@ public plugin_init()
 	gCvar[CVAR_CM_WIRE_COLOR_T] = register_cvar(fmt("%s%s", CVAR_TAG, "_cm_wire_color_t"),		"20,0,0"	);	// Team-Color for Terrorist. default:red (R,G,B)
 	gCvar[CVAR_CM_WIRE_COLOR_CT]= register_cvar(fmt("%s%s", CVAR_TAG, "_cm_wire_color_ct"),		"0,0,20"	);	// Team-Color for Counter-Terrorist. default:blue (R,G,B)
 	gCvar[CVAR_FRIENDLY_FIRE]  	= get_cvar_pointer("mp_friendlyfire");											// Friendly fire. 0 or 1
-
+	gCvar[CVAR_VIOLENCE_HBLOOD]	= get_cvar_pointer("violence_hblood");
+	
 	// Register Hamsandwich
 	RegisterHam(Ham_Spawn, 			"player", "NewRound", 		1);
 	RegisterHam(Ham_Item_PreFrame,	"player", "KeepMaxSpeed", 	1);
@@ -1722,9 +1724,11 @@ show_ammo(id)
 #else
 	new ammo[51];
 	if (get_pcvar_num(gCvar[CVAR_BUY_MODE]) != 0)
-		formatex(ammo, charsmax(ammo), "%L", id, LANG_KEY_STATE_AMMO, lm_get_user_have_mine(id), get_pcvar_num(gCvar[CVAR_MAX_HAVE]));
+		client_print(id, print_center, "%L", id, LANG_KEY_STATE_AMMO, lm_get_user_have_mine(id), get_pcvar_num(gCvar[CVAR_MAX_HAVE]));
+//		formatex(ammo, charsmax(ammo), "%L", id, LANG_KEY_STATE_AMMO, lm_get_user_have_mine(id), get_pcvar_num(gCvar[CVAR_MAX_HAVE]));
 	else
-		formatex(ammo, charsmax(ammo), "%L", id, LANG_KEY_STATE_INF);
+		client_print(id, print_center, "%L", id, LANG_KEY_STATE_INF);
+//		formatex(ammo, charsmax(ammo), "%L", id, LANG_KEY_STATE_INF);
 
 	if (pev_valid(id))
 		lm_show_status_text(id, ammo, gMsgStatusText);
@@ -2575,7 +2579,7 @@ stock ClearStack(Stack:handle)
 
 stock IndicatorGlow(iEnt)
 {
-	new Float:color[3]   = {0.0, 255.0, 0.0}
+	new Float:color[3]   = {0.0, 255.0, 0.0};
 	new Float:max_health = get_pcvar_float(gCvar[CVAR_MINE_HEALTH]);
 	new Float:cur_health = lm_get_user_health(iEnt);
 	new Float:percent	 = cur_health / max_health;

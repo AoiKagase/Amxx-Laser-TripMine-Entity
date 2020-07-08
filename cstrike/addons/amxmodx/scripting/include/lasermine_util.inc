@@ -695,7 +695,7 @@ stock lm_create_explosion_decals(iOrigin[3])
 	write_coord(iOrigin[0]);
 	write_coord(iOrigin[1]);
 	write_coord(iOrigin[2]);
-	write_byte(g_iExplosionDecalIndex[random(g_iExplosionDecalsNum)]);
+	write_byte(gDecalIndexExplosion[random(gNumDecalsExplosion)]);
 	message_end();
 }
 

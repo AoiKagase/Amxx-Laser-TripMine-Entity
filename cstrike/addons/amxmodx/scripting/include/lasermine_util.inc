@@ -714,85 +714,28 @@ stock lm_create_bubbles(const Float:vOrigin[3], const Float:flDamageMax, const F
 	UTIL_Bubbles(vMins, vMaxs, 80, sprBubbles);
 }
 
-stock lm_create_hblood(Float:vOrigin[3])
+stock lm_create_hblood(Float:vOrigin[], iDamageMax, sprBloodSpray, sprBlood)
 {
-	new Float:vBloodOrigin[4][3];
-	vBloodOrigin[0] = vOrigin;
+	// new iDecalIndex = g_iBloodDecalIndex[random_num(MAX_BLOOD_DECALS - 2, MAX_BLOOD_DECALS - 1)];
+	
+	// message_begin(MSG_BROADCAST, SVC_TEMPENTITY)
+	// write_byte(TE_WORLDDECAL)
+	// write_coord(iBloodOrigin[a][0])
+	// write_coord(iBloodOrigin[a][1])
+	// write_coord(iTraceEndZ[a])
+	// write_byte(iDecalIndex)
+	// message_end()
 
-	const Float:flMinInvalidOrigin = 50.0;
-	const Float:flCoef = 0.375;
-
-	new bool:bInvalidOrigin[4]
-	new i, a, iBloodOrigin[4][3], iTraceEndZ[4]
-	new Float:flDistances[4] = {60.0, 120.0, 150.0, 170.0};
-	new Float:flResult = vector_length(vBloodOrigin[0])
-	new Float:flUnit,Float:flDiff, Float:vTraceResult[3], Float:vTraceEnd[4][3], Float:vTemp[3];
-
-	do
-	{
-		DoLoop:
-		flUnit = flDistances[i] / flResult;
-
-		vBloodOrigin[i] = vOrigin;
-
-		vTemp[0] = vBloodOrigin[i][0] = (vBloodOrigin[i][0] * flUnit) + vOrigin[0] + ((i < 2) ? 0.0 : random_float(-30.0, 30.0));
-		vTemp[1] = vBloodOrigin[i][1] = (vBloodOrigin[i][1] * flUnit) + vOrigin[1] + ((i < 2) ? 0.0 : random_float(-30.0, 30.0));
-		vBloodOrigin[i][2] = (vBloodOrigin[i][2] * flUnit) + vEntityOrigin[2];
-
-		vTemp[2] = -8192.0;
-
-		trace_line(iEntity, vEntityOrigin, vBloodOrigin[i], vTraceResult);
-		trace_line(-1, vBloodOrigin[i], vTemp, vTraceEnd[i]);
-
-		if(bInvalidOrigin[i] == false && vTraceEnd[i][2] < vTraceResult[2] && (flDiff = (vTraceResult[2] - vTraceEnd[i][2])) > flMinInvalidOrigin) {
-			bInvalidOrigin[i] = true
-			flDistances[i] *= floatclamp(((flDiff / flMinInvalidOrigin) * flCoef) + 1.0, 1.0, 3.0)
-
-			goto DoLoop
-		}
-
-								if(vBloodOrigin[i][0] != vTraceResult[0] || vBloodOrigin[i][1] != vTraceResult[1] || vBloodOrigin[i][2] != vTraceResult[2]) {
-									vBloodOrigin[i][0] = vTraceResult[0]
-									vBloodOrigin[i][1] = vTraceResult[1]
-									vTraceEnd[i][2] = vTraceResult[2] + random_float(-12.0, 12.0)
-								}
-
-								FVecIVec(vBloodOrigin[i], iBloodOrigin[i])
-								iTraceEndZ[i] = floatround(vTraceEnd[i][2])
-							}
-							while(++i < 4 && ((i < 2) ? true : (flDamageMax >= flExtraBloodValue)))
-
-							if(iCvarHBlood) {
-								new iDecalIndex
-
-								for(a = 0; a < i; a++) {
-									if(a == 0 && flDamageMax >= flExtraBloodValue) {
-										iDecalIndex = g_iBloodDecalIndex[random_num(MAX_BLOOD_DECALS - 2, MAX_BLOOD_DECALS - 1)]
-									}
-									else {
-										iDecalIndex = g_iBloodDecalIndex[random(MAX_BLOOD_DECALS - 2)]
-									}	
-
-									message_begin(MSG_BROADCAST, SVC_TEMPENTITY)
-									write_byte(TE_WORLDDECAL)
-									write_coord(iBloodOrigin[a][0])
-									write_coord(iBloodOrigin[a][1])
-									write_coord(iTraceEndZ[a])
-									write_byte(iDecalIndex)
-									message_end()
-
-									message_begin(MSG_PAS, SVC_TEMPENTITY, iBloodOrigin[a])
-									write_byte(TE_BLOODSPRITE)
-									write_coord(iBloodOrigin[a][0])
-									write_coord(iBloodOrigin[a][1])
-									write_coord(iBloodOrigin[a][2] + random_num(-5, 20))
-									write_short(g_sprBloodSpray)
-									write_short(g_sprBlood)
-									write_byte(248)
-									write_byte(clamp(iDamageMax / 13, 5, 16))
-									message_end()
-								}
-							}	
+	engfunc(EngFunc_MessageBegin, MSG_PAS, SVC_TEMPENTITY, vOrigin, 0);
+	write_byte(TE_BLOODSPRITE);
+	engfunc(EngFunc_WriteCoord, vOrigin[0]);
+	engfunc(EngFunc_WriteCoord, vOrigin[1]);
+	engfunc(EngFunc_WriteCoord, vOrigin[2] + random_num(-5, 20));
+	write_short(sprBloodSpray);
+	write_short(sprBlood);
+	write_byte(248);
+	write_byte(clamp(iDamageMax / 13, 5, 16));
+	message_end();
 }
 
 stock UTIL_ScreenShake(Float:vOrigin[3], const Float:flAmplitude, const Float:flDuration, const Float:flFrequency, const Float:flRadius) 

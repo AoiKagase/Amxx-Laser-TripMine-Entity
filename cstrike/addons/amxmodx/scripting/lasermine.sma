@@ -984,28 +984,65 @@ set_laserend_postiion(iEnt, Float:vNormal[3], Float:vNewOrigin[3], bool:claymore
 	// Calculate laser end origin.
 	new Float:vBeamEnd[3];
 	new Float:vTracedBeamEnd[3];
+	new Float:vTemp[3];
 	new Float:range = get_pcvar_float(gCvar[CVAR_LASER_RANGE]);
 	new Float:claymoreNormal[3];
+	new Float:fFraction = 0.0;
+	new iIgnore;
+	new className[MAX_NAME_LENGTH];
+	new trace;	
 	claymoreNormal = vNormal;
 	xs_vec_mul_scalar(vNormal, range, vNormal );
 	xs_vec_add( vNewOrigin, vNormal, vBeamEnd );
 
-    // create the trace handle.
-	new trace = create_tr2();
-	// (const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip, TraceResult *ptr);
-	engfunc(EngFunc_TraceLine, vNewOrigin, vBeamEnd, IGNORE_MONSTERS, -1, trace);
-	{
-		get_tr2(trace, TR_vecEndPos, vTracedBeamEnd);
-	}
-    // free the trace handle.
-	free_tr2(trace);
-	set_pev(iEnt, LASERMINE_BEAMENDPOINT1, vTracedBeamEnd);
-
-	// calucrate claymore wire end point.
 	if (claymore)
 	{
+		// create the trace handle.
+		trace = create_tr2();
+		// (const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip, TraceResult *ptr);
+		engfunc(EngFunc_TraceLine, vNewOrigin, vBeamEnd, IGNORE_MONSTERS, -1, trace);
+		{
+			get_tr2(trace, TR_vecEndPos, vTracedBeamEnd);
+		}
+		// free the trace handle.
+		free_tr2(trace);
+		set_pev(iEnt, LASERMINE_BEAMENDPOINT1, vTracedBeamEnd);
+
+		// calucrate claymore wire end point.
 		set_claymore_endpoint(iEnt, vNewOrigin, claymoreNormal);
-		return;
+	}
+	else
+	{
+		// create the trace handle.
+		vTracedBeamEnd	= vBeamEnd;
+		vTemp 			= vNewOrigin;
+		iIgnore 		= -1;
+
+		// Trace line
+		while(fFraction < 1.0)
+		{
+	 		trace = create_tr2();
+ 			engfunc(EngFunc_TraceLine, vTemp, vBeamEnd, (IGNORE_MONSTERS | IGNORE_GLASS), iIgnore, trace);
+			{
+				get_tr2(trace, TR_flFraction, fFraction);
+				get_tr2(trace, TR_vecEndPos, vTemp);
+				iIgnore = get_tr2(trace, TR_pHit);
+
+				// is valid hit entity?
+				if (pev_valid(iIgnore))
+				{
+					pev(iIgnore, pev_classname, className, charsmax(className));
+					if (!equali(className, ENT_CLASS_BREAKABLE))
+					{
+						break;
+					}
+				} else {
+					break;
+				}
+			}
+			free_tr2(trace);
+		}
+		vTracedBeamEnd = vTemp;		
 	}
 	set_pev(iEnt, LASERMINE_BEAMENDPOINT2, vTracedBeamEnd);
 	set_pev(iEnt, LASERMINE_BEAMENDPOINT3, vTracedBeamEnd);
@@ -1606,7 +1643,6 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 	if (get_pcvar_num(gCvar[CVAR_DIFENCE_SHIELD]) && hitGroup == HIT_SHIELD)
 	{
 		lm_play_sound(iTarget, SOUND_HIT_SHIELD);
-
 		lm_draw_spark(hitPoint);
 		lm_hit_shield(iTarget, dmg);
 	}
@@ -1614,31 +1650,11 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 	{
 		lm_play_sound(iTarget, SOUND_HIT);
 		lm_set_user_lasthit(iTarget, hitGroup);
-
-		// if (is_user_friend(iAttacker, iTarget))
-		// {
-		// 	// Hit
-		// 	new CsTeams:aTeam = cs_get_user_team(iAttacker);
-		// 	cs_set_user_team(iAttacker, int:((aTeam == CS_TEAM_T) ? CS_TEAM_CT : CS_TEAM_T), _, false);
-		// 	// Damage Effect, Damage, Killing Logic.
-		// 	ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, get_pcvar_float(gCvar[CVAR_LASER_DMG]), DMG_ENERGYBEAM);
-		// 	cs_set_user_team(iAttacker, int:aTeam, _, false);
-		// }
-		// else
-		// {
-		// Damage Effect, Damage, Killing Logic.
+		if (get_pcvar_num(gCvar[CVAR_VIOLENCE_HBLOOD]))
+			lm_create_hblood(hitPoint, floatround(dmg), gSprBloodSpray, gSprBlood);
 		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, get_pcvar_float(gCvar[CVAR_LASER_DMG]), DMG_ENERGYBEAM);
-		// }
 	}
-	set_pev(iEnt, LASERMINE_HITING, iTarget);		
-	
-	// // is target func_breakable?
-	// if (equali(entityName, ENT_CLASS_BREAKABLE))
-	// {
-	// 	ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, get_pcvar_float(gCvar[CVAR_LASER_DMG]));
-	// 	// damage it.
-	// 	//set_user_health(iTarget, Float:(fm_get_user_health(iTarget) - get_pcvar_float(gCvar[CVAR_LASER_DMG])));
-	// }
+	set_pev(iEnt, LASERMINE_HITING, iTarget);
 	return;
 }
 

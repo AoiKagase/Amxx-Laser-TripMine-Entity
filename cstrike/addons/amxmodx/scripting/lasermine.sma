@@ -543,6 +543,7 @@ public plugin_precache()
 	precache_sound(ENT_SOUND8);
 	precache_sound(ENT_SOUND9);
 	precache_model(ENT_MODELS);
+
 	gSprBeam 			= precache_model(ENT_SPRITE_LASER);
 	gSprExplosion1 		= precache_model(ENT_SPRITE_EXPLOSION1);
 	gSprExplosion2 		= precache_model(ENT_SPRITE_EXPLOSION2);
@@ -607,14 +608,6 @@ bool:is_valid_takedamage(iAttacker, iTarget)
 
 	return false;
 }
-
-// bool:is_user_friend(iAttacker, iTarget)
-// {
-// 	if (get_pcvar_num(gCvar[CVAR_FRIENDLY_FIRE]))
-// 	if (cs_get_user_team(iAttacker) == cs_get_user_team(iTarget))
-// 		return true;
-// 	return false;
-// }
 
 //====================================================
 // Round Start Initialize
@@ -836,29 +829,23 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 {
 	// Entity Setting.
 	// set class name.
-	set_pev(iEnt, pev_classname, classname);
-
+	set_pev(iEnt, pev_classname, 		classname);
 	// set models.
-	engfunc(EngFunc_SetModel, iEnt, ENT_MODELS);
-
+	engfunc(EngFunc_SetModel, iEnt, 	ENT_MODELS);
 	// set solid.
-	set_pev(iEnt, pev_solid, SOLID_NOT);
-
+	set_pev(iEnt, pev_solid, 			SOLID_NOT);
 	// set movetype.
-	set_pev(iEnt, pev_movetype, MOVETYPE_FLY);
-
+	set_pev(iEnt, pev_movetype, 		MOVETYPE_FLY);
 	// set model animation.
-	set_pev(iEnt, pev_frame,		0);
-	set_pev(iEnt, pev_body, 		3);
-	set_pev(iEnt, pev_sequence, 	TRIPMINE_WORLD);
-	set_pev(iEnt, pev_framerate,	0);
-	set_pev(iEnt, pev_rendermode,	kRenderNormal);
-	set_pev(iEnt, pev_renderfx,	 	kRenderFxNone);
-
+	set_pev(iEnt, pev_frame,			0);
+	set_pev(iEnt, pev_body, 			3);
+	set_pev(iEnt, pev_sequence, 		TRIPMINE_WORLD);
+	set_pev(iEnt, pev_framerate,		0);
+	set_pev(iEnt, pev_rendermode,		kRenderNormal);
+	set_pev(iEnt, pev_renderfx,	 		kRenderFxNone);
 	// set take damage.
-	set_pev(iEnt, pev_takedamage, DAMAGE_YES);
-	set_pev(iEnt, pev_dmg, 100.0);
-
+	set_pev(iEnt, pev_takedamage, 		DAMAGE_YES);
+	set_pev(iEnt, pev_dmg, 				100.0);
 	// set entity health.
 	// if recycle health.
 #if AMXX_VERSION_NUM > 183
@@ -866,48 +853,42 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 	{
 		new Float:health;
 		PopStackCell(gRecycleMine[uID], health);
-		lm_set_user_health(iEnt, health);
+		lm_set_user_health(iEnt, 		health);
 	}
 	else
 	{
-		lm_set_user_health(iEnt, get_pcvar_float(gCvar[CVAR_MINE_HEALTH]));
+		lm_set_user_health(iEnt, 		get_pcvar_float(gCvar[CVAR_MINE_HEALTH]));
 	}
 #else
-	lm_set_user_health(iEnt, get_pcvar_float(gCvar[CVAR_MINE_HEALTH]));
+	lm_set_user_health(iEnt, 			get_pcvar_float(gCvar[CVAR_MINE_HEALTH]));
 #endif
 	// set mine position
 	set_mine_position(uID, iEnt);
-
 	new authid[MAX_AUTHID_LENGTH];
-	get_user_authid(uID, authid, charsmax(authid));
-	set_pev(iEnt, pev_netname, authid);
-	// Save results to be used later.
-	set_pev(iEnt, LASERMINE_OWNER, uID );
-
 	// Reset powoer on delay time.
 	new Float:fCurrTime = get_gametime();
-	set_pev(iEnt, LASERMINE_POWERUP, fCurrTime + 2.5 );   
-	set_pev(iEnt, LASERMINE_STEP, POWERUP_THINK);
-	set_pev(iEnt, LASERMINE_COUNT, fCurrTime);
-	set_pev(iEnt, LASERMINE_BEAMTHINK, fCurrTime);
-
+	get_user_authid(uID, authid, 		charsmax(authid));
+	set_pev(iEnt, pev_netname, 			authid);
+	// Save results to be used later.
+	set_pev(iEnt, LASERMINE_OWNER, 		uID);
+	set_pev(iEnt, LASERMINE_POWERUP,	fCurrTime + 2.5);
+	set_pev(iEnt, LASERMINE_STEP, 		POWERUP_THINK);
+	set_pev(iEnt, LASERMINE_COUNT,		fCurrTime);
+	set_pev(iEnt, LASERMINE_BEAMTHINK,	fCurrTime);
 	// think rate. hmmm....
-	set_pev(iEnt, pev_nextthink, fCurrTime + 0.2 );
-
+	set_pev(iEnt, pev_nextthink, 		fCurrTime + 0.2 );
 	// Power up sound.
-	lm_play_sound(iEnt, SOUND_POWERUP);
-
+	lm_play_sound(iEnt, 				SOUND_POWERUP);
 	// Cound up. deployed.
-	lm_set_user_mine_deployed(uID, lm_get_user_mine_deployed(uID) + int:1);
+	lm_set_user_mine_deployed(uID, 		lm_get_user_mine_deployed(uID) + int:1);
 	// Cound down. have ammo.
-	lm_set_user_have_mine(uID, lm_get_user_have_mine(uID) - int:1);
+	lm_set_user_have_mine(uID, 			lm_get_user_have_mine(uID) - int:1);
+	// Set Flag. end progress.
+	lm_set_user_deploy_state(uID, 		int:STATE_DEPLOYED);
+	gDeployingMines[uID] = 0;
 
 	// Refresh show ammo.
 	show_ammo(uID);
-
-	// Set Flag. end progress.
-	lm_set_user_deploy_state(uID, int:STATE_DEPLOYED);
-	gDeployingMines[uID] = 0;
 }
 
 //====================================================
@@ -919,6 +900,7 @@ set_mine_position(uID, iEnt)
 	new Float:vOrigin	[3],Float:vViewOfs	[3];
 	new	Float:vNewOrigin[3],Float:vNormal	[3];
 	new	Float:vTraceEnd	[3],Float:vEntAngles[3];
+	new Float:vDecals	[3];
 	new bool:mode_claymore = (get_pcvar_num(gCvar[CVAR_MODE]) == MODE_BF4_CLAYMORE);
 
 	// get user position.
@@ -949,6 +931,7 @@ set_mine_position(uID, iEnt)
     // free the trace handle.
 	free_tr2(trace);
 
+	xs_vec_add( vTraceEnd, vNormal, vDecals);
 	xs_vec_mul_scalar( vNormal, 8.0, vNormal );
 	xs_vec_add( vTraceEnd, vNormal, vNewOrigin );
 
@@ -956,7 +939,7 @@ set_mine_position(uID, iEnt)
 	engfunc(EngFunc_SetSize, iEnt, Float:{ -4.0, -4.0, -4.0 }, Float:{ 4.0, 4.0, 4.0 } );
 	// set entity position.
 	engfunc(EngFunc_SetOrigin, iEnt, vNewOrigin );
-
+	set_pev(iEnt, LASERMINE_DECALS, vDecals);
 	// Claymore user Angles.
 	if (mode_claymore)
 	{
@@ -969,8 +952,8 @@ set_mine_position(uID, iEnt)
 		vector_to_angle(vNormal, vEntAngles);
 		// set angle.
 		set_pev(iEnt, pev_angles, vEntAngles);
-		// set claymore wire end point position.
-		set_wireend_position(iEnt, vNormal, vNewOrigin);
+		// calucrate claymore wire end point.
+		set_claymore_endpoint(iEnt, vNewOrigin);
 	}
 	else
 	{
@@ -979,34 +962,9 @@ set_mine_position(uID, iEnt)
 		// set angle.
 		set_pev(iEnt, pev_angles, vEntAngles);
 		// set laserbeam end point position.
-		set_laserend_postiion(iEnt, vNormal, vNewOrigin, mode_claymore);
+		set_laserend_postiion(iEnt, vNormal, vNewOrigin);
 	}
 
-}
-
-//====================================================
-// set claymore wire end point position.
-//====================================================
-set_wireend_position(iEnt, Float:vNormal[3], Float:vNewOrigin[3])
-{
-	new Float:vBeamEnd[3];
-	new Float:vTracedBeamEnd[3];
-	new Float:range = get_pcvar_float(gCvar[CVAR_LASER_RANGE]);
-
-	xs_vec_mul_scalar(vNormal, range, vNormal );
-	xs_vec_add( vNewOrigin, vNormal, vBeamEnd );
-
-	// create the trace handle.
-	new trace = create_tr2();
-	engfunc(EngFunc_TraceLine, vNewOrigin, vBeamEnd, IGNORE_MONSTERS, -1, trace);
-	{
-		get_tr2(trace, TR_vecEndPos, vTracedBeamEnd);
-	}
-	// free the trace handle.
-	free_tr2(trace);
-	set_pev(iEnt, LASERMINE_BEAMENDPOINT1, vTracedBeamEnd);
-	// calucrate claymore wire end point.
-	set_claymore_endpoint(iEnt, vNewOrigin, vNormal);
 }
 
 //====================================================
@@ -1044,17 +1002,22 @@ set_laserend_postiion(iEnt, Float:vNormal[3], Float:vNewOrigin[3])
 			get_tr2(trace, TR_vecEndPos, vTemp);
 			iIgnore = get_tr2(trace, TR_pHit);
 
-			// is valid hit entity?
-			if (pev_valid(iIgnore))
+			if (get_pcvar_num(gCvar[CVAR_MODE]) == MODE_LASERMINE)
 			{
-				pev(iIgnore, pev_classname, className, charsmax(className));
-				if (!equali(className, ENT_CLASS_BREAKABLE))
+				// is valid hit entity?
+				if (pev_valid(iIgnore))
 				{
+					pev(iIgnore, pev_classname, className, charsmax(className));
+					if (!equali(className, ENT_CLASS_BREAKABLE))
+					{
+						break;
+					}
+				} else {
 					break;
 				}
-			} else {
-				break;
 			}
+			else
+				break;
 		}
 		free_tr2(trace);
 	}
@@ -1250,7 +1213,7 @@ public LaserThink(iEnt)
 		return HAM_IGNORED;
 
 	static Float:fCurrTime;
-	static Float:vEnd[3];
+	static Float:vEnd[3][3];
 	static TRIPMINE_THINK:step;
 
 	fCurrTime = get_gametime();
@@ -1260,285 +1223,43 @@ public LaserThink(iEnt)
 	pev(iEnt, LASERMINE_BEAMENDPOINT1, vEnd[0]);
 	pev(iEnt, LASERMINE_BEAMENDPOINT2, vEnd[1]);
 	pev(iEnt, LASERMINE_BEAMENDPOINT3, vEnd[2]);
+	// Get owner id.
+	new iOwner	= pev(iEnt, LASERMINE_OWNER);
+	new mode_cm = get_pcvar_num(gCvar[CVAR_MODE]);
 
+	// lasermine state.
 	switch(step)
 	{
+		// Power up.
 		case POWERUP_THINK:
 		{
 			lm_step_powerup(iEnt, fCurrTime);
-			return HAM_HANDLED;
 		}
 		case BEAMUP_THINK:
 		{
-			if (get_pcvar_num(gCvar[CVAR_MODE]) == MODE_BF4_CLAYMORE)
+			if (mode_cm == MODE_BF4_CLAYMORE)
 				lm_step_wireup(iEnt, vEnd, fCurrTime);
 			else
 				lm_step_beamup(iEnt, vEnd[0], fCurrTime);
 		}
+		// Laser line activated.
 		case BEAMBREAK_THINK:
 		{
-
+			if (mode_cm == MODE_BF4_CLAYMORE)
+				lm_step_wirebreak(iEnt, vEnd, fCurrTime);
+			else
+				lm_step_beambreak(iEnt, vEnd[0], fCurrTime);
 		}
 		case EXPLOSE_THINK:
-	}
-	static loop;
-	loop = get_pcvar_num(gCvar[CVAR_MODE]) == MODE_BF4_CLAYMORE ? 3 : 1;
-
-
-	// lasermine state.
-	// Power up.
-	if (step == TRIPMINE_THINK:POWERUP_THINK)
-	{
-	}
-	static Float:vEnd[3][3]; // Claymore 3 point
-	static Float:vOrigin[3];
-
-	// Get this mine position.
-	pev(iEnt, pev_origin, vOrigin);
-	// Get Laser line end potision.
-	pev(iEnt, LASERMINE_BEAMENDPOINT1, vEnd[0]);
-	pev(iEnt, LASERMINE_BEAMENDPOINT2, vEnd[1]);
-	pev(iEnt, LASERMINE_BEAMENDPOINT3, vEnd[2]);
-
-	if (step == TRIPMINE_THINK:BEAMUP_THINK)
-	{
-	}
-	// Get owner id.
-	new iOwner = pev(iEnt, LASERMINE_OWNER);
-
-	// Laser line activated.
-	if (step == TRIPMINE_THINK:BEAMBREAK_THINK)
-	{
-		static Array:aTarget;
-		static hPlayer[HIT_PLAYER];
-		static iTarget;
-		static hitGroup;
-		static iIgnoreEnt;
-		static trace;
-		static Float:fFraction;
-		static Float:hitPoint[3];
-		static Float:reStartPos[3];
-		static Float:nextTime = 0.0;
-		static Float:beamTime = 0.0;
-
-		pev(iEnt, LASERMINE_COUNT, nextTime);
-		pev(iEnt, LASERMINE_BEAMTHINK, beamTime);
-		if (fCurrTime > beamTime)
 		{
-			for(new i = 0; i < loop; i++)
-			{
-				// drawing spark.
-				if (get_pcvar_num(gCvar[CVAR_LASER_VISIBLE]) )
-				{
-					draw_laserline(iEnt, vEnd[i]);
-					if(get_pcvar_num(gCvar[CVAR_REALISTIC_DETAIL])) 
-						lm_draw_spark_for_wall(hitPoint);
-				}
-			}
-			set_pev(iEnt, LASERMINE_BEAMTHINK, fCurrTime + random_float(0.1, 0.2));
+			// Stopping sound.
+			lm_play_sound(iEnt, SOUND_STOP);
+			// Effect Explosion.
+			lm_step_explosion(iEnt, iOwner);
 		}
-
-		if (get_pcvar_num(gCvar[CVAR_MODE]) == MODE_LASERMINE 
-		&&  get_pcvar_num(gCvar[CVAR_LASER_DMG_MODE]) != 0)
-		{
-			if (fCurrTime < nextTime)
-			{
-				// Think time.
-				// Think time. random_float = laser line blinking.
-				set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
-				return HAM_HANDLED;
-			}
-		}
-		aTarget = ArrayCreate(sizeof(hPlayer));
-
-		// create the trace handle.
-		trace = create_tr2();
-
-		for(new i = 0; i < loop; i++)
-		{
-			fFraction	= 0.0;
-			iTarget	= iEnt;
-			ArrayClear(aTarget);
-			hitPoint = vOrigin;
-			set_pev(iEnt, LASERMINE_COUNT, get_gametime());
-
-			// Trace line
-			while(fFraction < 1.0)
-			{
-				// Trace line
-				engfunc(EngFunc_TraceLine, hitPoint, vEnd[i], DONT_IGNORE_MONSTERS, iTarget, trace);
-				{
-					get_tr2(trace, TR_flFraction, fFraction);
-					iTarget		= get_tr2(trace, TR_pHit);
-					hitGroup	= get_tr2(trace, TR_iHitgroup);
-					get_tr2(trace, TR_vecEndPos, hitPoint);				
-				}
-
-				// Something has passed the laser.
-				if (fFraction < 1.0)
-				{
-					// is valid hit entity?
-					if (pev_valid(iTarget))
-					{
-						pev(iTarget, pev_classname, className, charsmax(className));
-						// Func_breakable?
-						if (equali(className, ENT_CLASS_BREAKABLE) || equali(className, ENT_CLASS_LASER))
-						{
-							hPlayer[I_TARGET] 	= iTarget;
-							hPlayer[V_POSITION]	= _:vHitPoint;
-							hPlayer[I_HIT_GROUP]= hitGroup;
-							ArrayPushArray(aTarget, hPlayer);
-							continue;
-						}
-
-						// is user?
-						if (!(pev(iTarget, pev_flags) & (FL_CLIENT | FL_FAKECLIENT | FL_MONSTER)))
-							continue;
-
-						// is dead?
-						if (!is_user_alive(iTarget))
-							continue;
-
-						// Hit friend and No FF.
-						if (!is_valid_takedamage(iOwner, iTarget))
-							continue;
-
-						// is godmode?
-						if (get_user_godmode(iTarget))
-							continue;
-
-					}
-					// is valid hit entity?
-					if (!pev_valid(iTarget)
-					// is user?
-					|| !(pev(iTarget, pev_flags) & (FL_CLIENT | FL_FAKECLIENT | FL_MONSTER))
-					// is dead?
-					|| !lm_is_user_alive(iTarget)
-					// Hit friend and No FF.
-					|| !is_valid_takedamage(iOwner, iTarget)
-					// is godmode?
-					|| lm_is_user_godmode(iTarget)
-					)
-					{
-						reStartPos = hitPoint;
-						iIgnoreEnt = iTarget;
-						continue;
-					}
-					hPlayer[I_TARGET] 	= iTarget;
-					hPlayer[V_POSITION]	= _:hitPoint;
-					hPlayer[I_HIT_GROUP]= hitGroup;
-					ArrayPushArray(aTarget, hPlayer);
-					if (hitGroup == HIT_SHIELD && get_pcvar_num(gCvar[CVAR_DIFENCE_SHIELD]))
-						break;
-								
-					reStartPos = hitPoint;
-					iIgnoreEnt = iTarget;
-					// keep target id.
-					set_pev(iEnt, pev_enemy, iTarget);
-				}
-			}
-
-			// Mode. Lasermine / Tripmine / Claymore wire trap.
-			switch(get_pcvar_num(gCvar[CVAR_MODE]))
-			{
-				// Lasermine mode.
-				// Laser damage.
-				case MODE_LASERMINE:
-				{
-					for (new n = 0; n < ArraySize(aTarget); n++)
-					{
-						ArrayGetArray(aTarget, n, hPlayer);
-						// Laser line damage mode. Once or Second.
-						create_laser_damage(iEnt, hPlayer[I_TARGET], hPlayer[I_HIT_GROUP], hPlayer[V_POSITION]);
-					}					
-					// Laser line damage mode. Once or Second.
-					if (get_pcvar_num(gCvar[CVAR_LASER_DMG_MODE]) != 0)
-					{
-						if (ArraySize(aTarget) > 0)
-							set_pev(iEnt, LASERMINE_COUNT, (nextTime + get_pcvar_float(gCvar[CVAR_LASER_DMG_DPS])));
-
-						// if change target. keep target id.
-						if (pev(iEnt, LASERMINE_HITING) != iTarget)
-							set_pev(iEnt, LASERMINE_HITING, iTarget);
-					}
-				}
-				// Tripmine mode.
-				// Friendly Fire ON or Target is Enemy Team.
-				case MODE_TRIPMINE, MODE_BF4_CLAYMORE:
-				{
-					// State change. to Explosing step.
-					set_pev(iEnt, LASERMINE_STEP, EXPLOSE_THINK);
-					break;
-				}
-			}
-		}
-
-		// free the trace handle.
-		free_tr2(trace);
-		ArrayDestroy(aTarget);
-
-		// Get mine health.
-		static Float:iHealth;
-		iHealth = lm_get_user_health(iEnt);
-
-		// break?
-		if (iHealth <= 0 || (pev(iEnt, pev_flags) & FL_KILLME))
-		{
-			// next step explosion.
-			set_pev(iEnt, LASERMINE_STEP, EXPLOSE_THINK);
-			set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
-		}
-				
-		// Think time. random_float = laser line blinking.
-		set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
-
-		return HAM_HANDLED;
 	}
 
-	// EXPLODE
-	if (TRIPMINE_THINK:step == TRIPMINE_THINK:EXPLOSE_THINK)
-	{
-		// Stopping entity to think
-		set_pev(iEnt, pev_nextthink, 0.0);
-		// Stopping sound.
-		lm_play_sound(iEnt, SOUND_STOP);
-
-		// Count down. deployed lasermines.
-		lm_set_user_mine_deployed(iOwner, lm_get_user_mine_deployed(iOwner) - int:1);
-
-		// Stop laser line.
-		lm_stop_laserline(iEnt);
-
-		// effect explosion.
-		static Float:fDamageMax;
-		static Float:fDamageRadius;
-		static iOrigin[3];
-
-		fDamageMax 		= get_pcvar_float(gCvar[CVAR_EXPLODE_DMG]);
-		fDamageRadius	= get_pcvar_float(gCvar[CVAR_EXPLODE_RADIUS]);
-		FVecIVec(vOrigin, iOrigin);
-
-		if(engfunc(EngFunc_PointContents, vOrigin) != CONTENTS_WATER) 
-		{
-			lm_create_explosion	(iOrigin, floatround(fDamageMax), floatround(fDamageRadius), gSprExplosion1, gSprExplosion2, gSprBlast);
-			lm_create_smoke		(iOrigin, floatround(fDamageMax), floatround(fDamageRadius), gSprSmoke);
-		}
-		else 
-		{
-			lm_create_water_explosion(iOrigin, floatround(fDamageMax), floatround(fDamageRadius), gSprExplosionWater);
-			lm_create_bubbles(vOrigin, fDamageMax * 1.0, fDamageRadius * 1.0, gSprBubble);
-		}
-		lm_create_explosion_decals(iOrigin);
-
-		// damage.
-		lm_create_explosion_damage(iEnt, iOwner, get_pcvar_float(gCvar[CVAR_EXPLODE_DMG]), get_pcvar_float(gCvar[CVAR_EXPLODE_RADIUS]));
-
-		// remove this.
-		lm_remove_entity(iEnt);
-		return HAM_HANDLED;
-	}
-
-	return HAM_SUPERCEDE;
+	return HAM_IGNORED;
 }
 
 lm_step_powerup(iEnt, Float:fCurrTime)
@@ -1566,54 +1287,11 @@ lm_step_beamup(iEnt, Float:vEnd[3], Float:fCurrTime)
 	// solid complete.
 	set_pev(iEnt, pev_solid, SOLID_BBOX);
 	// drawing laser line.
-	if (gCvarValue[VL_LASER_VISIBLE])
+	if (get_pcvar_num(gCvar[CVAR_LASER_VISIBLE]))
 	{
 		draw_laserline(iEnt, vEnd);
-		if(gCvarValue[VL_REALISTIC_DETAIL])
-			mines_spark_wall(vEnd);
-	}
-
-	// next state.
-	set_pev(iEnt, MINES_STEP, BEAMBREAK_THINK);
-	// Think time.
-	set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
-
-
-	// solid complete.
-	set_pev(iEnt, pev_solid, SOLID_BBOX);
-
-	// drawing laser line.
-	if (get_pcvar_num(gCvar[CVAR_LASER_VISIBLE]) )
-	{
-		for (new i = 0; i < loop; i++)
-		{
-			draw_laserline(iEnt, vEnd[i]);
-			if(get_pcvar_num(gCvar[CVAR_REALISTIC_DETAIL])) 
-				lm_draw_spark_for_wall(vEnd[i]);
-		}
-	}
-
-		// next state.
-		set_pev(iEnt, LASERMINE_STEP, BEAMBREAK_THINK);
-		// Think time.
-		set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
-
-}
-
-lm_step_wireup(iEnt, Float:vEnd[3][3], Float:fCurrTime)
-{
-	// solid complete.
-	set_pev(iEnt, pev_solid, SOLID_BBOX);
-
-	// drawing laser line.
-	if (get_pcvar_num(gCvar[CVAR_LASER_VISIBLE]) )
-	{
-		for (new i = 0; i < 3; i++)
-		{
-			draw_laserline(iEnt, vEnd[i]);
-			if(get_pcvar_num(gCvar[CVAR_REALISTIC_DETAIL])) 
-				lm_draw_spark_for_wall(vEnd[i]);
-		}
+		if(get_pcvar_num(gCvar[CVAR_REALISTIC_DETAIL]))
+			lm_draw_spark_for_wall(vEnd);
 	}
 
 	// next state.
@@ -1622,7 +1300,27 @@ lm_step_wireup(iEnt, Float:vEnd[3][3], Float:fCurrTime)
 	set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
 }
 
-lm_step_beambreak(iEnt, Float:vEnt[3], Float:fCurrTime)
+lm_step_wireup(iEnt, Float:vEnd[3][3], Float:fCurrTime)
+{
+	// drawing laser line.
+	if (get_pcvar_num(gCvar[CVAR_LASER_VISIBLE]))
+	{
+		for (new i = 0; i < 3; i++)
+		{
+			draw_laserline(iEnt, vEnd[i]);
+			lm_draw_spark_for_wall(vEnd[i]);
+		}
+	}
+
+	// solid complete.
+	set_pev(iEnt, pev_solid, SOLID_BBOX);
+	// next state.
+	set_pev(iEnt, LASERMINE_STEP, BEAMBREAK_THINK);
+	// Think time.
+	set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
+}
+
+lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 {
 	static Array:aTarget;
 	static className[MAX_NAME_LENGTH];
@@ -1641,17 +1339,17 @@ lm_step_beambreak(iEnt, Float:vEnt[3], Float:fCurrTime)
 	pev(iEnt, pev_origin, 			vOrigin);
 	pev(iEnt, LASERMINE_COUNT, 		nextTime);
 	pev(iEnt, LASERMINE_BEAMTHINK, 	beamTime);
-	iOwner = pev(iEnt, MINES_OWNER);
+	iOwner = pev(iEnt, LASERMINE_OWNER);
 
 	if (fCurrTime > beamTime)
 	{
-		if (get_pcvar_num(gCvar[CVAR_LASER_VISIBLE]) )
+		if (get_pcvar_num(gCvar[CVAR_LASER_VISIBLE]))
 			draw_laserline(iEnt, vEnd);
 
 		set_pev(iEnt, LASERMINE_BEAMTHINK, fCurrTime + random_float(0.1, 0.2));
 	}
 
-	if (gCvarValue[VL_LASER_DMG_MODE])
+	if (get_pcvar_num(gCvar[CVAR_LASER_DMG_MODE]))
 	{
 		if (fCurrTime < nextTime)
 		{
@@ -1661,7 +1359,7 @@ lm_step_beambreak(iEnt, Float:vEnt[3], Float:fCurrTime)
 		}
 	}
 
-	aTarget = ArrayCreate(sizeof(hPlayer));
+	aTarget = ArrayCreate(HIT_PLAYER);
 
 	// create the trace handle.
 	trace = create_tr2();
@@ -1679,9 +1377,9 @@ lm_step_beambreak(iEnt, Float:vEnt[3], Float:fCurrTime)
 		engfunc(EngFunc_TraceLine, vHitPoint, vEnd, DONT_IGNORE_MONSTERS, iTarget, trace);
 		{
 			get_tr2(trace, TR_flFraction, fFraction);
+			get_tr2(trace, TR_vecEndPos, vHitPoint);				
 			iTarget		= get_tr2(trace, TR_pHit);
 			hitGroup	= get_tr2(trace, TR_iHitgroup);
-			get_tr2(trace, TR_vecEndPos, vHitPoint);				
 		}
 
 		// Something has passed the laser.
@@ -1709,11 +1407,11 @@ lm_step_beambreak(iEnt, Float:vEnt[3], Float:fCurrTime)
 					continue;
 
 				// Hit friend and No FF.
-				if (!mines_valid_takedamage(iOwner, iTarget))
+				if (!is_valid_takedamage(iOwner, iTarget))
 					continue;
 				
 				// is godmode?
-				if (get_user_godmode(iTarget))
+				if (lm_is_user_godmode(iTarget))
 					continue;
 
 				hPlayer[I_TARGET] 	= iTarget;
@@ -1721,7 +1419,7 @@ lm_step_beambreak(iEnt, Float:vEnt[3], Float:fCurrTime)
 				hPlayer[I_HIT_GROUP]= hitGroup;
 				ArrayPushArray(aTarget, hPlayer);
 
-				if (hitGroup == HIT_SHIELD && gCvarValue[VL_DIFENCE_SHIELD])
+				if (hitGroup == HIT_SHIELD && get_pcvar_num(gCvar[CVAR_DIFENCE_SHIELD]))
 					break;
 
 				// keep target id.
@@ -1734,26 +1432,44 @@ lm_step_beambreak(iEnt, Float:vEnt[3], Float:fCurrTime)
 		}
 	}
 
-	for (new n = 0; n < ArraySize(aTarget); n++)
+	if (get_pcvar_num(gCvar[CVAR_MODE]) == MODE_TRIPMINE)
 	{
-		ArrayGetArray(aTarget, n, hPlayer);
+		for (new n = 0; n < ArraySize(aTarget); n++)
+		{
+			ArrayGetArray(aTarget, n, hPlayer, sizeof(hPlayer));
+			if (IsPlayer(hPlayer[I_TARGET]))
+			{
+				// State change. to Explosing step.
+				set_pev(iEnt, LASERMINE_STEP, EXPLOSE_THINK);
+				break;
+			}
+		}					
+	}
+	else
+	{
+		new Float:vEndPosition[3];
+		for (new n = 0; n < ArraySize(aTarget); n++)
+		{
+			ArrayGetArray(aTarget, n, hPlayer, sizeof(hPlayer));
+			xs_vec_copy(hPlayer[V_POSITION], vEndPosition);
 
-		if(gCvarValue[VL_REALISTIC_DETAIL]) 
-			mines_spark_wall(hPlayer[V_POSITION]);
+			if(get_pcvar_num(gCvar[CVAR_REALISTIC_DETAIL])) 
+				lm_draw_spark_for_wall(vEndPosition);
+
+			// Laser line damage mode. Once or Second.
+			create_laser_damage(iEnt, hPlayer[I_TARGET], hPlayer[I_HIT_GROUP], hPlayer[V_POSITION]);
+		}					
 
 		// Laser line damage mode. Once or Second.
-		create_laser_damage(iEnt, hPlayer[I_TARGET], hPlayer[I_HIT_GROUP], hPlayer[V_POSITION]);
-	}					
-
-	// Laser line damage mode. Once or Second.
-	if (gCvarValue[VL_LASER_DMG_MODE] != 0)
-	{
-		if (ArraySize(aTarget) > 0)
-			set_pev(iEnt, LASERMINE_COUNT, (nextTime + gCvarValue[VL_LASER_DMG_DPS]));
+		if (get_pcvar_num(gCvar[CVAR_LASER_DMG_MODE]) != 0)
+		{
+			if (ArraySize(aTarget) > 0)
+				set_pev(iEnt, LASERMINE_COUNT, (nextTime + get_pcvar_float(gCvar[CVAR_LASER_DMG_DPS])));
 
 			// if change target. keep target id.
-		if (pev(iEnt, LASERMINE_HITING) != iTarget)
-			set_pev(iEnt, LASERMINE_HITING, iTarget);
+			if (pev(iEnt, LASERMINE_HITING) != iTarget)
+				set_pev(iEnt, LASERMINE_HITING, iTarget);
+		}
 	}
 
 	// free the trace handle.
@@ -1762,21 +1478,135 @@ lm_step_beambreak(iEnt, Float:vEnt[3], Float:fCurrTime)
 
 	// Get mine health.
 	static Float:iHealth;
-	mines_get_health(iEnt, iHealth);
+	iHealth = lm_get_user_health(iEnt);
 
 	// break?
-	if (iHealth <= 0 || (pev(iEnt, pev_flags) & FL_KILLME))
-	{
+	if (iHealth <= 0.0 || (pev(iEnt, pev_flags) & FL_KILLME))
 		// next step explosion.
-		set_pev(iEnt, MINES_STEP, EXPLOSE_THINK);
-		set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
-	}
+		set_pev(iEnt, LASERMINE_STEP, EXPLOSE_THINK);
 				
 	// Think time. random_float = laser line blinking.
 	set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
 
 	return true;
 
+}
+
+lm_step_wirebreak(iEnt, Float:vEnd[3][3], Float:fCurrTime)
+{
+	static iTarget;
+	static trace;
+	static Float:fFraction;
+	static Float:vOrigin[3];
+	static Float:hitPoint[3];
+
+	// Get owner id.
+	new iOwner = pev(iEnt, LASERMINE_OWNER);
+	// Get this mine position.
+	pev(iEnt, pev_origin, vOrigin);
+
+	for(new i = 0; i < 3; i++)
+	{
+		// create the trace handle.
+		trace = create_tr2();
+		// Trace line
+		engfunc(EngFunc_TraceLine, vOrigin, vEnd[i], DONT_IGNORE_MONSTERS, iEnt, trace);
+		{
+			get_tr2(trace, TR_flFraction, fFraction);
+			iTarget		= get_tr2(trace, TR_pHit);
+			get_tr2(trace, TR_vecEndPos, hitPoint);				
+		}
+		// free the trace handle.
+		free_tr2(trace);
+
+		// Something has passed the laser.
+		if (fFraction >= 1.0)
+			continue;
+
+		// is valid hit entity?
+		if (!pev_valid(iTarget))
+			continue;
+
+		// is user?
+		if (!(pev(iTarget, pev_flags) & (FL_CLIENT | FL_FAKECLIENT | FL_MONSTER)))
+			continue;
+
+		// is dead?
+		if (!is_user_alive(iTarget))
+			continue;
+
+		// Hit friend and No FF.
+		if (!is_valid_takedamage(iOwner, iTarget))
+			continue;
+
+		// is godmode?
+		if (lm_is_user_godmode(iTarget))
+			continue;
+
+		// keep target id.
+		set_pev(iEnt, pev_enemy, iTarget);
+
+		// State change. to Explosing step.
+		set_pev(iEnt, LASERMINE_STEP, EXPLOSE_THINK);
+	}
+
+	// Get mine health.
+	static Float:iHealth;
+	iHealth = lm_get_user_health(iEnt);
+
+	// break?
+	if (iHealth <= 0.0 || (pev(iEnt, pev_flags) & FL_KILLME))
+	{
+		// next step explosion.
+		set_pev(iEnt, LASERMINE_STEP, EXPLOSE_THINK);
+		set_pev(iEnt, pev_nextthink, fCurrTime + random_float(0.1, 0.3));
+	}
+				
+	// Think time. random_float = laser line blinking.
+	set_pev(iEnt, pev_nextthink, fCurrTime + random_float(0.01, 0.02));
+
+	return true;
+}
+
+lm_step_explosion(iEnt, iOwner)
+{
+	// Stopping entity to think
+	set_pev(iEnt, pev_nextthink, 0.0);
+
+	// Count down. deployed lasermines.
+	lm_set_user_mine_deployed(iOwner, lm_get_user_mine_deployed(iOwner) - int:1);
+
+	// Stop laser line.
+	lm_stop_laserline(iEnt);
+
+	// effect explosion.
+	static Float:fDamageMax;
+	static Float:fDamageRadius;
+	static Float:vOrigin[3];
+	static Float:vDecals[3];
+
+	fDamageMax 		= get_pcvar_float(gCvar[CVAR_EXPLODE_DMG]);
+	fDamageRadius	= get_pcvar_float(gCvar[CVAR_EXPLODE_RADIUS]);
+	pev(iEnt, pev_origin, vOrigin);
+	pev(iEnt, LASERMINE_DECALS, vDecals);
+
+	if(engfunc(EngFunc_PointContents, vOrigin) != CONTENTS_WATER) 
+	{
+		lm_create_explosion	(vOrigin, fDamageMax, fDamageRadius, gSprExplosion1, gSprExplosion2, gSprBlast);
+		lm_create_smoke		(vOrigin, fDamageMax, fDamageRadius, gSprSmoke);
+	}
+	else 
+	{
+		lm_create_water_explosion(vOrigin, fDamageMax, fDamageRadius, gSprExplosionWater);
+		lm_create_bubbles(vOrigin, fDamageMax * 1.0, fDamageRadius * 1.0, gSprBubble);
+	}
+	lm_create_explosion_decals(vDecals);
+
+	// damage.
+	lm_create_explosion_damage(iEnt, iOwner, fDamageMax, fDamageRadius);
+
+	// remove this.
+	lm_remove_entity(iEnt);
 }
 
 //====================================================
@@ -1926,11 +1756,14 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 	}
 	else
 	{
-		lm_play_sound(iTarget, SOUND_HIT);
-		lm_set_user_lasthit(iTarget, hitGroup);
-		if (get_pcvar_num(gCvar[CVAR_VIOLENCE_HBLOOD]))
-			lm_create_hblood(hitPoint, floatround(dmg), gSprBloodSpray, gSprBlood);
-		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, get_pcvar_float(gCvar[CVAR_LASER_DMG]), DMG_ENERGYBEAM);
+		if (IsPlayer(iTarget))
+		{
+			lm_play_sound(iTarget, SOUND_HIT);
+			lm_set_user_lasthit(iTarget, hitGroup);
+			if (get_pcvar_num(gCvar[CVAR_VIOLENCE_HBLOOD]))
+				lm_create_hblood(hitPoint, floatround(dmg), gSprBloodSpray, gSprBlood);
+		}
+		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
 	}
 	set_pev(iEnt, LASERMINE_HITING, iTarget);
 	return;
@@ -2613,86 +2446,92 @@ Float:get_claymore_wire_endpoint(CVAR_SETTING:cvar)
 //====================================================
 // Claymore Wire Endpoint
 //====================================================
-set_claymore_endpoint(iEnt, Float:vOrigin[3], Float:vNormal[3])
+stock set_claymore_endpoint(iEnt, Float:vOrigin[3])
 {
-	new Float:vAngles	[3];
-	new Float:vForward	[3];
-	new Float:vResult	[3][3];
-	new Float:hitPoint	[3];
-	new Float:vTmp		[3];
-	new Float:pAngles	[3];
-	new Float:vFwd		[3];
-	new Float:vRight	[3];
-	new Float:vUp		[3];
-	new trace = create_tr2();
-	new Float:pitch;
-	new Float:yaw;
-	new Float:range;
-	new n = 0;
-	new freq = get_pcvar_num(gCvar[CVAR_CM_TRIAL_FREQ]);
-	range = get_pcvar_float(gCvar[CVAR_CM_WIRE_RANGE]);
+	static Float:vAngles	[3];
+	static Float:vForward	[3];
+	static Float:vResult	[3][3];
+	static Float:pAngles	[3];
+	static Float:vFwd		[3];
+	static Float:vRight		[3];
+	static Float:vUp		[3];
+	static Float:hitPoint	[3];
+	static Float:vTmp		[3];
+	static Float:distance;
+	static Float:fraction;
+	static Float:pitch;
+	static Float:yaw;
+	static n = 0;
+	static trace;
 	pev(iEnt, pev_angles, vAngles);
-
-	// roll zero
-	pAngles[2] = 0.0;
-
+	vAngles[2] = 0.0;
 	for (new i = 0; i < 3; i++)
 	{
 		hitPoint	= vOrigin;
 		vTmp		= vOrigin;
 		n = 0;
-		while(n < freq)
+
+		while(n < get_pcvar_num(gCvar[CVAR_CM_TRIAL_FREQ]))
 		{
-			while(xs_vec_distance(vOrigin, vTmp) > range || xs_vec_equal(vOrigin, vTmp))
+			switch(i)
 			{
-				switch(i)
+				// pitch:down 0, back 90, up 180, forward 270(-90)
+				// yaw  :left 90, right -90 
+				case 0: // center
 				{
-					// pitch:down 0, back 90, up 180, forward 270(-90)
-					// yaw  :left 90, right -90 
-					case 0: // center
-					{
-						pitch 	= get_claymore_wire_endpoint(CVAR_CM_CENTER_PITCH);
-						yaw		= get_claymore_wire_endpoint(CVAR_CM_CENTER_YAW);
-					}
-					case 1: // right
-					{
-						pitch 	= get_claymore_wire_endpoint(CVAR_CM_RIGHT_PITCH);
-						yaw		= get_claymore_wire_endpoint(CVAR_CM_RIGHT_YAW);
-					}
-					case 2: // left
-					{
-						pitch 	= get_claymore_wire_endpoint(CVAR_CM_LEFT_PITCH);
-						yaw		= get_claymore_wire_endpoint(CVAR_CM_LEFT_YAW);
-					}
+					pitch 	= get_claymore_wire_endpoint(CVAR_CM_CENTER_PITCH);
+					yaw		= get_claymore_wire_endpoint(CVAR_CM_CENTER_YAW);
 				}
-
-				pAngles[0] = pitch;
-				pAngles[1] = yaw;
-
-				xs_vec_add(pAngles, vAngles, pAngles);
-				xs_anglevectors(pAngles, vFwd, vRight, vUp);
-			
-				xs_vec_mul_scalar(vFwd, range, vFwd);
-				// xs_vec_add(vOrigin, vFwd, vForward);
-				xs_vec_add(vFwd, vNormal, vForward);
-				xs_vec_add(vOrigin, vForward, vForward);
-
-				// Trace line
-				engfunc(EngFunc_TraceLine, vOrigin, vForward, IGNORE_MONSTERS, iEnt, trace);
+				case 1: // right
 				{
-					get_tr2(trace, TR_vecEndPos, vTmp);
+					pitch 	= get_claymore_wire_endpoint(CVAR_CM_RIGHT_PITCH);
+					yaw		= get_claymore_wire_endpoint(CVAR_CM_RIGHT_YAW);
+				}
+				case 2: // left
+				{
+					pitch 	= get_claymore_wire_endpoint(CVAR_CM_LEFT_PITCH);
+					yaw		= get_claymore_wire_endpoint(CVAR_CM_LEFT_YAW);
+				}
+			}		
+
+			pAngles[0] = pitch;
+			pAngles[1] = -90 + yaw; 
+			pAngles[2] = 0.0;
+
+			xs_vec_add(pAngles, vAngles, pAngles);
+			xs_anglevectors(pAngles, vFwd, vRight, vUp);
+				
+			xs_vec_mul_scalar(vFwd, get_pcvar_float(gCvar[CVAR_CM_WIRE_RANGE]), vFwd);
+			xs_vec_add(vOrigin, vFwd, vForward);
+			// xs_vec_add(vFwd, vNormal, vForward);
+			// xs_vec_add(vOrigin, vForward, vForward);
+			trace = create_tr2();
+			// Trace line
+			engfunc(EngFunc_TraceLine, vOrigin, vForward, IGNORE_MONSTERS, iEnt, trace)
+			{
+				get_tr2(trace, TR_vecEndPos, vTmp);
+				get_tr2(trace, TR_flFraction, fraction);
+
+				distance = xs_vec_distance(vOrigin, vTmp);
+				if (distance > get_pcvar_float(gCvar[CVAR_CM_WIRE_RANGE]))
+					continue;
+
+				if (fraction < 1.0)
+				{
+					new block = engfunc(EngFunc_PointContents, vTmp);
+					if (block != CONTENTS_SKY || block == CONTENTS_SOLID) 
+					{
+						if (distance > xs_vec_distance(vOrigin, hitPoint))
+							hitPoint = vTmp;
+						n++;
+					}
 				}
 			}
-			if (xs_vec_distance(vOrigin, vTmp) > xs_vec_distance(vOrigin, hitPoint))
-				hitPoint = vTmp;
-
-			n++;
+			// free the trace handle.
+			free_tr2(trace);
 		}
 		vResult[i] = hitPoint;
 	}
-
-	// free the trace handle.
-	free_tr2(trace);
 
 	set_pev(iEnt, LASERMINE_BEAMENDPOINT1, vResult[0]);
 	set_pev(iEnt, LASERMINE_BEAMENDPOINT2, vResult[1]);
@@ -2720,7 +2559,7 @@ public MinesShowInfo(Float:vStart[3], Float:vEnd[3], Conditions, id, iTrace)
 				health = floatround(lm_get_user_health(iHit));
 				get_user_name(iOwner, szName, charsmax(szName));
 				pev(iHit, pev_netname, steamid, charsmax(steamid));
-				formatex(hudMsg, charsmax(hudMsg), "%L ^nSTEAMID:%s", id, LANG_KEY_MINE_HUD, szName, health, get_pcvar_num(gCvar[CVAR_MINE_HEALTH]), steamid);
+				formatex(hudMsg, charsmax(hudMsg), "%L ^nSTEAM_ID:%s", id, LANG_KEY_MINE_HUD, szName, health, get_pcvar_num(gCvar[CVAR_MINE_HEALTH]), steamid);
 				//set_hudmessage(red = 200, green = 100, blue = 0, Float:x = -1.0, Float:y = 0.35, effects = 0, Float:fxtime = 6.0, Float:holdtime = 12.0, Float:fadeintime = 0.1, Float:fadeouttime = 0.2, channel = -1)
 				set_hudmessage(50, 100, 150, -1.0, 0.60, 0, 6.0, 0.4, 0.0, 0.0, -1);
 				show_hudmessage(id, hudMsg);

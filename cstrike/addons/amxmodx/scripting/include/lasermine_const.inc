@@ -58,6 +58,9 @@
 #define LASERMINE_BEAMENDPOINT1		pev_vuser1
 #define LASERMINE_BEAMENDPOINT2		pev_vuser2
 #define LASERMINE_BEAMENDPOINT3		pev_vuser3
+#define LASERMINE_DECALS			pev_vuser4
+
+#define IsPlayer(%1) 				( 1 <= %1 <= 32 ) 
 
 //====================================================
 // ENUM AREA

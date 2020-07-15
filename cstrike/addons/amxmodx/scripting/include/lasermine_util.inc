@@ -273,104 +273,97 @@ stock lm_draw_laser(
 // 	message_end();
 // }
 
-stock lm_create_explosion(iOrigin[3], const iDamage, const iRadius, sprExplosion1, sprExplosion2, sprBlast) 
+stock lm_create_explosion(Float:vOrigin[3], const Float:fDamage, const Float:fRadius, sprExplosion1, sprExplosion2, sprBlast) 
 {
-	new iZPos = (iDamage + ((iRadius * 3) / 2)) / 8
+	new Float:fZPos = (fDamage + ((fRadius * 3.0) / 2.0)) / 8.0;
 
-	if(iZPos < 25) {
-		iZPos = 25
-	}
-	else if(iZPos > 500) {
-		iZPos = 500
-	}
+	if(fZPos < 25.0)
+		fZPos = 25.0;
+	else
+	if(fZPos > 500.0)
+		fZPos = 500.0;
 
-	new iIntensity = (iDamage + ((iRadius * 7) / 4)) / 32
+	new iIntensity = floatround((fDamage + ((fRadius * 7.0) / 4.0)) / 32.0);
 
-	if(iIntensity < 12) {
-		iIntensity = 12
-	}
-	else if(iIntensity > 128) {
-		iIntensity = 128
-	}
+	if(iIntensity < 12)
+		iIntensity = 12;
+	else
+	if(iIntensity > 128)
+		iIntensity = 128;
 
-	message_begin(MSG_PVS, SVC_TEMPENTITY, iOrigin, 0);
-	write_byte(TE_EXPLOSION)
-	write_coord(iOrigin[0])
-	write_coord(iOrigin[1])
-	write_coord(iOrigin[2] + iZPos)
-	write_short(sprExplosion1)
-	write_byte(iIntensity)
-	write_byte(24)
-	write_byte(0)
-	message_end()
+	engfunc		(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, vOrigin, 0);
+	write_byte	(TE_EXPLOSION);
+	engfunc		(EngFunc_WriteCoord, vOrigin[0]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[1]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[2] + fZPos);
+	write_short	(sprExplosion1);
+	write_byte	(iIntensity);
+	write_byte	(24);
+	write_byte	(0);
+	message_end	();
 
-	iZPos /= 6
+	fZPos /= 6.0;
+	if(fZPos < 6.0)
+		fZPos = 6.0;
+	else
+	if(fZPos > 96.0)
+		fZPos = 96.0;
 
-	if(iZPos < 6) {
-		iZPos = 6
-	}
-	else if(iZPos > 96) {
-		iZPos = 96
-	}
+	iIntensity = (iIntensity * 7) / 4;
 
-	iIntensity = (iIntensity * 7) / 4
+	if(iIntensity < 24)
+		iIntensity = 24;
+	else 
+	if(iIntensity > 160)
+		iIntensity = 160;
 
-	if(iIntensity < 24) {
-		iIntensity = 24
-	}
-	else if(iIntensity > 160) {
-		iIntensity = 160
-	}
+	engfunc		(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, vOrigin, 0);
+	write_byte	(TE_EXPLOSION);
+	engfunc		(EngFunc_WriteCoord, vOrigin[0]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[1]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[2] + fZPos);
+	write_short	(sprExplosion2);
+	write_byte	(iIntensity);
+	write_byte	(20);
+	write_byte	(0);
+	message_end	();
 
-	message_begin(MSG_PVS, SVC_TEMPENTITY, iOrigin, 0);
-	write_byte(TE_EXPLOSION)
-	write_coord(iOrigin[0])
-	write_coord(iOrigin[1])
-	write_coord(iOrigin[2] + iZPos)
-	write_short(sprExplosion2)
-	write_byte(iIntensity)
-	write_byte(20)
-	write_byte(0)
-	message_end()
+	fZPos = ((((fDamage * 3.0) / 2.0) + fRadius) * 4.0) / 6.0;
 
-	iZPos = ((((iDamage * 3) / 2) + iRadius) * 4) / 6
+	if(fZPos < 160.0)
+		fZPos = 160.0;
+	else 
+	if(fZPos > 960.0)
+		fZPos = 960.0;
 
-	if(iZPos < 160) {
-		iZPos = 160
-	}
-	else if(iZPos > 960) {
-		iZPos = 960
-	}
+	iIntensity = floatround(fRadius / 70.0);
 
-	iIntensity = iRadius / 70
-
-	if(iIntensity < 3) {
-		iIntensity = 3
-	}
-	else if(iIntensity > 10) {
-		iIntensity = 10
-	}
-
-	message_begin(MSG_PVS, SVC_TEMPENTITY, iOrigin, 0);
-	write_byte(TE_BEAMCYLINDER)
-	write_coord(iOrigin[0])
-	write_coord(iOrigin[1])
-	write_coord(iOrigin[2])
-	write_coord(iOrigin[0])
-	write_coord(iOrigin[1])
-	write_coord(iOrigin[2] + iZPos)
-	write_short(sprBlast)
-	write_byte(0)
-	write_byte(2)
-	write_byte(iIntensity)
-	write_byte(255)
-	write_byte(0)
-	write_byte(255)
-	write_byte(255)
-	write_byte(165)
-	write_byte(128)
-	write_byte(0)
-	message_end()
+	if(iIntensity < 3)
+		iIntensity = 3;
+	else 
+	if(iIntensity > 10) 
+		iIntensity = 10;
+	
+	engfunc		(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, vOrigin, 0);
+	write_byte	(TE_BEAMCYLINDER)
+	engfunc		(EngFunc_WriteCoord, vOrigin[0]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[1]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[2]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[0]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[1]);
+	engfunc		(EngFunc_WriteCoord, vOrigin[2] + fZPos);
+	write_short	(sprBlast)
+	write_byte	(0)
+	write_byte	(2)
+	write_byte	(iIntensity)
+	write_byte	(255)
+	write_byte	(0)
+	write_byte	(255)
+	write_byte	(255)
+	write_byte	(165)
+	write_byte	(128)
+	write_byte	(0)
+	message_end	()
 }
 
 //====================================================
@@ -630,17 +623,17 @@ stock LoadDecals()
 	}
 }
 
-stock lm_create_water_explosion(iOrigin[3], const iDamage, const iRadius, sprExplosionWater) 
+stock lm_create_water_explosion(Float:fOrigin[3], const Float:fDamage, const Float:fRadius, sprExplosionWater) 
 {
-	new iZPos = (iDamage + ((iRadius * 3) / 2)) / 34;
+	new Float:fZPos = (fDamage + ((fRadius * 3.0) / 2.0)) / 34.0;
 
-	if(iZPos < 8)
-		iZPos = 8;
+	if(fZPos < 8.0)
+		fZPos = 8.0;
 	else
-	if(iZPos > 128)
-		iZPos = 128;
+	if(fZPos > 128.0)
+		fZPos = 128.0;
 
-	new iIntensity = (iDamage + ((iRadius * 7) / 4)) / 14;
+	new iIntensity = floatround((fDamage + ((fRadius * 7.0) / 4.0)) / 14.0);
 
 	if(iIntensity < 32)
 		iIntensity = 32;
@@ -648,29 +641,29 @@ stock lm_create_water_explosion(iOrigin[3], const iDamage, const iRadius, sprExp
 	if(iIntensity > 164)
 		iIntensity = 164;
 
-	message_begin(MSG_PAS, SVC_TEMPENTITY, iOrigin);
-	write_byte(TE_EXPLOSION);
-	write_coord(iOrigin[0]);
-	write_coord(iOrigin[1]);
-	write_coord(iOrigin[2] + iZPos);
-	write_short(sprExplosionWater);
-	write_byte(iIntensity);
-	write_byte(16);
-	write_byte(0);
-	message_end();
+	engfunc			(EngFunc_MessageBegin, MSG_PAS, SVC_TEMPENTITY, fOrigin, 0);
+	write_byte		(TE_EXPLOSION);
+	engfunc			(EngFunc_WriteCoord, fOrigin[0]);
+	engfunc			(EngFunc_WriteCoord, fOrigin[1]);
+	engfunc			(EngFunc_WriteCoord, fOrigin[2] + fZPos);
+	write_short		(sprExplosionWater);
+	write_byte		(iIntensity);
+	write_byte		(16);
+	write_byte		(0);
+	message_end		();
 }
 
-stock lm_create_smoke(iOrigin[3], const iDamage, const iRadius, sprSmoke)
+stock lm_create_smoke(Float:fOrigin[3], const Float:fDamage, const Float:fRadius, sprSmoke)
 {
-	new iZPos = (iDamage + ((iRadius * 3) / 2)) / 22;
+	new Float:fZPos = (fDamage + ((fRadius * 3.0) / 2.0)) / 22.0;
 
-	if(iZPos < 8)
-		iZPos = 8;
+	if(fZPos < 8.0)
+		fZPos = 8.0;
 	else
-	if(iZPos > 192)
-		iZPos = 192;
+	if(fZPos > 192.0)
+		fZPos = 192.0;
 
-	new iIntensity = (iDamage + ((iRadius * 7) / 4)) / 11;
+	new iIntensity = floatround((fDamage + ((fRadius * 7.0) / 4.0)) / 11.0);
 
 	if(iIntensity < 32)
 		iIntensity = 32;
@@ -678,26 +671,26 @@ stock lm_create_smoke(iOrigin[3], const iDamage, const iRadius, sprSmoke)
 	if(iIntensity > 192)
 		iIntensity = 192;
 
-	message_begin(MSG_PAS, SVC_TEMPENTITY, iOrigin);
-	write_byte(TE_SMOKE);
-	write_coord(iOrigin[0]);
-	write_coord(iOrigin[1]);
-	write_coord(iOrigin[2] + iZPos);
-	write_short(sprSmoke);
-	write_byte(iIntensity);
-	write_byte(4);
-	message_end();
+	engfunc		(EngFunc_MessageBegin, MSG_PAS, SVC_TEMPENTITY, fOrigin, 0);
+	write_byte	(TE_SMOKE);
+	engfunc		(EngFunc_WriteCoord, fOrigin[0]);
+	engfunc		(EngFunc_WriteCoord, fOrigin[1]);
+	engfunc		(EngFunc_WriteCoord, fOrigin[2] + fZPos);
+	write_short	(sprSmoke);
+	write_byte	(iIntensity);
+	write_byte	(4);
+	message_end	();
 }
 
-stock lm_create_explosion_decals(iOrigin[3]) 
+stock lm_create_explosion_decals(Float:fOrigin[3]) 
 {
-	message_begin(MSG_BROADCAST, SVC_TEMPENTITY);
-	write_byte(TE_WORLDDECAL);
-	write_coord(iOrigin[0]);
-	write_coord(iOrigin[1]);
-	write_coord(iOrigin[2]);
-	write_byte(gDecalIndexExplosion[random(gNumDecalsExplosion)]);
-	message_end();
+	engfunc		(EngFunc_MessageBegin, MSG_BROADCAST, SVC_TEMPENTITY, {0, 0, 0}, 0);
+	write_byte	(TE_WORLDDECAL);
+	engfunc		(EngFunc_WriteCoord, fOrigin[0]);
+	engfunc		(EngFunc_WriteCoord, fOrigin[1]);
+	engfunc		(EngFunc_WriteCoord, fOrigin[2]);
+	write_byte	(gDecalIndexExplosion[random(gNumDecalsExplosion)]);
+	message_end	();
 }
 
 stock lm_create_bubbles(const Float:vOrigin[3], const Float:flDamageMax, const Float:flDamageRadius, sprBubbles) 
@@ -776,7 +769,7 @@ stock UTIL_ScreenShake(Float:vOrigin[3], const Float:flAmplitude, const Float:fl
 				if(iMsgIDScreenShake == 0) 
 					iMsgIDScreenShake = get_user_msgid("ScreenShake");
 
-				message_begin(MSG_ONE, iMsgIDScreenShake, _, iPlayer);
+				engfunc(EngFunc_MessageBegin, MSG_ONE, iMsgIDScreenShake, _, iPlayer);
 				write_short(iAmplitude);
 				write_short(iDuration);
 				write_short(iFrequency);
@@ -839,21 +832,18 @@ stock UTIL_Bubbles(const Float:vMins[3], const Float:vMaxs[3], const iCount, spr
 
 	new Float:flPosition = UTIL_WaterLevel(vCenter, vCenter[2], vCenter[2] + 1024.0) - vMins[2];
 
-	new iCenter[3];
-	FVecIVec(vCenter, iCenter);
-
-	message_begin(MSG_PAS, SVC_TEMPENTITY, iCenter);
+	engfunc(EngFunc_MessageBegin, MSG_PAS, SVC_TEMPENTITY, vCenter, 0);
 	write_byte(TE_BUBBLES);
-	write_coord(floatround(vMins[0]));
-	write_coord(floatround(vMins[1]));
-	write_coord(floatround(vMins[2]));
-	write_coord(floatround(vMaxs[0]));
-	write_coord(floatround(vMaxs[1]));
-	write_coord(floatround(vMaxs[2]));
-	write_coord(floatround(flPosition));
+	engfunc(EngFunc_WriteCoord, vMins[0]);
+	engfunc(EngFunc_WriteCoord, vMins[1]);
+	engfunc(EngFunc_WriteCoord, vMins[2]);
+	engfunc(EngFunc_WriteCoord, vMaxs[0]);
+	engfunc(EngFunc_WriteCoord, vMaxs[1]);
+	engfunc(EngFunc_WriteCoord, vMaxs[2]);
+	engfunc(EngFunc_WriteCoord, flPosition);
 	write_short(sprBubble);
 	write_byte(iCount);
-	write_coord(8);
+	engfunc(EngFunc_WriteCoord, 8.0);
 	message_end();
 }
 

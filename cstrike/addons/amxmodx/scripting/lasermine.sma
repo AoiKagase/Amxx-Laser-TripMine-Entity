@@ -170,7 +170,6 @@ enum CVAR_SETTING
 	CVAR_ENABLE				= 0,    // Plugin Enable.
 	CVAR_ACCESS_LEVEL		,		// Access level for 0 = ADMIN or 1 = ALL.
 	CVAR_NOROUND			,		// Check Started Round.
-	CVAR_CMD_MODE			,    	// 0 = +USE key, 1 = bind, 2 = each.
 	CVAR_MODE				,    	// 0 = Lasermine, 1 = Tripmine.
 	CVAR_MAX_HAVE			,    	// Max having ammo.
 	CVAR_START_HAVE			,    	// Start having ammo.
@@ -294,9 +293,7 @@ public plugin_init()
 	gCvar[CVAR_ENABLE]	        = register_cvar(fmt("%s%s", CVAR_TAG, "_enable"),				"1"			);	// 0 = off, 1 = on.
 	gCvar[CVAR_ACCESS_LEVEL]   	= register_cvar(fmt("%s%s", CVAR_TAG, "_access"),				"0"			);	// 0 = all, 1 = admin
 	gCvar[CVAR_MODE]           	= register_cvar(fmt("%s%s", CVAR_TAG, "_mode"),   				"0"			);	// 0 = lasermine, 1 = tripmine, 2 = claymore wire trap
-//	gCvar[CVAR_FRIENDLY_FIRE]  	= register_cvar(fmt("%s%s", CVAR_TAG, "_friendly_fire"),		"0"			);	// Friendly fire. 0 or 1
 	gCvar[CVAR_START_DELAY]    	= register_cvar(fmt("%s%s", CVAR_TAG, "_round_delay"),			"5"			);	// Round start delay time.
-	gCvar[CVAR_CMD_MODE]	    = register_cvar(fmt("%s%s", CVAR_TAG, "_cmd_mode"),				"1"			);	// 0 is +USE key, 1 is bind, 2 is each.
 #if defined BIOHAZARD_SUPPORT
 	gCvar[CVAR_NOROUND]			= register_cvar(fmt("%s%s", CVAR_TAG, "_check_started_round"),	"1"			);	// Check Started Round.
 #endif
@@ -382,7 +379,6 @@ public plugin_init()
 
 	// Register Forward.
 	register_forward(FM_PlayerPostThink,"PlayerPostThink");
-	register_forward(FM_PlayerPreThink, "PlayerPreThink");
 	register_forward(FM_TraceLine,		"MinesShowInfo", 1);
 
 	// Multi Language Dictionary.
@@ -714,7 +710,7 @@ public DeathEvent()
 //====================================================
 // Put LaserMine Start Progress A
 //====================================================
-public lm_progress_deploy_main(id)
+public lm_progress_deploy(id)
 {
 	// Deploying Check.
 	if (!check_for_deploy(id))
@@ -750,18 +746,6 @@ public lm_progress_deploy_main(id)
 
 	// Start Task. Put Lasermine.
 	set_task(wait, "SpawnMine", (TASK_PLANT + id));
-
-	return PLUGIN_HANDLED;
-}
-
-//====================================================
-// Put LaserMine Start Progress B
-//====================================================
-public lm_progress_deploy(id)
-{
-	// Mode check. Bind Key Command.
-	if(get_pcvar_num(gCvar[CVAR_CMD_MODE]) != 0)
-		lm_progress_deploy_main(id);
 
 	return PLUGIN_HANDLED;
 }
@@ -864,11 +848,9 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 #endif
 	// set mine position
 	set_mine_position(uID, iEnt);
-	new authid[MAX_AUTHID_LENGTH];
 	// Reset powoer on delay time.
 	new Float:fCurrTime = get_gametime();
-	get_user_authid(uID, authid, 		charsmax(authid));
-	set_pev(iEnt, pev_netname, 			authid);
+
 	// Save results to be used later.
 	set_pev(iEnt, LASERMINE_OWNER, 		uID);
 	set_pev(iEnt, LASERMINE_POWERUP,	fCurrTime + 2.5);
@@ -1994,24 +1976,6 @@ public PlayerPostThink(id)
 }
 
 //====================================================
-// Player pre think event.
-//====================================================
-public PlayerPreThink(id)
-{
-	if (!lm_is_user_alive(id)			// isDead?
-		|| is_user_bot(id) 				// is bot?
-		|| lm_get_user_deploy_state(id) != STATE_IDLE	 // deploying?
-		|| get_pcvar_num(gCvar[CVAR_CMD_MODE]) == 1) // +setlaser use?
-		return FMRES_IGNORED;
-
-	// [USE] Key.
-	if(pev(id, pev_button ) & IN_USE && !(pev(id, pev_oldbuttons ) & IN_USE ))
-		lm_progress_deploy_main(id);			// deploying.
-
-	return FMRES_IGNORED;
-}
-
-//====================================================
 // Player connected.
 //====================================================
 public client_putinserver(id)
@@ -2437,9 +2401,8 @@ Float:get_claymore_wire_endpoint(CVAR_SETTING:cvar)
 
 	formatex(sCvarValue, charsmax(sCvarValue), "%s%s", sCvarValue, ",");
 	while((i = split_string(sCvarValue[iPos += i], ",", sSplit, sSplitLen)) != -1 && n < sizeof(values))
-	{
 		values[n++] = str_to_float(sSplit);
-	}
+
 	return random_float(values[0], values[1]);
 }
 
@@ -2545,8 +2508,8 @@ public MinesShowInfo(Float:vStart[3], Float:vEnd[3], Conditions, id, iTrace)
 { 
 	static iHit, szName[MAX_NAME_LENGTH], iOwner, health;
 	static hudMsg[64];
-	static steamid[MAX_AUTHID_LENGTH];
 	iHit = get_tr2(iTrace, TR_pHit);
+
 	if (pev_valid(iHit))
 	{
 		if (lm_is_user_alive(iHit))
@@ -2557,16 +2520,19 @@ public MinesShowInfo(Float:vStart[3], Float:vEnd[3], Conditions, id, iTrace)
 			{
 				iOwner = pev(iHit, LASERMINE_OWNER);
 				health = floatround(lm_get_user_health(iHit));
+
 				get_user_name(iOwner, szName, charsmax(szName));
-				pev(iHit, pev_netname, steamid, charsmax(steamid));
-				formatex(hudMsg, charsmax(hudMsg), "%L ^nSTEAM_ID:%s", id, LANG_KEY_MINE_HUD, szName, health, get_pcvar_num(gCvar[CVAR_MINE_HEALTH]), steamid);
-				//set_hudmessage(red = 200, green = 100, blue = 0, Float:x = -1.0, Float:y = 0.35, effects = 0, Float:fxtime = 6.0, Float:holdtime = 12.0, Float:fadeintime = 0.1, Float:fadeouttime = 0.2, channel = -1)
+				formatex(hudMsg, charsmax(hudMsg), "%L", id, LANG_KEY_MINE_HUD, szName, health, get_pcvar_num(gCvar[CVAR_MINE_HEALTH]));
+
+				// set_hudmessage(red = 200, green = 100, blue = 0, Float:x = -1.0, Float:y = 0.35, effects = 0, Float:fxtime = 6.0, Float:holdtime = 12.0, Float:fadeintime = 0.1, Float:fadeouttime = 0.2, channel = -1)
 				set_hudmessage(50, 100, 150, -1.0, 0.60, 0, 6.0, 0.4, 0.0, 0.0, -1);
 				show_hudmessage(id, hudMsg);
 			}
 		}
     }
-} 
+
+	return FMRES_IGNORED;
+}
 
 public MinesBreaked(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 {

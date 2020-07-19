@@ -26,27 +26,10 @@
 #define MAX_EXPLOSION_DECALS 		3
 #define MAX_BLOOD_DECALS 			10
 
-#define OFFSET_TEAM 				114
-#define OFFSET_MONEY				115
-#if cellbits == 32
-	#define OFFSET_MAPZONE  		235
-#else
-	#define OFFSET_MAPZONE  		268
-#endif
-#define OFFSET_GET_DEATH			444
-#define OFFSET_SET_DEATH			711
-#define OFFSET_LAST_HIT_GROUP		75
-#define EXTRAOFFSET_PL_LINUX		5
-
-#define PLAYER_IN_BUYZONE			(1<<0)
 // CS Status Data.
-#define lm_get_user_team(%1)		CsTeams:get_offset_value(%1, OFFSET_TEAM)
-#define lm_set_user_team(%1,%2)		set_offset_value(%1, OFFSET_TEAM, %2)
-#define lm_get_user_deaths(%1)		get_offset_value(%1, OFFSET_GET_DEATH)
-#define lm_set_user_deaths(%1,%2)	set_offset_value(%1, OFFSET_SET_DEATH, %2)
-#define lm_get_user_money(%1)		get_offset_value(%1, OFFSET_MONEY)
-#define lm_set_user_money(%1,%2)	set_offset_value(%1, OFFSET_MONEY, %2)
-#define lm_set_user_lasthit(%1,%2)	set_pdata_int(%1, OFFSET_LAST_HIT_GROUP, %2, EXTRAOFFSET_PL_LINUX)
+#define lm_get_user_deaths(%1)		get_ent_data(%1, "CbasePlayer",	"m_iDeaths")
+#define lm_set_user_deaths(%1,%2)	set_ent_data(%1, "CbasePlayer",	"m_iDeaths", %2)
+#define lm_set_user_lasthit(%1,%2)	set_ent_data(%1, "CBaseMonster","m_LastHitGroup", %2)
 
 // Lasermine Data Save Area.
 #define LASERMINE_OWNER				pev_iuser1
@@ -56,9 +39,7 @@
 #define LASERMINE_POWERUP			pev_fuser2
 #define LASERMINE_BEAMTHINK			pev_fuser3
 #define LASERMINE_BEAMENDPOINT1		pev_vuser1
-#define LASERMINE_BEAMENDPOINT2		pev_vuser2
-#define LASERMINE_BEAMENDPOINT3		pev_vuser3
-#define LASERMINE_DECALS			pev_vuser4
+#define LASERMINE_DECALS			pev_vuser2
 
 #define IsPlayer(%1) 				( 1 <= %1 <= 32 ) 
 
@@ -121,6 +102,7 @@ enum _:ERROR
 	NOT_ACCESS			,
 	DONT_HAVE			,
 	CANT_BUY_TEAM		,
+	CANT_BUY_TEAM_Z		,
 	CANT_BUY			,
 	HAVE_MAX			,
 	NO_MONEY			,

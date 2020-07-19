@@ -14,10 +14,10 @@
 
 new int:gPlayerInt		[MAX_PLAYERS][PLAYER_DATA_INT];
 new Float:gPlayerFloat	[MAX_PLAYERS][PLAYER_DATA_FLOAT];
-new gDecalIndexExplosion[MAX_EXPLOSION_DECALS]
-new gDecalIndexBlood	[MAX_BLOOD_DECALS]
-new gNumDecalsExplosion
-new gNumDecalsBlood
+new gDecalIndexExplosion[MAX_EXPLOSION_DECALS];
+new gDecalIndexBlood	[MAX_BLOOD_DECALS];
+new gNumDecalsExplosion;
+new gNumDecalsBlood;
 
 //====================================================
 //  Player Data functions
@@ -27,7 +27,6 @@ stock lm_set_user_have_mine			(id, int:value) 	{ gPlayerInt[id][PLAYER_HAVE_MINE
 stock lm_set_user_mine_deployed		(id, int:value)		{ gPlayerInt[id][PLAYER_DEPLOYED]		= int:value; }
 stock lm_set_user_deploy_state		(id, int:value)		{ gPlayerInt[id][PLAYER_MINE_SETTING]	= int:value; }
 stock lm_set_user_health			(id, Float:health)	{ health > 0 ? set_pev(id, pev_health, health) : user_kill(id, 1); }
-stock lm_set_user_frags				(id, int:frags)		{ set_pev(id, pev_frags, frags); }
 stock lm_save_user_max_speed		(id, Float:value)	{ gPlayerFloat[id][PLAYER_MAX_SPEED]	= Float:value; }
 stock lm_set_user_max_speed			(id, Float:value)	{ engfunc(EngFunc_SetClientMaxspeed, id, value);set_pev(id, pev_maxspeed, value); }
 
@@ -43,10 +42,8 @@ stock Float:lm_get_user_health		(id)
 	pev(id, pev_health, health);
 	return health;
 }
-stock lm_get_user_frags				(id)				{ return pev(id, pev_frags);}
 stock bool:lm_is_user_godmode		(id) 				{ return (pev(id, pev_takedamage) == DAMAGE_NO); }
-stock bool:lm_is_user_alive			(id)				{ return (pev(id,pev_deadflag) == DEAD_NO);}
-stock bool:lm_get_user_buyzone		(id)				{ return bool:(get_pdata_int(id, OFFSET_MAPZONE) & PLAYER_IN_BUYZONE);}
+stock bool:lm_is_user_alive			(id)				{ return (pev(id, pev_deadflag) == DEAD_NO);}
 stock lm_get_entity_class_name		(id)
 {
 	new entityName[MAX_NAME_LENGTH];
@@ -79,7 +76,7 @@ stock int:lm_get_team_deployed_count(id)
 	static team[3] = '^0';
 
 	// Witch your team?
-	switch(CsTeams:lm_get_user_team(id))
+	switch(CsTeams:cs_get_user_team(id))
 	{
 		case CS_TEAM_CT: team = "CT";
 		case CS_TEAM_T : team = "T";
@@ -158,35 +155,6 @@ stock lm_draw_spark_for_wall(const Float:vEndOrigin[3])
 	write_byte(30);	// framerate
 	write_byte(TE_EXPLFLAG_NODLIGHTS | TE_EXPLFLAG_NOPARTICLES | TE_EXPLFLAG_NOSOUND);	// flags
 	message_end();
-}
-
-//====================================================
-// Gets offset data
-//====================================================
-stock get_offset_value(id, type)
-{
-#if defined UL_MONEY_SUPPORT
-	if (type == OFFSET_MONEY)
-	{
-			return cs_get_user_money_ul(id);
-	}
-#endif
-	return get_pdata_int(id, type);	
-}
-
-//====================================================
-// Sets offset data
-//====================================================
-stock set_offset_value(id, type, value)
-{
-#if defined UL_MONEY_SUPPORT
-	if (type == OFFSET_MONEY)
-	{
-		return cs_set_user_money_ul(id, value);
-	}
-#endif
-	set_pdata_int(id, type, value);	
-	return;
 }
 
 //====================================================
@@ -344,25 +312,25 @@ stock lm_create_explosion(Float:vOrigin[3], const Float:fDamage, const Float:fRa
 		iIntensity = 10;
 	
 	engfunc		(EngFunc_MessageBegin, MSG_PVS, SVC_TEMPENTITY, vOrigin, 0);
-	write_byte	(TE_BEAMCYLINDER)
+	write_byte	(TE_BEAMCYLINDER);
 	engfunc		(EngFunc_WriteCoord, vOrigin[0]);
 	engfunc		(EngFunc_WriteCoord, vOrigin[1]);
 	engfunc		(EngFunc_WriteCoord, vOrigin[2]);
 	engfunc		(EngFunc_WriteCoord, vOrigin[0]);
 	engfunc		(EngFunc_WriteCoord, vOrigin[1]);
 	engfunc		(EngFunc_WriteCoord, vOrigin[2] + fZPos);
-	write_short	(sprBlast)
-	write_byte	(0)
-	write_byte	(2)
-	write_byte	(iIntensity)
-	write_byte	(255)
-	write_byte	(0)
-	write_byte	(255)
-	write_byte	(255)
-	write_byte	(165)
-	write_byte	(128)
-	write_byte	(0)
-	message_end	()
+	write_short	(sprBlast);
+	write_byte	(0);
+	write_byte	(2);
+	write_byte	(iIntensity);
+	write_byte	(255);
+	write_byte	(0);
+	write_byte	(255);
+	write_byte	(255);
+	write_byte	(165);
+	write_byte	(128);
+	write_byte	(0);
+	message_end	();
 }
 
 //====================================================
@@ -571,7 +539,7 @@ stock lm_remove_entity(iEnt)
 
 stock CsTeams:lm_get_laser_team(iEnt)
 {
-	return lm_get_user_team(pev(iEnt, LASERMINE_OWNER));
+	return cs_get_user_team(pev(iEnt, LASERMINE_OWNER));
 }
 
 //====================================================
@@ -840,6 +808,8 @@ stock UTIL_Bubbles(const Float:vMins[3], const Float:vMaxs[3], const iCount, spr
 }
 
 #if AMXX_VERSION_NUM < 190
+#define client_disconnected(%1)	client_disconnect(%1)
+
 stock fmt(const szString[], any:...)
 {
 	new result[512];

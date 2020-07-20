@@ -75,14 +75,11 @@ public plugin_init()
 
 	register_clcmd("+setlaser", 	"lm_progress_deploy");
 	register_clcmd("+setlm", 		"lm_progress_deploy");
-	register_clcmd("+dellaser", 	"lm_progress_remove");
-	register_clcmd("+remlm", 		"lm_progress_remove");
-   	register_clcmd("-setlaser", 	"lm_progress_stop");
+	register_clcmd("-setlaser", 	"lm_progress_stop");
    	register_clcmd("-setlm", 		"lm_progress_stop");
-   	register_clcmd("-dellaser", 	"lm_progress_stop");
-   	register_clcmd("-remlm", 		"lm_progress_stop");
 
 	register_clcmd("say", 			"lm_say_lasermine");
+
 #if !defined ZP_SUPPORT	
 	register_clcmd("buy_lasermine", "lm_buy_lasermine");
 #endif
@@ -153,7 +150,7 @@ public plugin_init()
 	gMsgBarTime		= get_user_msgid("BarTime");
 
 	// Register Forward.
-	register_forward(FM_PlayerPostThink,"PlayerPostThink");
+	register_forward(FM_CmdStart,		"PlayerCmdStart"  );
 	register_forward(FM_TraceLine,		"MinesShowInfo", 1);
 
 	// Multi Language Dictionary.
@@ -184,7 +181,7 @@ public plugin_init()
 
 #if AMXX_VERSION_NUM < 190
 //====================================================
-//  PLUGIN CONFIG
+//  PLUGIN CONFIG (for 1.8.2)
 //====================================================
 public plugin_cfg()
 {
@@ -200,6 +197,7 @@ public plugin_cfg()
 	}
 }
 #endif
+
 //====================================================
 //  PLUGIN END
 //====================================================
@@ -210,6 +208,7 @@ public plugin_end()
 		DestroyStack(gRecycleMine[i]);
 }
 #endif
+
 //====================================================
 //  PLUGIN PRECACHE
 //====================================================
@@ -318,7 +317,6 @@ public KeepMaxSpeed(id)
 
 //====================================================
 // Round Start Set Ammo.
-// Native:_native_set_start_ammo(iPlugin, iParam);
 //====================================================
 set_start_ammo(id)
 {
@@ -389,6 +387,9 @@ public lm_progress_deploy(id)
 		set_pev(iEnt, pev_renderfx, 	kRenderFxHologram);
 		set_pev(iEnt, pev_body, 		3);
 		set_pev(iEnt, pev_sequence, 	TRIPMINE_WORLD);
+		// set model animation.
+		set_pev(iEnt, pev_frame,		0);
+		set_pev(iEnt, pev_framerate,	0);
 		set_pev(iEnt, pev_rendermode,	kRenderTransAdd);
 		set_pev(iEnt, pev_renderfx,	 	kRenderFxHologram);
 		set_pev(iEnt, pev_renderamt,	255.0);
@@ -470,17 +471,8 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 	// Entity Setting.
 	// set class name.
 	set_pev(iEnt, pev_classname, 		classname);
-	// set models.
-	engfunc(EngFunc_SetModel, iEnt, 	ENT_MODELS);
 	// set solid.
 	set_pev(iEnt, pev_solid, 			SOLID_NOT);
-	// set movetype.
-	set_pev(iEnt, pev_movetype, 		MOVETYPE_FLY);
-	// set model animation.
-	set_pev(iEnt, pev_frame,			0);
-	set_pev(iEnt, pev_body, 			3);
-	set_pev(iEnt, pev_sequence, 		TRIPMINE_WORLD);
-	set_pev(iEnt, pev_framerate,		0);
 	set_pev(iEnt, pev_rendermode,		kRenderNormal);
 	set_pev(iEnt, pev_renderfx,	 		kRenderFxNone);
 	// set take damage.
@@ -738,10 +730,9 @@ public RemoveMine(id)
 bool:check_for_remove(id)
 {
 	new int:cvar_ammo		= int:get_pcvar_num(gCvar[CVAR_MAX_HAVE]);
-	new ERROR:error 		= check_for_common(id);
 	new PICKUP_MODE:pickup 	= PICKUP_MODE:get_pcvar_num(gCvar[CVAR_ALLOW_PICKUP]);
 	// common check.
-	if (error)
+	if (check_for_common(id))
 		return false;
 
 	// have max ammo? (use buy system.)
@@ -774,15 +765,6 @@ bool:check_for_remove(id)
 	// is target lasermine?
 	if(!equali(entityName, ENT_CLASS_LASER))
 		return false;
-
-	// Damaged?
-	// new Float:health;
-	// health = lm_get_user_health(target);
-	// if (health < get_pcvar_float(gCvar[CVAR_MINE_HEALTH]))
-	// {
-	// 	cp_cant_pickup(id);
-	// 	return false;
-	// }
 
 	switch(pickup)
 	{
@@ -1317,12 +1299,8 @@ public PlayerKilling(iVictim, inflictor, iAttacker, Float:damage, bits)
 //====================================================
 public lm_buy_lasermine(id)
 {	
-	new ERROR:error = check_for_buy(id);
-	if( error )
-	{
-		show_error_message(id, error);
+	if (check_for_buy(id))
 		return PLUGIN_CONTINUE;
-	}
 
 	new cost = get_pcvar_num(gCvar[CVAR_COST]);
 	cs_set_user_money(id, cs_get_user_money(id) - cost);
@@ -1343,14 +1321,10 @@ public lm_buy_lasermine(id)
 //====================================================
 show_ammo(id)
 { 
-#if defined ZP_SUPPORT || defined BIOHAZARD_SUPPORT
-	client_print(id, print_center, "[%i/%i]", lm_get_user_have_mine(id), get_pcvar_num(gCvar[CVAR_MAX_HAVE]));
-#else
 	if (get_pcvar_num(gCvar[CVAR_BUY_MODE]) != 0)
 		client_print(id, print_center, "%L", id, LANG_KEY[STATE_AMMO], lm_get_user_have_mine(id), get_pcvar_num(gCvar[CVAR_MAX_HAVE]));
 	else
 		client_print(id, print_center, "%L", id, LANG_KEY[STATE_INF]);
-#endif
 } 
 
 //====================================================
@@ -1409,10 +1383,27 @@ public lm_say_lasermine(id)
 // Player post think event.
 // Stop movement for mine deploying.
 //====================================================
-public PlayerPostThink(id) 
+public PlayerCmdStart(id, handle, random_seed)
 {
-	if ((pev(id, pev_weapons) & (1 << CSW_C4)) && (pev(id, pev_oldbuttons) & IN_ATTACK))
+	// Not alive
+	if(!is_user_alive(id))
 		return FMRES_IGNORED;
+
+	// Get user old and actual buttons
+	static iInButton, iInOldButton;
+	iInButton	 = (get_uc(handle, UC_Buttons));
+	iInOldButton = (get_user_oldbutton(id));
+
+	// C4 is through.
+	if ((pev(id, pev_weapons) & (1 << CSW_C4)) && (iInButton & IN_ATTACK))
+		return FMRES_IGNORED;
+
+	if ((iInButton & IN_USE))
+		if (!(iInOldButton & IN_USE))
+		{
+			lm_progress_remove(id);
+			return FMRES_HANDLED;
+		}
 
 	switch (lm_get_user_deploy_state(id))
 	{
@@ -1575,15 +1566,15 @@ stock ERROR:check_for_common(id)
 
 	// Plugin Enabled
 	if (!cvar_enable)
-		return ERROR:NOT_ACTIVE;
+		return show_error_message(id, ERROR:NOT_ACTIVE);
 
 	// Can Access.
 	if (cvar_access != 0 && !user_flags) 
-		return ERROR:NOT_ACCESS;
+		return show_error_message(id, ERROR:NOT_ACCESS);
 
 	// Is this player Alive?
 	if (!is_alive) 
-		return ERROR:NOT_ALIVE;
+		return show_error_message(id, ERROR:NOT_ALIVE);
 
 	// Can set Delay time?
 	return ERROR:check_for_time(id);
@@ -1603,7 +1594,7 @@ stock ERROR:check_for_time(id)
 	if(gNowTime >= cvar_delay)
 		return ERROR:NONE;
 
-	return ERROR:DELAY_TIME;
+	return show_error_message(id, ERROR:DELAY_TIME);
 }
 
 //====================================================
@@ -1665,26 +1656,28 @@ stock ERROR:check_for_buy(id)
 	{
 		// Can this team buying?
 		if (!check_for_team(id))
+		{
 #if defined ZP_SUPPORT || defined BIOHAZARD_SUPPORT
-			return ERROR:CANT_BUY_TEAM_Z;
+			return show_error_message(id, ERROR:CANT_BUY_TEAM_Z);
 #else
-			return ERROR:CANT_BUY_TEAM;
+			return show_error_message(id, ERROR:CANT_BUY_TEAM);
 #endif
+		}
 		// Have Max?
 		if (lm_get_user_have_mine(id) >= cvar_maxhave)
-			return ERROR:HAVE_MAX;
+			return show_error_message(id, ERROR:HAVE_MAX);
 
 		// buyzone area?
 		if (cvar_buyzone && !cs_get_user_buyzone(id))
-			return ERROR:NOT_BUYZONE;
+			return show_error_message(id, ERROR:NOT_BUYZONE);
 
 		// Have money?
 		if (cs_get_user_money(id) < cvar_cost)
-			return ERROR:NO_MONEY;
+			return show_error_message(id, ERROR:NO_MONEY);
 
 
 	} else {
-		return ERROR:CANT_BUY;
+		return show_error_message(id, ERROR:CANT_BUY);
 	}
 
 	return ERROR:NONE;
@@ -1700,13 +1693,13 @@ stock ERROR:check_for_max_deploy(id)
 
 	// Max deployed per player.
 	if (lm_get_user_mine_deployed(id) >= cvar_maxhave)
-		return ERROR:MAXIMUM_DEPLOYED;
+		return show_error_message(id, ERROR:MAXIMUM_DEPLOYED);
 
 	// Max deployed per team.
 	new int:team_count = lm_get_team_deployed_count(id);
 
 	if(team_count >= cvar_teammax || team_count >= int:(MAX_LASER_ENTITY / 2))
-		return ERROR:MANY_PPL;
+		return show_error_message(id, ERROR:MANY_PPL);
 
 	return ERROR:NONE;
 }
@@ -1714,7 +1707,7 @@ stock ERROR:check_for_max_deploy(id)
 //====================================================
 // Show Chat area Messages
 //====================================================
-stock show_error_message(id, ERROR:err_num)
+stock ERROR:show_error_message(id, ERROR:err_num)
 {
 	switch(ERROR:err_num)
 	{
@@ -1734,6 +1727,7 @@ stock show_error_message(id, ERROR:err_num)
 		case NOT_BUYZONE:		cp_buyzone(id);
 		case NO_ROUND:			cp_noround(id);
 	}
+	return err_num;
 }
 
 //====================================================
@@ -1765,44 +1759,37 @@ stock ERROR:check_for_onwall(id)
 	if ( fFraction < 1.0 )
 		return ERROR:NONE;
 
-	return ERROR:MUST_WALL;
+	return show_error_message(id, ERROR:MUST_WALL);
 }
 
 //====================================================
 // Check: Round Started
 //====================================================
 #if defined BIOHAZARD_SUPPORT
-stock ERROR:check_round_started()
+stock ERROR:check_round_started(id)
 {
 	if (get_pcvar_num(gCvar[CVAR_NOROUND]))
 	{
 		if(!game_started())
-			return ERROR:NO_ROUND;
+			return show_error_message(id, NO_ROUND);
 	}
 	return ERROR:NONE;
 }
 #endif
+
 //====================================================
 // Check: Lasermine Deploy.
 //====================================================
 stock bool:check_for_deploy(id)
 {
 	// Check common.
-	new ERROR:error = check_for_common(id);
-	if (error)
-	{
-		show_error_message(id, error);
+	if (check_for_common(id))
 		return false;
-	}
 
 #if defined BIOHAZARD_SUPPORT
 	// Check Started Round.
-	error = check_round_started();
-	if(error)
-	{
-		show_error_message(id, error);
+	if (check_round_started(id))
 		return false;
-	}	
 #endif
 	// Have mine? (use buy system)
 	if (get_pcvar_num(gCvar[CVAR_BUY_MODE]) != 0)
@@ -1813,20 +1800,12 @@ stock bool:check_for_deploy(id)
 	}
 
 	// Max deployed?
-	error = check_for_max_deploy(id);
-	if (error) 
-	{
-		show_error_message(id, error);
+	if (check_for_max_deploy(id))
 		return false;
-	}
 	
 	// On the wall?
-	error = check_for_onwall(id);
-	if (error) 
-	{
-		show_error_message(id, error);
+	if (check_for_onwall(id))
 		return false;
-	}
 
 	return true;
 }

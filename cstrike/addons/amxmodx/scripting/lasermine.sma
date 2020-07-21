@@ -150,7 +150,7 @@ public plugin_init()
 	gMsgBarTime		= get_user_msgid("BarTime");
 
 	// Register Forward.
-	register_forward(FM_CmdStart,		"PlayerCmdStart"  );
+	register_forward(FM_CmdStart,		"PlayerCmdStart");
 	register_forward(FM_TraceLine,		"MinesShowInfo", 1);
 
 	// Multi Language Dictionary.
@@ -1392,18 +1392,27 @@ public PlayerCmdStart(id, handle, random_seed)
 	// Get user old and actual buttons
 	static iInButton, iInOldButton;
 	iInButton	 = (get_uc(handle, UC_Buttons));
-	iInOldButton = (get_user_oldbutton(id));
+	iInOldButton = (get_user_oldbutton(id)) & IN_USE;
 
 	// C4 is through.
 	if ((pev(id, pev_weapons) & (1 << CSW_C4)) && (iInButton & IN_ATTACK))
 		return FMRES_IGNORED;
 
-	if ((iInButton & IN_USE))
-		if (!(iInOldButton & IN_USE))
+	iInButton &= IN_USE;
+
+	if (iInButton)
+	{
+		if (!iInOldButton)
 		{
 			lm_progress_remove(id);
 			return FMRES_HANDLED;
 		}
+	}
+	else
+	{
+		if (iInOldButton)
+			lm_progress_stop(id);
+	}
 
 	switch (lm_get_user_deploy_state(id))
 	{

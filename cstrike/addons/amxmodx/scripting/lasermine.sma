@@ -43,7 +43,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.16"
+#define VERSION 					"3.15"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -134,20 +134,21 @@ public plugin_init()
 
 	gCvar[CVAR_FRIENDLY_FIRE]  	= get_cvar_pointer("mp_friendlyfire");											// Friendly fire. 0 or 1
 	gCvar[CVAR_VIOLENCE_HBLOOD]	= get_cvar_pointer("violence_hblood");
+
+	gMsgBarTime					= get_user_msgid("BarTime");
 	
 	// Register Hamsandwich
 	RegisterHam(Ham_Spawn, 			"player", "NewRound", 		1);
 	RegisterHam(Ham_Item_PreFrame,	"player", "KeepMaxSpeed", 	1);
 	RegisterHam(Ham_TakeDamage, 	"player", "PlayerKilling", 	0);
-	RegisterHam(Ham_Think,			ENT_CLASS_BREAKABLE, "LaserThink");
-	RegisterHam(Ham_TakeDamage,		ENT_CLASS_BREAKABLE, "MinesTakeDamage");
-	RegisterHam(Ham_TakeDamage,     ENT_CLASS_BREAKABLE, "MinesBreaked", 1);
+
+	RegisterHam(Ham_Think,			ENT_CLASS_BREAKABLE, "LaserThink",		0);
+	RegisterHam(Ham_TakeDamage,		ENT_CLASS_BREAKABLE, "MinesTakeDamage",	0);
+	RegisterHam(Ham_TakeDamage,     ENT_CLASS_BREAKABLE, "MinesTakeDamaged",1);
 
 	// Register Event
 	register_event("DeathMsg", "DeathEvent",	"a");
 	register_event("TeamInfo", "CheckSpectator","a");
-
-	gMsgBarTime		= get_user_msgid("BarTime");
 
 	// Register Forward.
 	register_forward(FM_CmdStart,		"PlayerCmdStart");
@@ -362,7 +363,7 @@ public DeathEvent()
 }
 
 //====================================================
-// Put LaserMine Start Progress A
+// Deploy LaserMine Start Progress
 //====================================================
 public lm_progress_deploy(id)
 {
@@ -620,12 +621,10 @@ set_laserend_postiion(iEnt, Float:vNormal[3], Float:vNewOrigin[3])
 				{
 					pev(iIgnore, pev_classname, className, charsmax(className));
 					if (!equali(className, ENT_CLASS_BREAKABLE))
-					{
 						break;
-					}
-				} else {
-					break;
 				}
+				else
+					break;
 			}
 			else
 				break;
@@ -655,7 +654,7 @@ public RemoveMine(id)
 
 	// is valid target?
 	if(!pev_valid(target))
-		return 1;
+		return;
 	
 	// Get Player Vector Origin.
 	pev(uID, pev_origin, vOrigin);
@@ -664,14 +663,14 @@ public RemoveMine(id)
 
 	// Distance Check. far 70.0 (cm?)
 	if(get_distance_f(vOrigin, tOrigin) > 70.0)
-		return 1;
+		return;
 	
 	new entityName[MAX_NAME_LENGTH];
 	entityName = lm_get_entity_class_name(target);
 
 	// Check. is Target Entity Lasermine?
 	if(!equali(entityName, ENT_CLASS_LASER))
-		return 1;
+		return;
 
 	new ownerID = pev(target, LASERMINE_OWNER);
 
@@ -679,18 +678,18 @@ public RemoveMine(id)
 	switch(pickup)
 	{
 		case DISALLOW_PICKUP:
-			return 1;
+			return;
 		case ONLY_ME:
 		{
 			// Check. is Owner you?
 			if(ownerID != uID)
-				return 1;
+				return;
 		}
 		case ALLOW_FRIENDLY:
 		{
 			// Check. is friendly team?
 			if(lm_get_laser_team(target) != cs_get_user_team(uID))
-				return 1;
+				return;
 		}		
 	}
 
@@ -720,7 +719,7 @@ public RemoveMine(id)
 	// Refresh show ammo.
 	show_ammo(uID);
 
-	return 1;
+	return;
 }
 
 
@@ -852,6 +851,9 @@ public LaserThink(iEnt)
 	return HAM_IGNORED;
 }
 
+//====================================================
+// Lasermine Power up Step.
+//====================================================
 lm_step_powerup(iEnt, Float:fCurrTime)
 {
 	new Float:fPowerupTime;
@@ -872,6 +874,9 @@ lm_step_powerup(iEnt, Float:fCurrTime)
 	set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
 }
 
+//====================================================
+// Lasermine Beam up Step.
+//====================================================
 lm_step_beamup(iEnt, Float:vEnd[3], Float:fCurrTime)
 {
 	// solid complete.
@@ -890,6 +895,9 @@ lm_step_beamup(iEnt, Float:vEnd[3], Float:fCurrTime)
 	set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
 }
 
+//====================================================
+// Lasermine Laser hit Step.
+//====================================================
 lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 {
 	static Array:aTarget;
@@ -1062,6 +1070,9 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 
 }
 
+//====================================================
+// Lasermine Explosion Step.
+//====================================================
 lm_step_explosion(iEnt, iOwner)
 {
 	// Stopping entity to think
@@ -1102,57 +1113,6 @@ lm_step_explosion(iEnt, iOwner)
 	// remove this.
 	lm_remove_entity(iEnt);
 }
-
-//====================================================
-// Blocken Mines.
-//====================================================
-public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
-{
-	new entityName[MAX_NAME_LENGTH];
-	entityName = lm_get_entity_class_name(victim);
-
-	// is this lasermine? no.
-	if (!equali(entityName, ENT_CLASS_LASER))
-		return HAM_IGNORED;
-
-	// We get the ID of the player who put the mine.
-	new iOwner = pev(victim, LASERMINE_OWNER);
-
-	switch(get_pcvar_num(gCvar[CVAR_MINE_BROKEN]))
-	{
-		// 0 = mines.
-		case 0:
-		{
-			// If the one who set the mine does not coincide with the one who attacked it, then we stop execution.
-			if(iOwner != attacker)
-				return HAM_SUPERCEDE;
-		}
-		// 1 = team.
-		case 1:
-		{
-			// If the team of the one who put the mine and the one who attacked match.
-			if(lm_get_laser_team(victim) != cs_get_user_team(attacker))
-				return HAM_SUPERCEDE;
-		}
-		// 2 = Enemy.
-		case 2:
-		{
-			return HAM_IGNORED;
-		}
-		// 3 = Enemy Only.
-		case 3:
-		{
-			if(iOwner == attacker || lm_get_laser_team(victim) == cs_get_user_team(attacker))
-				return HAM_SUPERCEDE;
-		}
-		default:
-		{
-			return HAM_IGNORED;
-		}
-	}
-	return HAM_IGNORED;
-}
-
 
 //====================================================
 // Drawing Laser line.
@@ -1316,6 +1276,7 @@ public lm_buy_lasermine(id)
 	return PLUGIN_HANDLED;
 }
 #endif
+
 //====================================================
 // Show ammo.
 //====================================================
@@ -1380,7 +1341,7 @@ public lm_say_lasermine(id)
 }
 
 //====================================================
-// Player post think event.
+// Player Cmd Start event.
 // Stop movement for mine deploying.
 //====================================================
 public PlayerCmdStart(id, handle, random_seed)
@@ -1398,6 +1359,7 @@ public PlayerCmdStart(id, handle, random_seed)
 	if ((pev(id, pev_weapons) & (1 << CSW_C4)) && (iInButton & IN_ATTACK))
 		return FMRES_IGNORED;
 
+	// USE KEY
 	iInButton &= IN_USE;
 
 	if (iInButton)
@@ -1898,7 +1860,60 @@ public MinesShowInfo(Float:vStart[3], Float:vEnd[3], Conditions, id, iTrace)
 	return FMRES_IGNORED;
 }
 
-public MinesBreaked(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
+//====================================================
+// Blocken Mines.
+//====================================================
+public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
+{
+	new entityName[MAX_NAME_LENGTH];
+	entityName = lm_get_entity_class_name(victim);
+
+	// is this lasermine? no.
+	if (!equali(entityName, ENT_CLASS_LASER))
+		return HAM_IGNORED;
+
+	// We get the ID of the player who put the mine.
+	new iOwner = pev(victim, LASERMINE_OWNER);
+
+	switch(get_pcvar_num(gCvar[CVAR_MINE_BROKEN]))
+	{
+		// 0 = mines.
+		case 0:
+		{
+			// If the one who set the mine does not coincide with the one who attacked it, then we stop execution.
+			if(iOwner != attacker)
+				return HAM_SUPERCEDE;
+		}
+		// 1 = team.
+		case 1:
+		{
+			// If the team of the one who put the mine and the one who attacked match.
+			if(lm_get_laser_team(victim) != cs_get_user_team(attacker))
+				return HAM_SUPERCEDE;
+		}
+		// 2 = Enemy.
+		case 2:
+		{
+			return HAM_IGNORED;
+		}
+		// 3 = Enemy Only.
+		case 3:
+		{
+			if(iOwner == attacker || lm_get_laser_team(victim) == cs_get_user_team(attacker))
+				return HAM_SUPERCEDE;
+		}
+		default:
+		{
+			return HAM_IGNORED;
+		}
+	}
+	return HAM_IGNORED;
+}
+
+//====================================================
+// Mines Take Damaged.
+//====================================================
+public MinesTakeDamaged(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 {
 	new entityName[MAX_NAME_LENGTH];
 	entityName = lm_get_entity_class_name(victim);

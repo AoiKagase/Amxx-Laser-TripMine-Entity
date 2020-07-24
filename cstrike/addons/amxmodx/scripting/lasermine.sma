@@ -27,10 +27,6 @@
 #pragma semicolon 1
 #include <lasermine_util>
 
-#if defined BIOHAZARD_SUPPORT || defined ZP_SUPPORT
-	#include <lasermine_zombie>
-#endif
-
 #if !defined BIOHAZARD_SUPPORT && !defined ZP_SUPPORT
 	#define PLUGIN 					"Laser/Tripmine Entity"
 	#define CHAT_TAG 				"[Lasermine]"
@@ -43,7 +39,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.15"
+#define VERSION 					"3.16"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -60,7 +56,11 @@ new gDeployingMines		[MAX_PLAYERS];
 new Stack:gRecycleMine	[MAX_PLAYERS];
 #endif
 
-
+#if defined BIOHAZARD_SUPPORT || defined ZP_SUPPORT
+#pragma semicolon 0
+	#include <lasermine_zombie>
+#pragma semicolon 1
+#endif
 
 //====================================================
 //  PLUGIN INITIALIZE
@@ -1223,11 +1223,13 @@ public PlayerKilling(iVictim, inflictor, iAttacker, Float:damage, bits)
 		if (lm_get_user_health(iVictim) - damage > 0.0)
 			return HAM_IGNORED;
 
+#if !defined ZP_SUPPORT && !defined BIOHAZARD_SUPPORT
 		// Get Target Team.
 		new CsTeams:aTeam = cs_get_user_team(iAttacker);
 		new CsTeams:vTeam = cs_get_user_team(iVictim);
 
 		new score  = (vTeam != aTeam) ? 1 : -1;
+#endif
 
 		// Attacker Frag.
 		// Add Attacker Frag (Friendly fire is minus).
@@ -1742,7 +1744,7 @@ stock ERROR:check_round_started(id)
 	if (get_pcvar_num(gCvar[CVAR_NOROUND]))
 	{
 		if(!game_started())
-			return show_error_message(id, NO_ROUND);
+			return show_error_message(id, ERROR:NO_ROUND);
 	}
 	return ERROR:NONE;
 }

@@ -41,15 +41,7 @@ register_zombie()
 #define CVAR_TAG				"zp_ltm"
 #define CVAR_CFG				"zp_ltm_cvars.cfg"
 
-enum _:GAMEMODE_TAG
-{
-	GMODE_ARMAGEDDON,
-	GMODE_ZTAG,
-	GMODE_ASSASIN,
-}
-
 new ITEM_NAME[][]	= {"LaserMines", "TripMines", "Claymores"};
-new gZpGameMode[GAMEMODE_TAG];
 new gZpWeaponId;
 
 register_zombie()
@@ -57,9 +49,6 @@ register_zombie()
 	new wmode 						= get_pcvar_num(gCvar[CVAR_MODE]);
 	new cost						= get_pcvar_num(gCvar[CVAR_COST]);
 	gZpWeaponId						= zp_items_register(ITEM_NAME[wmode], cost);
-	gZpGameMode[GMODE_ARMAGEDDON]	= zp_gamemodes_get_id("Armageddon Mode");
-	gZpGameMode[GMODE_ZTAG] 		= zp_gamemodes_get_id("Zombie Tag Mode");
-	gZpGameMode[GMODE_ASSASIN]		= zp_gamemodes_get_id("Assassin Mode");
 #if AMXX_VERSION_NUM > 183
 	AutoExecConfig(true, "plugin-lasermine_zp");
 #endif
@@ -104,11 +93,7 @@ public zp_fw_items_select_pre(id, itemid, ignorecost)
 
 	new gamemode = zp_gamemodes_get_current();
 
-	if (gamemode == -2
-	||	gamemode == gZpGameMode[GMODE_ARMAGEDDON]
-	||	gamemode == gZpGameMode[GMODE_ZTAG]
-	||	gamemode == gZpGameMode[GMODE_ASSASIN]
-	)
+	if (gamemode == -2)
 	{
 		zp_colored_print(id, "This is not available right now...");
 		return ZP_ITEM_NOT_AVAILABLE;
@@ -135,7 +120,7 @@ public zp_fw_items_select_post(id, itemid, ignorecost)
 	}
 }
 
-zp_mines_breaked(attecker, victim)
+zp_mines_breaked(attacker, victim)
 {
 	if (lm_get_user_health(victim) <= 0)
 	{

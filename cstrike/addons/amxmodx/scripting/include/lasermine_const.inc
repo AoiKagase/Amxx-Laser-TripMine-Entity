@@ -18,6 +18,11 @@
 #define MAX_AUTHID_LENGTH			64
 #define HIT_SHIELD					8
 #define Ham_CS_Player_ResetMaxSpeed Ham_Item_PreFrame
+#define XTRA_OFS_PLAYER        		5
+#define m_LastHitGroup        		75
+#define lm_set_user_lasthit(%1,%2)	set_pdata_int(%1, m_LastHitGroup, %2)
+#else
+#define lm_set_user_lasthit(%1,%2)	set_ent_data(%1, "CBaseMonster","m_LastHitGroup", %2)
 #endif
 
 #define ENT_CLASS_LASER				"lasermine"
@@ -29,7 +34,6 @@
 // CS Status Data.
 #define lm_get_user_deaths(%1)		get_ent_data(%1, "CbasePlayer",	"m_iDeaths")
 #define lm_set_user_deaths(%1,%2)	set_ent_data(%1, "CbasePlayer",	"m_iDeaths", %2)
-#define lm_set_user_lasthit(%1,%2)	set_ent_data(%1, "CBaseMonster","m_LastHitGroup", %2)
 
 // Lasermine Data Save Area.
 #define LASERMINE_OWNER				pev_iuser1
@@ -101,24 +105,24 @@ enum _:TRIPMINE_DMGMODE
 //
 enum _:ERROR
 {
-	NONE							= 0,
-	NOT_ACTIVE						,
-	NOT_ACCESS						,
-	DONT_HAVE						,
-	CANT_BUY_TEAM					,
-	CANT_BUY_TEAM_Z					,
-	CANT_BUY						,
-	HAVE_MAX						,
-	NO_MONEY						,
-	MAXIMUM_DEPLOYED				,
-	MANY_PPL						,
-	DELAY_TIME						,
-	NOT_ALIVE						,
-	MUST_WALL						,
-	MUST_GROUND						,
-	NOT_IMPLEMENT					,
-	NOT_BUYZONE						,
-	NO_ROUND						,
+	E_NONE							= 0,
+	E_NOT_ACTIVE					,
+	E_NOT_ACCESS					,
+	E_DONT_HAVE						,
+	E_CANT_BUY_TEAM					,
+	E_CANT_BUY_TEAM_Z				,
+	E_CANT_BUY						,
+	E_HAVE_MAX						,
+	E_NO_MONEY						,
+	E_MAXIMUM_DEPLOYED				,
+	E_MANY_PPL						,
+	E_DELAY_TIME					,
+	E_NOT_ALIVE						,
+	E_MUST_WALL						,
+	E_MUST_GROUND					,
+	E_NOT_IMPLEMENT					,
+	E_NOT_BUYZONE					,
+	E_NO_ROUND						,
 };
 
 //
@@ -300,7 +304,7 @@ new const ENT_SOUNDS[][]	=
 									"weapons/ric_metal-1.wav"	,		// 5: SHIELD HIT
 									"weapons/ric_metal-2.wav"	,		// 6: SHIELD HIT
 									"debris/bustglass1.wav"		,		// 7: GLASS
-									"debris/bustglass2.wav"		,		// 8: GLASS
+									"debris/bustglass2.wav"				// 8: GLASS
 };
 new const ENT_SPRITES[][]	=
 {
@@ -312,7 +316,7 @@ new const ENT_SPRITES[][]	=
 									"sprites/steam1.spr"		,		// 5: SMOKE
 									"sprites/bubble.spr"		,		// 6: BUBBLE
 									"sprites/blood.spr"			,		// 7: BLOOD SPLASH
-									"sprites/bloodspray.spr"	,		// 8: BLOOD SPRAY
+									"sprites/bloodspray.spr"			// 8: BLOOD SPRAY
 };
 new const LANG_KEY[][]		=
 {
@@ -339,5 +343,5 @@ new const LANG_KEY[][]		=
 									"ALL_REMOVE"				,
 									"GIVE_MINE"					,
 									"REMOVE_SPEC"				,
-									"MINE_HUD_MSG"				,
+									"MINE_HUD_MSG"				
 };

@@ -24,8 +24,8 @@
 	#assert "AMX Mod X v1.8.2 or greater library required!"
 #endif
 
-#pragma semicolon 1
 #include <lasermine_util>
+#pragma semicolon 1
 
 #if !defined BIOHAZARD_SUPPORT && !defined ZP_SUPPORT
 	#define PLUGIN 					"Laser/Tripmine Entity"
@@ -1014,7 +1014,7 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 	{
 		for (new n = 0; n < ArraySize(aTarget); n++)
 		{
-			ArrayGetArray(aTarget, n, hPlayer, sizeof(hPlayer));
+			ArrayGetArray(aTarget, n, hPlayer);
 			if (IsPlayer(hPlayer[I_TARGET]))
 			{
 				// State change. to Explosing step.
@@ -1028,7 +1028,7 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 		new Float:vEndPosition[3];
 		for (new n = 0; n < ArraySize(aTarget); n++)
 		{
-			ArrayGetArray(aTarget, n, hPlayer, sizeof(hPlayer));
+			ArrayGetArray(aTarget, n, hPlayer);
 			xs_vec_copy(hPlayer[V_POSITION], vEndPosition);
 
 			if(get_pcvar_num(gCvar[CVAR_REALISTIC_DETAIL])) 
@@ -1240,8 +1240,8 @@ public PlayerKilling(iVictim, inflictor, iAttacker, Float:damage, bits)
 
 		new tDeath = cs_get_user_deaths(iVictim);
 
-		cs_set_user_deaths(iVictim, tDeath, false);
-		ExecuteHamB(Ham_AddPoints, iVictim, 0, true);
+		cs_set_user_deaths(iVictim, tDeath);
+//		ExecuteHamB(Ham_AddPoints, iVictim, 0, true);
 
 #if !defined ZP_SUPPORT && !defined BIOHAZARD_SUPPORT
 		// Get Money attacker.
@@ -1539,15 +1539,15 @@ stock ERROR:check_for_common(id)
 
 	// Plugin Enabled
 	if (!cvar_enable)
-		return show_error_message(id, ERROR:NOT_ACTIVE);
+		return show_error_message(id, ERROR:E_NOT_ACTIVE);
 
 	// Can Access.
 	if (cvar_access != 0 && !user_flags) 
-		return show_error_message(id, ERROR:NOT_ACCESS);
+		return show_error_message(id, ERROR:E_NOT_ACCESS);
 
 	// Is this player Alive?
 	if (!is_alive) 
-		return show_error_message(id, ERROR:NOT_ALIVE);
+		return show_error_message(id, ERROR:E_NOT_ALIVE);
 
 	// Can set Delay time?
 	return ERROR:check_for_time(id);
@@ -1565,9 +1565,9 @@ stock ERROR:check_for_time(id)
 
 	// check.
 	if(gNowTime >= cvar_delay)
-		return ERROR:NONE;
+		return ERROR:E_NONE;
 
-	return show_error_message(id, ERROR:DELAY_TIME);
+	return show_error_message(id, ERROR:E_DELAY_TIME);
 }
 
 //====================================================
@@ -1631,29 +1631,29 @@ stock ERROR:check_for_buy(id)
 		if (!check_for_team(id))
 		{
 #if defined ZP_SUPPORT || defined BIOHAZARD_SUPPORT
-			return show_error_message(id, ERROR:CANT_BUY_TEAM_Z);
+			return show_error_message(id, ERROR:E_CANT_BUY_TEAM_Z);
 #else
-			return show_error_message(id, ERROR:CANT_BUY_TEAM);
+			return show_error_message(id, ERROR:E_CANT_BUY_TEAM);
 #endif
 		}
 		// Have Max?
 		if (lm_get_user_have_mine(id) >= cvar_maxhave)
-			return show_error_message(id, ERROR:HAVE_MAX);
+			return show_error_message(id, ERROR:E_HAVE_MAX);
 
 		// buyzone area?
 		if (cvar_buyzone && !cs_get_user_buyzone(id))
-			return show_error_message(id, ERROR:NOT_BUYZONE);
+			return show_error_message(id, ERROR:E_NOT_BUYZONE);
 
 		// Have money?
 		if (cs_get_user_money(id) < cvar_cost)
-			return show_error_message(id, ERROR:NO_MONEY);
+			return show_error_message(id, ERROR:E_NO_MONEY);
 
 
 	} else {
-		return show_error_message(id, ERROR:CANT_BUY);
+		return show_error_message(id, ERROR:E_CANT_BUY);
 	}
 
-	return ERROR:NONE;
+	return ERROR:E_NONE;
 }
 
 //====================================================
@@ -1666,15 +1666,15 @@ stock ERROR:check_for_max_deploy(id)
 
 	// Max deployed per player.
 	if (lm_get_user_mine_deployed(id) >= cvar_maxhave)
-		return show_error_message(id, ERROR:MAXIMUM_DEPLOYED);
+		return show_error_message(id, ERROR:E_MAXIMUM_DEPLOYED);
 
 	// Max deployed per team.
 	new int:team_count = lm_get_team_deployed_count(id);
 
 	if(team_count >= cvar_teammax || team_count >= int:(MAX_LASER_ENTITY / 2))
-		return show_error_message(id, ERROR:MANY_PPL);
+		return show_error_message(id, ERROR:E_MANY_PPL);
 
-	return ERROR:NONE;
+	return ERROR:E_NONE;
 }
 
 //====================================================
@@ -1684,21 +1684,21 @@ stock ERROR:show_error_message(id, ERROR:err_num)
 {
 	switch(ERROR:err_num)
 	{
-		case NOT_ACTIVE:		cp_not_active(id);
-		case NOT_ACCESS:		cp_not_access(id);
-		case DONT_HAVE:			cp_dont_have(id);
-		case CANT_BUY_TEAM:		cp_cant_buy_team(id);
-		case CANT_BUY_TEAM_Z:	cp_cant_buy_zombie(id);
-		case CANT_BUY:			cp_cant_buy(id);
-		case HAVE_MAX:			cp_have_max(id);
-		case NO_MONEY:			cp_no_money(id);
-		case MAXIMUM_DEPLOYED:	cp_maximum_deployed(id);
-		case MANY_PPL:			cp_many_ppl(id);
-		case DELAY_TIME:		cp_delay_time(id);
-		case MUST_WALL:			cp_must_wall(id);
-		case NOT_IMPLEMENT:		cp_sorry(id);
-		case NOT_BUYZONE:		cp_buyzone(id);
-		case NO_ROUND:			cp_noround(id);
+		case E_NOT_ACTIVE:		cp_not_active(id);
+		case E_NOT_ACCESS:		cp_not_access(id);
+		case E_DONT_HAVE:		cp_dont_have(id);
+		case E_CANT_BUY_TEAM:	cp_cant_buy_team(id);
+		case E_CANT_BUY_TEAM_Z:	cp_cant_buy_zombie(id);
+		case E_CANT_BUY:		cp_cant_buy(id);
+		case E_HAVE_MAX:		cp_have_max(id);
+		case E_NO_MONEY:		cp_no_money(id);
+		case E_MAXIMUM_DEPLOYED:cp_maximum_deployed(id);
+		case E_MANY_PPL:		cp_many_ppl(id);
+		case E_DELAY_TIME:		cp_delay_time(id);
+		case E_MUST_WALL:		cp_must_wall(id);
+		case E_NOT_IMPLEMENT:	cp_sorry(id);
+		case E_NOT_BUYZONE:		cp_buyzone(id);
+		case E_NO_ROUND:		cp_noround(id);
 	}
 	return err_num;
 }
@@ -1730,9 +1730,9 @@ stock ERROR:check_for_onwall(id)
 
 	// We hit something!
 	if ( fFraction < 1.0 )
-		return ERROR:NONE;
+		return ERROR:E_NONE;
 
-	return show_error_message(id, ERROR:MUST_WALL);
+	return show_error_message(id, ERROR:E_MUST_WALL);
 }
 
 //====================================================
@@ -1768,7 +1768,7 @@ stock bool:check_for_deploy(id)
 	if (get_pcvar_num(gCvar[CVAR_BUY_MODE]) != 0)
 	if (lm_get_user_have_mine(id) <= int:0) 
 	{
-		show_error_message(id, ERROR:DONT_HAVE);
+		show_error_message(id, ERROR:E_DONT_HAVE);
 		return false;
 	}
 

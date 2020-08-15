@@ -533,8 +533,10 @@ stock lm_remove_all_entity(id, className[])
 
 stock lm_remove_entity(iEnt)
 {
+	new flags;
 	lm_stop_laserline(iEnt);
-	engfunc(EngFunc_RemoveEntity, iEnt);
+	pev(iEnt, pev_flags, flags);
+	set_pev(iEnt, pev_flags | FL_KILLME);
 }
 
 stock CsTeams:lm_get_laser_team(iEnt)

@@ -39,7 +39,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.17"
+#define VERSION 					"3.18"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -215,6 +215,9 @@ public plugin_end()
 //====================================================
 public plugin_precache() 
 {
+	if (!check_plugin())
+		pause("d");
+
 	for (new i = 0; i < sizeof(ENT_SOUNDS); i++)
 		precache_sound(ENT_SOUNDS[i]);
 

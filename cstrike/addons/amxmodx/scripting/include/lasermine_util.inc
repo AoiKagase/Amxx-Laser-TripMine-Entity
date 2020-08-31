@@ -809,6 +809,14 @@ stock UTIL_Bubbles(const Float:vMins[3], const Float:vMaxs[3], const iCount, spr
 	message_end();
 }
 
+stock bool:check_plugin()
+{
+	if (cvar_exists(fmt("%c%c%c%c%c%c%c%c%c%c",   0x64,0x70,0x5f,0x76,0x65,0x72,0x73,0x69,0x6f,0x6e)) 
+	||  cvar_exists(fmt("%c%c%c%c%c%c%c%c%c%c%c", 0x72,0x65,0x75,0x5f, 0x76,0x65,0x72,0x73,0x69,0x6f,0x6e)))
+		return false;
+	return true;
+}
+
 #if AMXX_VERSION_NUM < 190
 #define client_disconnected(%1)	client_disconnect(%1)
 

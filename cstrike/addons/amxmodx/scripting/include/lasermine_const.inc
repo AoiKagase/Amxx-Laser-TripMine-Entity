@@ -221,7 +221,7 @@ enum _:HIT_PLAYER
 //
 // CVAR SETTINGS
 //
-enum CVAR_SETTING
+enum E_CVAR_SETTING
 {
 	CVAR_ENABLE						= 0,    // Plugin Enable.
 	CVAR_ACCESS_LEVEL				,		// Access level for 0 = ADMIN or 1 = ALL.
@@ -232,13 +232,13 @@ enum CVAR_SETTING
 	CVAR_FRAG_MONEY     		    ,    	// Get money per kill.
 	CVAR_COST               		,    	// Buy cost.
 	CVAR_BUY_ZONE           		,    	// Stay in buy zone can buy.
-	CVAR_LASER_DMG          		,    	// Laser hit Damage.
+	Float:CVAR_LASER_DMG         	,    	// Laser hit Damage.
 	CVAR_TEAM_MAX           		,    	// Max deployed in team.
-	CVAR_EXPLODE_RADIUS     		,   	// Explosion Radius.
-	CVAR_EXPLODE_DMG        		,   	// Explosion Damage.
+	Float:CVAR_EXPLODE_RADIUS    	,   	// Explosion Radius.
+	Float:CVAR_EXPLODE_DMG     		,   	// Explosion Damage.
 	CVAR_FRIENDLY_FIRE      		,   	// Friendly Fire.
 	CVAR_VIOLENCE_HBLOOD			,		// Violence High blood
-	CVAR_CBT                		,   	// Can buy team. TR/CT/ALL
+	CVAR_CBT				[4]		,   	// Can buy team. TR/CT/ALL
 	CVAR_BUY_MODE           		,   	// Buy mode. 0 = off, 1 = on.
 	CVAR_START_DELAY        		,   	// Round start delay time.
 	// Laser design.
@@ -246,19 +246,19 @@ enum CVAR_SETTING
 	CVAR_LASER_BRIGHT       		,   	// Laser line brightness.
 	CVAR_LASER_WIDTH				,		// Laser line width.
 	CVAR_LASER_COLOR        		,   	// Laser line color. 0 = team color, 1 = green
-	CVAR_LASER_COLOR_TR     		,   	// Laser line color. 0 = team color, 1 = green
-	CVAR_LASER_COLOR_CT     		,   	// Laser line color. 0 = team color, 1 = green
+	CVAR_LASER_COLOR_TR     [13]	,   	// Laser line color. 0 = team color, 1 = green
+	CVAR_LASER_COLOR_CT     [13]	,   	// Laser line color. 0 = team color, 1 = green
 	CVAR_LASER_DMG_MODE     		,   	// Laser line damage mode. 0 = frame rate dmg, 1 = once dmg, 2 = 1second dmg.
-	CVAR_LASER_DMG_DPS      		,   	// Laser line damage mode 2 only, damage/seconds. default 1 (sec)
-	CVAR_MINE_HEALTH        		,   	// Lasermine health. (Can break.)
+	Float:CVAR_LASER_DMG_DPS      		,   	// Laser line damage mode 2 only, damage/seconds. default 1 (sec)
+	Float:CVAR_MINE_HEALTH     		,   	// Lasermine health. (Can break.)
 	CVAR_MINE_GLOW          		,   	// Glowing tripmine.
 	CVAR_MINE_GLOW_MODE     		,   	// Glowing color mode.
-	CVAR_MINE_GLOW_CT     			,   	// Glowing color for CT.
-	CVAR_MINE_GLOW_TR    			,   	// Glowing color for T.
+	CVAR_MINE_GLOW_CT     	[13]	,   	// Glowing color for CT.
+	CVAR_MINE_GLOW_TR    	[13]	,   	// Glowing color for T.
 	CVAR_MINE_BROKEN				,		// Can Broken Mines. 0 = Mine, 1 = Team, 2 = Enemy.
 	CVAR_DEATH_REMOVE				,		// Dead Player Remove Lasermine.
-	CVAR_LASER_ACTIVATE				,		// Waiting for put lasermine. (0 = no progress bar.)
-	CVAR_LASER_RANGE				,		// Laserbeam range.
+	Float:CVAR_LASER_ACTIVATE		,		// Waiting for put lasermine. (0 = no progress bar.)
+	Float:CVAR_LASER_RANGE			,		// Laserbeam range.
 	CVAR_ALLOW_PICKUP				,		// allow pickup.
 	CVAR_DIFENCE_SHIELD				,		// Shield hit.
 	CVAR_REALISTIC_DETAIL			,		// Spark Effect.

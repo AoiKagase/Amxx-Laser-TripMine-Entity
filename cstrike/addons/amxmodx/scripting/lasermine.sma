@@ -51,7 +51,7 @@ new gMsgBarTime;
 new gSprites			[E_SPRITES];
 new gCvar				[E_CVAR_SETTING];
 new gEntMine;
-
+new gWeaponId;
 new gDeployingMines		[MAX_PLAYERS];
 
 #if AMXX_VERSION_NUM > 183
@@ -99,7 +99,7 @@ public plugin_init()
 
 	// Buy system.
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_mode"				), "1"		), gCvar[CVAR_BUY_MODE]);						// 0 = off, 1 = on.
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_team"				), "ALL"	), gCvar[CVAR_CBT], 3);							// Can buy team. TR / CT / ALL. (BIOHAZARD: Z = Zombie)
+	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_team"				), "ALL"	), gCvar[CVAR_CBT], charsmax(gCvar[CVAR_CBT]));	// Can buy team. TR / CT / ALL. (BIOHAZARD: Z = Zombie, H = human)
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_price"				), "2500"	), gCvar[CVAR_COST]);							// Buy cost.
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_zone"				), "1"		), gCvar[CVAR_BUY_ZONE]);						// Stay in buy zone can buy.
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_frag_money"			), "300"	), gCvar[CVAR_FRAG_MONEY]);						// Get money.
@@ -108,8 +108,8 @@ public plugin_init()
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_visible"			), "1"		), gCvar[CVAR_LASER_VISIBLE]);					// Laser line visibility.
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_mode"		), "0"		), gCvar[CVAR_LASER_COLOR]);					// laser line color 0 = team color, 1 = green.
 	// Leser beam color for team color mode.
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_t"			), "255,0,0"), gCvar[CVAR_LASER_COLOR_TR], 12);				// Team-Color for Terrorist. default:red (R,G,B)
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_ct"		), "0,0,255"), gCvar[CVAR_LASER_COLOR_CT], 12);				// Team-Color for Counter-Terrorist. default:blue (R,G,B)
+	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_t"			), "255,0,0"), gCvar[CVAR_LASER_COLOR_TR], charsmax(gCvar[CVAR_LASER_COLOR_TR]));				// Team-Color for Terrorist. default:red (R,G,B)
+	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_ct"		), "0,0,255"), gCvar[CVAR_LASER_COLOR_CT], charsmax(gCvar[CVAR_LASER_COLOR_CT]));				// Team-Color for Counter-Terrorist. default:blue (R,G,B)
 
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_brightness"		), "255"	), gCvar[CVAR_LASER_BRIGHT]);					// laser line brightness. 0 to 255
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_width"			), "2"		), gCvar[CVAR_LASER_WIDTH]);					// laser line width. 0 to 255
@@ -122,8 +122,8 @@ public plugin_init()
 	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_health"			), "500"	), gCvar[CVAR_MINE_HEALTH]);					// Tripmine Health. (Can break.)
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow"				), "1"		), gCvar[CVAR_MINE_GLOW]);						// Tripmine glowing. 0 = off, 1 = on.
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_mode"	), "0"		), gCvar[CVAR_MINE_GLOW_MODE]);					// Mine glow coloer 0 = team color, 1 = green, 2 = Health Indicator Glow(green to red).
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_t"		), "255,0,0"), gCvar[CVAR_MINE_GLOW_TR], 12);				// Team-Color for Terrorist. default:red (R,G,B)
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_ct"	), "0,0,255"), gCvar[CVAR_MINE_GLOW_CT], 12);				// Team-Color for Counter-Terrorist. default:blue (R,G,B)
+	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_t"		), "255,0,0"), gCvar[CVAR_MINE_GLOW_TR], charsmax(gCvar[CVAR_MINE_GLOW_TR]));				// Team-Color for Terrorist. default:red (R,G,B)
+	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_ct"	), "0,0,255"), gCvar[CVAR_MINE_GLOW_CT], charsmax(gCvar[CVAR_MINE_GLOW_CT]));				// Team-Color for Counter-Terrorist. default:blue (R,G,B)
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_broken"			), "0"		), gCvar[CVAR_MINE_BROKEN]);					// Can broken Mines.(0 = mines, 1 = Team, 2 = Enemy)
 	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_explode_radius"		), "320.0"	), gCvar[CVAR_EXPLODE_RADIUS]);					// Explosion radius.
 	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_explode_damage"		), "100.0"	), gCvar[CVAR_EXPLODE_DMG]);					// Explosion radius damage.
@@ -176,7 +176,7 @@ public plugin_init()
 #endif
 
 	// Add Custom weapon id to CSX.
-	custom_weapon_add("Laser Mine", 0, ENT_CLASS_LASER);
+	gWeaponId = custom_weapon_add("Laser Mine", 0, ENT_CLASS_LASER);
 
 	// registered func_breakable
 	gEntMine = engfunc(EngFunc_AllocString, ENT_CLASS_BREAKABLE);
@@ -1195,6 +1195,9 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 	if (!is_user_alive(iTarget))
 		return;
 
+	// Adds a shot event on a custom weapon to the internal stats.
+	custom_weapon_shot(gWeaponId, iAttacker);
+
 	if (gCvar[CVAR_DIFENCE_SHIELD] && hitGroup == HIT_SHIELD)
 	{
 		lm_play_sound(iTarget, SOUND_HIT_SHIELD);
@@ -1209,8 +1212,16 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 			lm_set_user_lasthit(iTarget, hitGroup);
 			if (gCvar[CVAR_VIOLENCE_HBLOOD])
 				lm_create_hblood(hitPoint, floatround(dmg), gSprites[BLOOD_SPRAY], gSprites[BLOOD_SPLASH]);
+
+			// Triggers a damage event on a custom weapon, adding it to the internal stats.
+			// This will also call the client_damage() and client_kill() forwards if applicable.
+			// For a list of possible body hitplaces see the HIT_* constants in amxconst.inc
+			custom_weapon_dmg(gWeaponId, iAttacker, iTarget, dmg, hitGroup);
+		} else 
+		{
+			// Other target entities.
+			ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
 		}
-		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
 	}
 	set_pev(iEnt, LASERMINE_HITING, iTarget);
 	return;

@@ -526,6 +526,9 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 	lm_set_user_deploy_state(uID, 		int:STATE_DEPLOYED);
 	gDeployingMines[uID] = 0;
 
+	// Adds a shot event on a custom weapon to the internal stats.
+	custom_weapon_shot(gWeaponId, uID);
+
 	// Refresh show ammo.
 	show_ammo(uID);
 }
@@ -1195,9 +1198,6 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 	if (!is_user_alive(iTarget))
 		return;
 
-	// Adds a shot event on a custom weapon to the internal stats.
-	custom_weapon_shot(gWeaponId, iAttacker);
-
 	if (gCvar[CVAR_DIFENCE_SHIELD] && hitGroup == HIT_SHIELD)
 	{
 		lm_play_sound(iTarget, SOUND_HIT_SHIELD);
@@ -1216,12 +1216,10 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 			// Triggers a damage event on a custom weapon, adding it to the internal stats.
 			// This will also call the client_damage() and client_kill() forwards if applicable.
 			// For a list of possible body hitplaces see the HIT_* constants in amxconst.inc
-			custom_weapon_dmg(gWeaponId, iAttacker, iTarget, dmg, hitGroup);
-		} else 
-		{
-			// Other target entities.
-			ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
+			custom_weapon_dmg(gWeaponId, iAttacker, iTarget, floatround(dmg), hitGroup);
 		}
+		// Other target entities.
+		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
 	}
 	set_pev(iEnt, LASERMINE_HITING, iTarget);
 	return;

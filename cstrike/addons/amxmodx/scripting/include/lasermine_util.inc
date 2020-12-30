@@ -535,8 +535,11 @@ stock lm_remove_entity(iEnt)
 {
 	new flags;
 	lm_stop_laserline(iEnt);
-	pev(iEnt, pev_flags, flags);
-	set_pev(iEnt, pev_flags | FL_KILLME);
+	if (pev_valid(iEnt))
+	{
+		pev(iEnt, pev_flags, flags);
+		set_pev(iEnt, pev_flags | FL_KILLME);
+	}
 }
 
 stock CsTeams:lm_get_laser_team(iEnt)

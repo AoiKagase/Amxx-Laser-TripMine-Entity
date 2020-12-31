@@ -538,7 +538,7 @@ stock lm_remove_entity(iEnt)
 	if (pev_valid(iEnt))
 	{
 		pev(iEnt, pev_flags, flags);
-		set_pev(iEnt, pev_flags | FL_KILLME);
+		set_pev(iEnt, pev_flags, flags | FL_KILLME);
 	}
 }
 

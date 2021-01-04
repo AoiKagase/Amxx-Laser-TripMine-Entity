@@ -240,7 +240,7 @@ enum E_CVAR_SETTING
 	CVAR_VIOLENCE_HBLOOD			,		// Violence High blood
 	CVAR_CBT				[4]		,   	// Can buy team. TR/CT/ALL
 	CVAR_BUY_MODE           		,   	// Buy mode. 0 = off, 1 = on.
-	CVAR_START_DELAY        		,   	// Round start delay time.
+	Float:CVAR_START_DELAY       	,   	// Round start delay time.
 	// Laser design.
 	CVAR_LASER_VISIBLE      		,   	// Laser line Visiblity. 0 = off, 1 = on.
 	CVAR_LASER_BRIGHT       		,   	// Laser line brightness.
@@ -270,7 +270,7 @@ enum E_CVAR_SETTING
 #define cp_debug(%1)				client_print_color(%1, %1, "^4[Laesrmine Debug] ^1Can't Create Entity")
 #define cp_refer(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[REFER],		CHAT_TAG)
 #define cp_bought(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[BOUGHT],		CHAT_TAG)
-#define	cp_no_money(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[NO_MONEY],	CHAT_TAG, get_pcvar_num(gCvar[CVAR_COST]))
+#define	cp_no_money(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[NO_MONEY],	CHAT_TAG, gCvar[CVAR_COST])
 #define cp_not_access(%1)			client_print_color(%1, print_team_red, "%L", %1, LANG_KEY[NOT_ACCESS], CHAT_TAG)
 #define cp_not_active(%1)			client_print_color(%1, print_team_red, "%L", %1, LANG_KEY[NOT_ACTIVE], CHAT_TAG)
 #define cp_dont_have(%1)			client_print_color(%1, %1, "%L", %1, LANG_KEY[NOT_HAVE],	CHAT_TAG)
@@ -282,7 +282,7 @@ enum E_CVAR_SETTING
 #define cp_maximum_deployed(%1)		client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_DEPLOY],	CHAT_TAG)
 #define cp_have_max(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_HAVE],	CHAT_TAG)
 #define cp_many_ppl(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_PPL],		CHAT_TAG)
-#define cp_delay_time(%1)			client_print_color(%1, %1, "%L", %1, LANG_KEY[DELAY_SEC],	CHAT_TAG, int:get_pcvar_num(gCvar[CVAR_START_DELAY]) - gNowTime)
+#define cp_delay_time(%1)			client_print_color(%1, %1, "%L", %1, LANG_KEY[DELAY_SEC],	CHAT_TAG, gCvar[CVAR_START_DELAY] - gNowTime)
 #define cp_must_wall(%1)			client_print_color(%1, %1, "%L", %1, LANG_KEY[PLANT_WALL],	CHAT_TAG)
 #define cp_sorry(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[SORRY_IMPL],	CHAT_TAG)
 #define cp_noround(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[NOROUND], 	CHAT_TAG)

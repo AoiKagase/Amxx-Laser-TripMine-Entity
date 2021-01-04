@@ -41,12 +41,12 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.22"
+#define VERSION 					"3.23"
 
 //====================================================
 //  GLOBAL VARIABLES
 //====================================================
-new int:gNowTime;
+new Float:gNowTime;
 new gMsgBarTime;
 new gSprites			[E_SPRITES];
 new gCvar				[E_CVAR_SETTING];
@@ -90,7 +90,7 @@ public plugin_init()
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_enable"				), "1"		), gCvar[CVAR_ENABLE]);							// 0 = off, 1 = on.
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_access"				), "0"		), gCvar[CVAR_ACCESS_LEVEL]);					// 0 = all, 1 = admin
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_mode"					), "0"		), gCvar[CVAR_MODE]);							// 0 = lasermine, 1 = tripmine, 2 = claymore wire trap
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_round_delay"			), "5"		), gCvar[CVAR_START_DELAY]);					// Round start delay time.
+	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_round_delay"			), "5"		), gCvar[CVAR_START_DELAY]);					// Round start delay time.
 
 	// Ammo.
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_amount"				), "1"		), gCvar[CVAR_START_HAVE]);						// Round start have ammo count.
@@ -1370,20 +1370,29 @@ public PlayerCmdStart(id, handle, random_seed)
 		return FMRES_IGNORED;
 
 	// Get user old and actual buttons
-	static iInButton, iInOldButton;
-	iInButton	 = (get_uc(handle, UC_Buttons));
-	iInOldButton = (get_user_oldbutton(id)) & IN_USE;
+	static 	iButton, 
+			iOldButton, 
+			iIsUse, 
+			iIsOldUse, 
+			iIsAttack, 
+			// iIsOldAttack,
+			iWeaponId;
+	iButton			= get_uc(handle, UC_Buttons);
+	iOldButton 		= get_user_oldbutton(id);
+	iIsAttack		= iButton & IN_ATTACK;
+	// iIsOldAttack	= iOldButton & IN_ATTACK;
+	iIsUse			= iButton & IN_USE;
+	iIsOldUse 		= iOldButton & IN_USE;
+	static clip, ammo;
+	iWeaponId		= get_user_weapon(id, clip, ammo);
 
 	// C4 is through.
-	if ((pev(id, pev_weapons) & (1 << CSW_C4)) && (iInButton & IN_ATTACK))
+	if (iWeaponId == CSW_C4 && iIsAttack)
 		return FMRES_IGNORED;
 
-	// USE KEY
-	iInButton &= IN_USE;
-
-	if (iInButton)
+	if (iIsUse)
 	{
-		if (!iInOldButton)
+		if (!iIsOldUse)
 		{
 			lm_progress_remove(id);
 			return FMRES_HANDLED;
@@ -1391,7 +1400,7 @@ public PlayerCmdStart(id, handle, random_seed)
 	}
 	else
 	{
-		if (iInOldButton)
+		if (iIsOldUse)
 			lm_progress_stop(id);
 	}
 
@@ -1575,10 +1584,10 @@ stock ERROR:check_for_common(id)
 //====================================================
 stock ERROR:check_for_time(id)
 {
-	new int:cvar_delay = int:gCvar[CVAR_START_DELAY];
+	new Float:cvar_delay = gCvar[CVAR_START_DELAY];
 
 	// gametime - playertime = delay count.
-	gNowTime = int:floatround(get_gametime()) - lm_get_user_delay_count(id);
+	gNowTime = get_gametime() - lm_get_user_delay_count(id);
 
 	// check.
 	if(gNowTime >= cvar_delay)

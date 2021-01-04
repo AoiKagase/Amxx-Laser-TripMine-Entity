@@ -30,10 +30,10 @@ stock lm_set_user_health			(id, Float:health)	{ health > 0 ? set_pev(id, pev_hea
 stock lm_save_user_max_speed		(id, Float:value)	{ gPlayerFloat[id][PLAYER_MAX_SPEED]	= Float:value; }
 stock lm_set_user_max_speed			(id, Float:value)	{ engfunc(EngFunc_SetClientMaxspeed, id, value);set_pev(id, pev_maxspeed, value); }
 
-stock int:lm_get_user_delay_count	(id) 				{ return int:gPlayerInt[id][PLAYER_DELAY_COUNT]; }
 stock int:lm_get_user_have_mine		(id) 				{ return int:gPlayerInt[id][PLAYER_HAVE_MINE]; }
 stock int:lm_get_user_mine_deployed	(id) 				{ return int:gPlayerInt[id][PLAYER_DEPLOYED]; }
 stock int:lm_get_user_deploy_state	(id)				{ return int:gPlayerInt[id][PLAYER_MINE_SETTING]; }
+stock Float:lm_get_user_delay_count	(id) 				{ return Float:gPlayerInt[id][PLAYER_DELAY_COUNT]; }
 stock Float:lm_load_user_max_speed	(id)				{ return Float:gPlayerFloat[id][PLAYER_MAX_SPEED]; }
 stock Float:lm_get_user_max_speed	(id)				{ return Float:pev(id, pev_maxspeed); }
 stock Float:lm_get_user_health		(id)

@@ -111,8 +111,8 @@ public plugin_init()
 	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_t"			), "255,0,0"), gCvar[CVAR_LASER_COLOR_TR], charsmax(gCvar[CVAR_LASER_COLOR_TR]));				// Team-Color for Terrorist. default:red (R,G,B)
 	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_ct"		), "0,0,255"), gCvar[CVAR_LASER_COLOR_CT], charsmax(gCvar[CVAR_LASER_COLOR_CT]));				// Team-Color for Counter-Terrorist. default:blue (R,G,B)
 
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_brightness"		), "255"	), gCvar[CVAR_LASER_BRIGHT]);					// laser line brightness. 0 to 255
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_width"			), "2"		), gCvar[CVAR_LASER_WIDTH]);					// laser line width. 0 to 255
+	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_brightness"		), "255"	), gCvar[CVAR_LASER_BRIGHT]);					// laser line brightness. 0 to 255
+	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_width"			), "2"		), gCvar[CVAR_LASER_WIDTH]);					// laser line width. 0 to 255
 	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_damage"			), "60.0"	), gCvar[CVAR_LASER_DMG]);						// laser hit dmg. Float Value!
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_damage_mode"		), "0"		), gCvar[CVAR_LASER_DMG_MODE]);					// Laser line damage mode. 0 = frame dmg, 1 = once dmg, 2 = 1 second dmg.
 	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_dps"				), "1.0"	), gCvar[CVAR_LASER_DMG_DPS]);					// laser line damage mode 2 only, damage/seconds. default 1 (sec)
@@ -895,7 +895,8 @@ lm_step_beamup(iEnt, Float:vEnd[3], Float:fCurrTime)
 	// drawing laser line.
 	if (gCvar[CVAR_LASER_VISIBLE])
 	{
-		draw_laserline(iEnt, vEnd);
+		new beam = draw_laserline(iEnt, vEnd);
+		set_pev(iEnt, LASERMINE_BEAM, beam);
 		if(gCvar[CVAR_REALISTIC_DETAIL])
 			lm_draw_spark_for_wall(vEnd);
 	}
@@ -932,8 +933,8 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 
 	if (fCurrTime > beamTime)
 	{
-		if (gCvar[CVAR_LASER_VISIBLE])
-			draw_laserline(iEnt, vEnd);
+		// if (gCvar[CVAR_LASER_VISIBLE])
+		// 	draw_laserline(iEnt, vEnd);
 
 		set_pev(iEnt, LASERMINE_BEAMTHINK, fCurrTime + random_float(0.1, 0.2));
 	}
@@ -1130,13 +1131,13 @@ lm_step_explosion(iEnt, iOwner)
 //====================================================
 draw_laserline(iEnt, const Float:vEndOrigin[3])
 {
-	new tcolor	[3];
-	new sRGB	[13];
-	new sColor	[4];
-	new sRGBLen 	= charsmax(sRGB);
-	new sColorLen	= charsmax(sColor);
-	new CsTeams:teamid = lm_get_laser_team(iEnt);
-	new width 		= gCvar[CVAR_LASER_WIDTH];
+	new Float:tcolor	[3];
+	new sRGB			[13];
+	new sColor			[4];
+	new sRGBLen 		= charsmax(sRGB);
+	new sColorLen		= charsmax(sColor);
+	new CsTeams:teamid 	= lm_get_laser_team(iEnt);
+	new Float:width 	= gCvar[CVAR_LASER_WIDTH];
 	new i = 0, n = 0, iPos = 0;
 	// Color mode. 0 = team color.
 	if(gCvar[CVAR_LASER_COLOR] == 0)
@@ -1165,7 +1166,7 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 	while(n < sizeof(tcolor))
 	{
 		i = split_string(sRGB[iPos += i], ",", sColor, sColorLen);
-		tcolor[n++] = str_to_num(sColor);
+		tcolor[n++] = str_to_float(sColor);
 	}
 	/*
 	stock lm_draw_laser(
@@ -1182,7 +1183,7 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 		const speed			= 255
 	)
 	*/
-	lm_draw_laser(iEnt, vEndOrigin, gSprites[LASER], 0, 0, 2, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 255);
+	return lm_draw_laser(iEnt, vEndOrigin, ENT_SPRITES[LASER], 0, 0, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 255.0);
 }
 
 //====================================================
@@ -2098,3 +2099,108 @@ stock IndicatorGlow(iEnt)
 	lm_set_glow_rendering(iEnt, kRenderFxGlowShell, color, kRenderNormal, 5);
 }
 
+//====================================================
+// Native Functions
+//====================================================
+public plugin_natives()
+{
+	register_native("LM_Give", 		"_native_lm_give");
+	register_native("LM_Set",  		"_native_lm_set");
+	register_native("LM_Sub",  		"_native_lm_sub");
+	register_native("LM_Get",		"_native_lm_get_have");
+	register_native("LM_RemoveAll", "_native_lm_remove_all");
+	register_native("IsLM",			"_native_lm_is_lasermine");
+	register_native("LM_GetOwner",	"_native_lm_get_owner");
+	register_native("LM_GetLaser",	"_native_lm_get_laser");
+	
+}
+
+public _native_lm_give(iPlugin, iParams)
+{
+	new id		      = get_param(1);
+	new amount		  = get_param(2);
+	new bool:uselimit = bool:get_param(3);
+	new have		  = lm_get_user_have_mine(id);
+	new cvar_maxhave  = gCvar[CVAR_MAX_HAVE];
+
+	if (uselimit)
+	{
+		if ((have + amount) <= cvar_maxhave)
+			lm_set_user_have_mine(id, int:(have + amount));
+		else
+			lm_set_user_have_mine(id, int:(cvar_maxhave));
+	}
+	else
+	{
+		lm_set_user_have_mine(id, int:(have + amount));
+	}
+
+	lm_play_sound(id, SOUND_PICKUP);
+}
+
+public _native_lm_set(iPlugin, iParams)
+{
+	new id		      	= get_param(1);
+	new amount		  	= get_param(2);
+	new bool:uselimit 	= bool:get_param(3);
+	new cvar_maxhave 	= gCvar[CVAR_MAX_HAVE];
+	if (uselimit)
+	{
+		if (amount <= cvar_maxhave)
+			lm_set_user_have_mine(id, int:(amount));
+		else
+			lm_set_user_have_mine(id, int:(cvar_maxhave));
+	}
+	else
+	{
+		lm_set_user_have_mine(id, int:(amount));
+	}
+	lm_play_sound(id, SOUND_PICKUP);
+}
+
+public _native_lm_sub(iPlugin, iParams)
+{
+	new id		      = get_param(1);
+	new amount		  = get_param(2);
+	new have		  = lm_get_user_have_mine(id);
+
+	if ((have - amount) > 0)
+		lm_set_user_have_mine(id, int:(have - amount));
+	else
+		lm_set_user_have_mine(id, int:0);
+}
+
+public _native_lm_get_have(iPlugin, iParams)
+{
+	return lm_get_user_have_mine(get_param(1));
+}
+
+public _native_lm_remove_all(iPlugin, iParams)
+{
+	new id = get_param(1);
+	lm_remove_all_entity(id, ENT_CLASS_LASER);
+}
+
+public _native_lm_is_lasermine(iPlugin, iParams)
+{
+	new iEnt = get_param(1);
+	new name[MAX_NAME_LENGTH];
+	pev(iEnt, pev_classname, name, charsmax(name));
+
+	if (equali(name, ENT_CLASS_LASER))
+		return true;
+
+	return false;
+}
+
+public _native_lm_get_owner(iPlugin, iParams)
+{
+	new iEnt = get_param(1);
+	return pev(iEnt, LASERMINE_OWNER);
+}
+
+public _native_lm_get_laser(iPlugin, iParams)
+{
+	new iEnt = get_param(1);
+	return pev(iEnt, LASERMINE_BEAM);
+}

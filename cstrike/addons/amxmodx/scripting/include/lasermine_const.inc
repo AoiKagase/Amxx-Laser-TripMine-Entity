@@ -39,6 +39,7 @@
 #define LASERMINE_OWNER				pev_iuser1
 #define LASERMINE_STEP				pev_iuser2
 #define LASERMINE_HITING			pev_iuser3
+#define	LASERMINE_BEAM				pev_iuser4
 #define LASERMINE_COUNT				pev_fuser1
 #define LASERMINE_POWERUP			pev_fuser2
 #define LASERMINE_BEAMTHINK			pev_fuser3
@@ -243,13 +244,13 @@ enum E_CVAR_SETTING
 	Float:CVAR_START_DELAY       	,   	// Round start delay time.
 	// Laser design.
 	CVAR_LASER_VISIBLE      		,   	// Laser line Visiblity. 0 = off, 1 = on.
-	CVAR_LASER_BRIGHT       		,   	// Laser line brightness.
-	CVAR_LASER_WIDTH				,		// Laser line width.
+	Float:CVAR_LASER_BRIGHT    		,   	// Laser line brightness.
+	Float:CVAR_LASER_WIDTH			,		// Laser line width.
 	CVAR_LASER_COLOR        		,   	// Laser line color. 0 = team color, 1 = green
 	CVAR_LASER_COLOR_TR     [13]	,   	// Laser line color. 0 = team color, 1 = green
 	CVAR_LASER_COLOR_CT     [13]	,   	// Laser line color. 0 = team color, 1 = green
 	CVAR_LASER_DMG_MODE     		,   	// Laser line damage mode. 0 = frame rate dmg, 1 = once dmg, 2 = 1second dmg.
-	Float:CVAR_LASER_DMG_DPS      		,   	// Laser line damage mode 2 only, damage/seconds. default 1 (sec)
+	Float:CVAR_LASER_DMG_DPS      	,   	// Laser line damage mode 2 only, damage/seconds. default 1 (sec)
 	Float:CVAR_MINE_HEALTH     		,   	// Lasermine health. (Can break.)
 	CVAR_MINE_GLOW          		,   	// Glowing tripmine.
 	CVAR_MINE_GLOW_MODE     		,   	// Glowing color mode.

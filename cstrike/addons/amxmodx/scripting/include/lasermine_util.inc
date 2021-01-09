@@ -11,6 +11,7 @@
 #define _lasermine_util_included
 
 #include <lasermine_const>
+#include <beams>
 
 new int:gPlayerInt		[MAX_PLAYERS][PLAYER_DATA_INT];
 new Float:gPlayerFloat	[MAX_PLAYERS][PLAYER_DATA_FLOAT];
@@ -180,39 +181,49 @@ stock lm_draw_laser(
 	const iEnt,
 	/* const Float:vOrigin[3],*/ 
 	const Float:vEndOrigin[3], 
-	const beam, 
+	const beam[], 
 	const framestart	= 0, 
 	const framerate		= 0, 
-	const life			= 1, 
-	const width			= 1, 
+	// const life			= 1, 
+	const Float:width	= 1.0, 
 	const wave			= 0, 
-	const tcolor		[3],
-	const bright		= 255,
-	const speed			= 255
+	const Float:tcolor[3],
+	const Float:bright	= 255.0,
+	const Float:speed	= 255.0
 )
 {
-	// Draw Laser line message.
-	engfunc(EngFunc_MessageBegin, MSG_BROADCAST, SVC_TEMPENTITY, {0, 0, 0}, 0);
-	write_byte(TE_BEAMENTPOINT);
-	write_short(iEnt | 0x1000);
-	// engfunc(EngFunc_WriteCoord, vOrigin[0]);
-	// engfunc(EngFunc_WriteCoord, vOrigin[1]);
-	// engfunc(EngFunc_WriteCoord, vOrigin[2]);
-	engfunc(EngFunc_WriteCoord, vEndOrigin[0]); //Random
-	engfunc(EngFunc_WriteCoord, vEndOrigin[1]); //Random
-	engfunc(EngFunc_WriteCoord, vEndOrigin[2]); //Random
-	write_short(beam);
-	write_byte(framestart);						// framestart
-	write_byte(framerate);						// framerate
-	write_byte(life);							// Life
-	write_byte(width);							// Width
-	write_byte(wave);							// wave/noise
-	write_byte(tcolor[0]);						// r
-	write_byte(tcolor[1]);						// g
-	write_byte(tcolor[2]);						// b
-	write_byte(bright);							// Brightness.
-	write_byte(speed);							// speed
-	message_end();
+	// // Draw Laser line message.
+	// engfunc(EngFunc_MessageBegin, MSG_BROADCAST, SVC_TEMPENTITY, {0, 0, 0}, 0);
+	// write_byte(TE_BEAMENTPOINT);
+	// write_short(iEnt | 0x1000);
+	// // engfunc(EngFunc_WriteCoord, vOrigin[0]);
+	// // engfunc(EngFunc_WriteCoord, vOrigin[1]);
+	// // engfunc(EngFunc_WriteCoord, vOrigin[2]);
+	// engfunc(EngFunc_WriteCoord, vEndOrigin[0]); //Random
+	// engfunc(EngFunc_WriteCoord, vEndOrigin[1]); //Random
+	// engfunc(EngFunc_WriteCoord, vEndOrigin[2]); //Random
+	// write_short(beam);
+	// write_byte(framestart);						// framestart
+	// write_byte(framerate);						// framerate
+	// write_byte(life);							// Life
+	// write_byte(width);							// Width
+	// write_byte(wave);							// wave/noise
+	// write_byte(tcolor[0]);						// r
+	// write_byte(tcolor[1]);						// g
+	// write_byte(tcolor[2]);						// b
+	// write_byte(bright);							// Brightness.
+	// write_byte(speed);							// speed
+	// message_end();
+	new beams = Beam_Create(beam, width);
+	Beam_PointEntInit(beams, vEndOrigin, iEnt);
+	Beam_SetFlags(beams, kRenderTransAdd);
+	Beam_SetFrame(beams, framestart);
+	set_pev(beams, pev_framerate, framerate);
+	Beam_SetNoise(beams, wave);
+	Beam_SetColor(beams, tcolor);
+	Beam_SetScrollRate(beams, speed);
+	Beam_SetBrightness(beams, bright);
+	return beams;	
 }
 
 //====================================================
@@ -338,11 +349,17 @@ stock lm_create_explosion(Float:vOrigin[3], const Float:fDamage, const Float:fRa
 //====================================================
 stock lm_stop_laserline(iEnt)
 {
-	// Laser line stop.
-	engfunc(EngFunc_MessageBegin, MSG_BROADCAST, SVC_TEMPENTITY, {0, 0, 0}, 0);
-	write_byte(TE_KILLBEAM); //99 = KillBeam
-	write_short(iEnt | 0x1000);
-	message_end();
+	if (equali(lm_get_entity_class_name(iEnt), ENT_CLASS_LASER))
+	{
+		new beam = pev(iEnt, LASERMINE_BEAM);
+		if (pev_valid(beam))
+			engfunc(EngFunc_RemoveEntity, beam);
+	}
+	// // Laser line stop.
+	// engfunc(EngFunc_MessageBegin, MSG_BROADCAST, SVC_TEMPENTITY, {0, 0, 0}, 0);
+	// write_byte(TE_KILLBEAM); //99 = KillBeam
+	// write_short(iEnt | 0x1000);
+	// message_end();
 }
 
 //====================================================

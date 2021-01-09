@@ -41,7 +41,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.23"
+#define VERSION 					"3.25"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -63,7 +63,30 @@ new Stack:gRecycleMine	[MAX_PLAYERS];
 	#include <lasermine_zombie>
 #pragma semicolon 1
 #endif
+enum E_FORWARD
+{
+	E_FWD_ONBUY_PRE,
+	E_FWD_ONBUY_POST,
+	E_FWD_ONPLANT,
+	E_FWD_ONPLANTED,
+	E_FWD_ONHIT_PRE,
+	E_FWD_ONHIT_POST,
+	E_FWD_ONPICKUP_PRE,
+	E_FWD_ONPICKUP_POST,
+}
+new g_forward[E_FORWARD];
 
+public plugin_forward()
+{
+	g_forward[E_FWD_ONBUY_PRE]		= CreateMultiForward("LM_OnBuy_Pre",  		ET_STOP, 	FP_CELL, FP_VAL_BYREF, FP_VAL_BYREF);
+	g_forward[E_FWD_ONBUY_POST]		= CreateMultiForward("LM_OnBuy_Post", 		ET_IGNORE, 	FP_CELL, FP_CELL, FP_CELL);
+	g_forward[E_FWD_ONPLANT]		= CreateMultiForward("LM_OnPlant", 			ET_STOP, 	FP_CELL, FP_VAL_BYREF);
+	g_forward[E_FWD_ONPLANTED]		= CreateMultiForward("LM_OnPlanted", 		ET_IGNORE, 	FP_CELL, FP_CELL);
+	g_forward[E_FWD_ONHIT_PRE]		= CreateMultiForward("LM_OnHit_Pre", 		ET_STOP, 	FP_CELL, FP_VAL_BYREF, FP_VAL_BYREF, FP_VAL_BYREF);
+	g_forward[E_FWD_ONHIT_POST]		= CreateMultiForward("LM_OnHit_Post", 		ET_IGNORE, 	FP_CELL, FP_CELL, FP_CELL, FP_CELL);
+	g_forward[E_FWD_ONPICKUP_PRE]	= CreateMultiForward("LM_OnPickup_Pre", 	ET_STOP, 	FP_CELL, FP_CELL);
+	g_forward[E_FWD_ONPICKUP_POST]	= CreateMultiForward("LM_OnPickup_Post", 	ET_IGNORE, 	FP_CELL);
+}
 //====================================================
 //  PLUGIN INITIALIZE
 //====================================================
@@ -182,7 +205,7 @@ public plugin_init()
 	gEntMine = engfunc(EngFunc_AllocString, ENT_CLASS_BREAKABLE);
 
 	LoadDecals();
-
+	plugin_forward();
 	return PLUGIN_CONTINUE;
 }
 
@@ -380,6 +403,8 @@ public lm_progress_deploy(id)
 		return PLUGIN_HANDLED;
 
 	new Float:wait = gCvar[CVAR_LASER_ACTIVATE];
+	new iRet;
+	ExecuteForward(g_forward[E_FWD_ONPLANT], iRet, id, wait);
 	// Set Flag. start progress.
 	lm_set_user_deploy_state(id, int:STATE_DEPLOYING);
 
@@ -460,6 +485,7 @@ public SpawnMine(id)
 {
 	// Task Number to uID.
 	new uID = id - TASK_PLANT;
+	new iRet;
 	// is Valid?
 	if(!gDeployingMines[uID])
 	{
@@ -468,7 +494,7 @@ public SpawnMine(id)
 	}
 
 	set_spawn_entity_setting(gDeployingMines[uID], uID, ENT_CLASS_LASER);
-
+	ExecuteForward(g_forward[E_FWD_ONPLANTED], iRet, id, gDeployingMines[uID]);
 	return 1;
 }
 
@@ -667,6 +693,9 @@ public RemoveMine(id)
 	if(!pev_valid(target))
 		return;
 	
+	new iRet;
+	ExecuteForward(g_forward[E_FWD_ONPICKUP_PRE], iRet, uID, target);
+
 	// Get Player Vector Origin.
 	pev(uID, pev_origin, vOrigin);
 	// Get Mine Vector Origin.
@@ -730,6 +759,7 @@ public RemoveMine(id)
 	// Refresh show ammo.
 	show_ammo(uID);
 
+	ExecuteForward(g_forward[E_FWD_ONPICKUP_POST], iRet, uID);
 	return;
 }
 
@@ -1199,6 +1229,9 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 	if (!is_user_alive(iTarget))
 		return;
 
+	new iRet;
+	ExecuteForward(g_forward[E_FWD_ONHIT_PRE], iRet, iTarget, iAttacker, iEnt, floatround(dmg));
+
 	if (gCvar[CVAR_DIFENCE_SHIELD] && hitGroup == HIT_SHIELD)
 	{
 		lm_play_sound(iTarget, SOUND_HIT_SHIELD);
@@ -1223,6 +1256,8 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
 	}
 	set_pev(iEnt, LASERMINE_HITING, iTarget);
+	ExecuteForward(g_forward[E_FWD_ONHIT_POST], iRet, iTarget, iAttacker, iEnt, floatround(dmg));
+
 	return;
 }
 
@@ -1283,15 +1318,20 @@ public lm_buy_lasermine(id)
 		return PLUGIN_CONTINUE;
 
 	new cost = gCvar[CVAR_COST];
-	cs_set_user_money(id, cs_get_user_money(id) - cost);
+	new amount = 1;
+	new iRet;
+	ExecuteForward(g_forward[E_FWD_ONBUY_PRE], iRet, id, amount, cost); 
+	cost = cs_get_user_money(id) - cost;
+	cs_set_user_money(id, cost);
 
-	lm_set_user_have_mine(id, lm_get_user_have_mine(id) + int:1);
+	lm_set_user_have_mine(id, lm_get_user_have_mine(id) + int:amount);
 
 	cp_bought(id);
 
 	lm_play_sound(id, SOUND_PICKUP);
 
 	show_ammo(id);
+	ExecuteForward(g_forward[E_FWD_ONBUY_POST], iRet, id, amount, cost); 
 
 	return PLUGIN_HANDLED;
 }
@@ -2098,6 +2138,7 @@ stock IndicatorGlow(iEnt)
 
 	lm_set_glow_rendering(iEnt, kRenderFxGlowShell, color, kRenderNormal, 5);
 }
+
 
 //====================================================
 // Native Functions

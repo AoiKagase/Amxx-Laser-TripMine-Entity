@@ -68,14 +68,6 @@ native      LM_GetOwner(entity);
 native      LM_GetLaser(entity);
 
 /**
- * Gets lasermine index by the beam
- *
- * @param entity 				The laser index to get the lasermine for
- * @return 						Lasermine index or -1 if no lasermine found
- */
-native 		LM_GetMineByLaser(entity);
-
-/**
  * Called when the player is about to buy a laser mine
  *
  * @param client 				Client index of the player who is buying a laser mine
@@ -89,9 +81,9 @@ forward     LM_OnBuy_Pre(client, &amount, &price);
 /**
  * Called when a player has bought a laser mine
  *
- * @param victim 				Client index of the player who has bought
+ * @param client 				Client index of the player who has bought
  * @param amount 				The amount of laser mines have been bought
- * @param amount 				The sum of money the player cost
+ * @param sum	 				The sum of money the player cost
  * @noreturn
  */
 forward     LM_OnBuy_Post(client, amount, sum);
@@ -101,26 +93,18 @@ forward     LM_OnBuy_Post(client, amount, sum);
  *
  * @param client 				Client index of the player
  * @param act_delay 			Activation time. Set by reference
- * @param explosion_damage 		Explosion damage. Set by reference
- * @param explosion_radius 		Explosion radius. Set by reference
- * @param health 				The laser mine's health. Set by reference
- * @param color[3] 				The laser mine's color. Set by reference
  * @return         				Plugin_Changed to apply new values, Plugin_Contninue to allow the planting as is and >= Plugin_Handled to block the planting
  */
-forward     LM_OnPlant(client, &Float:act_delay, &exp_damage, &exp_radius, &health, color[3]);
+forward     LM_OnPlant(client, &Float:act_delay);
 
 /**
  * Called when the player planted a laser mine
  *
- * @param act_delay 			Activation time
+ * @param client 				Client index of the player
  * @param lasermine 			The lasermine index
- * @param explosion_damage 		Explosion damage
- * @param explosion_radius 		Explosion radius
- * @param health 				The laser mine's health
- * @param color[3] 				The laser mine's color
  * @noreturn
  */
-forward     LM_OnPlanted(client, lasermine, Float:act_delay, exp_damage, exp_radius, health, color[3]);
+forward     LM_OnPlanted(client, lasermine);
 
 /**
  * Called when the player is about to be hitted by a laser mine
@@ -132,7 +116,7 @@ forward     LM_OnPlanted(client, lasermine, Float:act_delay, exp_damage, exp_rad
  * @param damage 				Damage of the hit. Set by reference
  * @return 						Plugin_Changed to apply new values, Plugin_Contninue to allow the hit as is and >= Plugin_Handled to block the hit
  */
-forward     LM_OnHit_Pre(victim, &attacker, &beam, &lasermine, &damage);
+forward     LM_OnHit_Pre(victim, &attacker, &lasermine, &damage);
 
 
 /**
@@ -145,25 +129,22 @@ forward     LM_OnHit_Pre(victim, &attacker, &beam, &lasermine, &damage);
  * @param damage 				Damage of the hit
  * @noreturn
  */
-forward     LM_OnHit_Post(victim, attacker, beam, lasermine, damage);
+forward     LM_OnHit_Post(victim, attacker, lasermine, damage);
 
 /**
  * Called when the player is about to pickup a lasermine
  *
  * @param client 				Client index of the player who is going to pickup
  * @param lasermine 			Lasermine index which is being picked up
- * @param owner 				The lasermine's owner index.
  * @return 						Plugin_Contninue or Plugin_Changed to allow the pickup and Plugin_Handled or Plugin_Stop to block the pickup
  */
-forward     LM_OnPickup_Pre(client, lasermine, owner);
+forward     LM_OnPickup_Pre(client, lasermine);
 
 
 /**
  * Called when the player has picked up a lasermine
  *
  * @param client 				Client index of the player who has picked up a lasermine
- * @param lasermine 			Lasermine index which was picked up
- * @param owner 				The lasermine's owner index
- * @noeturn
+ * @noreturn
  */
-forward     LM_OnPickup_Post(client, lasermine, owner); 
+forward     LM_OnPickup_Post(client); 

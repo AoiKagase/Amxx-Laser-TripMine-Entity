@@ -183,7 +183,7 @@ public plugin_init()
 	// Multi Language Dictionary.
 	register_dictionary	("lasermine.txt");
 
-	create_cvar			("ltm_versions", 	VERSION, FCVAR_SERVER|FCVAR_SPONLY);
+	create_cvar			("ltm_version", 	VERSION, FCVAR_SERVER|FCVAR_SPONLY);
 
 #if AMXX_VERSION_NUM > 183
 	for(new i = 0; i < MAX_PLAYERS; i++)

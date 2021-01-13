@@ -54,19 +54,19 @@ register_zombie()
 #endif
 }
 
-public plugin_natives()
-{
-	register_native("zp_give_lm", "LaserMine_Native");
-}
+// public plugin_natives()
+// {
+// 	register_native("zp_give_lm", "LaserMine_Native");
+// }
 
-public LaserMine_Native(iPlugin, iParams)
-{
-	new id = get_param(1);
-	if (!lm_is_user_alive(id))
-		return;
+// public LaserMine_Native(iPlugin, iParams)
+// {
+// 	new id = get_param(1);
+// 	if (!lm_is_user_alive(id))
+// 		return;
 
-	lm_set_user_have_mine(id, int:get_param(2));
-}
+// 	lm_set_user_have_mine(id, int:get_param(2));
+// }
 
 public zp_fw_core_infect_post(id, attacker)
 {

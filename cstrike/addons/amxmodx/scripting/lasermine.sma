@@ -1811,9 +1811,9 @@ stock ERROR:check_round_started(id)
 	if (gCvar[CVAR_NOROUND])
 	{
 		if(!game_started())
-			return show_error_message(id, ERROR:NO_ROUND);
+			return show_error_message(id, ERROR:E_NO_ROUND);
 	}
-	return ERROR:NONE;
+	return ERROR:E_NONE;
 }
 #endif
 
@@ -2145,6 +2145,8 @@ stock IndicatorGlow(iEnt)
 //====================================================
 public plugin_natives()
 {
+	register_library("lasermine_natives");
+
 	register_native("LM_Give", 		"_native_lm_give");
 	register_native("LM_Set",  		"_native_lm_set");
 	register_native("LM_Sub",  		"_native_lm_sub");

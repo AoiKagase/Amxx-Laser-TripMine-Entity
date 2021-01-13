@@ -1,3 +1,17 @@
+
+#if defined _lasermine_natives_included
+    #endinput
+#endif
+#define _lasermine_natives_included
+#if AMXX_VERSION_NUM >= 175
+	#pragma reqlib lasermine_natives
+	#if !defined AMXMODX_NOAUTOLOAD
+		#pragma loadlib lasermine_natives
+	#endif
+#else
+	#pragma library lasermine_natives
+#endif
+
 /**
  * Adds one or more remaining laser mines to the player
  *

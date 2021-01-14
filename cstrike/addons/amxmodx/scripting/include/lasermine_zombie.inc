@@ -46,8 +46,8 @@ new gZpWeaponId;
 
 register_zombie()
 {
-	new wmode 						= get_pcvar_num(gCvar[CVAR_MODE]);
-	new cost						= get_pcvar_num(gCvar[CVAR_COST]);
+	new wmode 						= gCvar[CVAR_MODE];
+	new cost						= gCvar[CVAR_COST];
 	gZpWeaponId						= zp_items_register(ITEM_NAME[wmode], cost);
 #if AMXX_VERSION_NUM > 183
 	AutoExecConfig(true, "plugin-lasermine_zp");
@@ -70,7 +70,7 @@ register_zombie()
 
 public zp_fw_core_infect_post(id, attacker)
 {
-	if (!get_pcvar_num(gCvar[CVAR_ENABLE]))
+	if (!gCvar[CVAR_ENABLE])
 		return PLUGIN_CONTINUE;
 
 	// Is Connected?
@@ -99,9 +99,9 @@ public zp_fw_items_select_pre(id, itemid, ignorecost)
 		return ZP_ITEM_NOT_AVAILABLE;
 	}
 
-	zp_items_menu_text_add(fmt("[%d/%d]", lm_get_user_have_mine(id), get_pcvar_num(gCvar[CVAR_MAX_HAVE])));
+	zp_items_menu_text_add(fmt("[%d/%d]", lm_get_user_have_mine(id), gCvar[CVAR_MAX_HAVE]));
 
-	if (lm_get_user_have_mine(id) >= int:get_pcvar_num(gCvar[CVAR_MAX_HAVE]))
+	if (lm_get_user_have_mine(id) >= int:gCvar[CVAR_MAX_HAVE])
 	{
 		zp_colored_print(id, "You reached the limit..");
 		return ZP_ITEM_NOT_AVAILABLE;
@@ -125,7 +125,7 @@ zp_mines_breaked(attacker, victim)
 	if (lm_get_user_health(victim) <= 0)
 	{
 		new szName[MAX_NAME_LENGTH];
-		new addpoint = get_pcvar_num(gCvar[CVAR_FRAG_MONEY]);
+		new addpoint = gCvar[CVAR_FRAG_MONEY];
 		get_user_name(attacker, szName, charsmax(szName));
 		zp_ammopacks_set(attacker, zp_ammopacks_get(attacker) + addpoint);
 		zp_colored_print(0, "^4%s ^1earned^4 %i points ^1for destorying a lasermine !", szName, addpoint);

@@ -41,7 +41,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.26"
+#define VERSION 					"3.27"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -2179,6 +2179,7 @@ public _native_lm_give(iPlugin, iParams)
 	}
 
 	lm_play_sound(id, SOUND_PICKUP);
+	return lm_get_user_have_mine(id);
 }
 
 public _native_lm_set(iPlugin, iParams)
@@ -2199,6 +2200,7 @@ public _native_lm_set(iPlugin, iParams)
 		lm_set_user_have_mine(id, int:(amount));
 	}
 	lm_play_sound(id, SOUND_PICKUP);
+	return lm_get_user_have_mine(id);
 }
 
 public _native_lm_sub(iPlugin, iParams)
@@ -2211,6 +2213,7 @@ public _native_lm_sub(iPlugin, iParams)
 		lm_set_user_have_mine(id, int:(have - amount));
 	else
 		lm_set_user_have_mine(id, int:0);
+	return lm_get_user_have_mine(id);
 }
 
 public _native_lm_get_have(iPlugin, iParams)

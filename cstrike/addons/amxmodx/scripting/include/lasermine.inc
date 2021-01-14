@@ -18,7 +18,7 @@
  * @param client				Client index to add to
  * @param amount    			Amount of laser mines to add.
  * @param uselimit  			Set to true to use the plugin limitation, false to ignore
- * @return          			New amount of laser mines. 0 if no lasermines added and -1 if the player has unlimited lasermines
+ * @return 						new amount of laser mines
  */
 native      LM_Give(client, amount = 1, bool:uselimit = true);
 
@@ -28,9 +28,9 @@ native      LM_Give(client, amount = 1, bool:uselimit = true);
  * @param client				Client index to set to
  * @param amount 				Amount of laser mines to set. Negative numbers to set to infinity, 0 - to remove all and positive number to set to the amount
  * @param uselimit				Set to true to use the plugin limitation, false to ignore
- * @return 						true on success, false otherwise
+ * @return 						new amount of laser mines
  */
-native bool:LM_Set(client, amount, bool:uselimit = true);
+native 		LM_Set(client, amount, bool:uselimit = true);
 
 /**
  * Subtracts one or more remaining lasermines from the player

@@ -41,7 +41,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.28"
+#define VERSION 					"3.29"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -1000,6 +1000,8 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 			get_tr2(trace, TR_vecEndPos, vHitPoint);				
 			iTarget		= get_tr2(trace, TR_pHit);
 			hitGroup	= get_tr2(trace, TR_iHitgroup);
+			if(gCvar[CVAR_REALISTIC_DETAIL]) 
+				lm_draw_spark_for_wall(vHitPoint);
 		}
 
 		// Something has passed the laser.
@@ -1072,9 +1074,6 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 		{
 			ArrayGetArray(aTarget, n, hPlayer);
 			xs_vec_copy(hPlayer[V_POSITION], vEndPosition);
-
-			if(gCvar[CVAR_REALISTIC_DETAIL]) 
-				lm_draw_spark_for_wall(vEndPosition);
 
 			// Laser line damage mode. Once or Second.
 			create_laser_damage(iEnt, hPlayer[I_TARGET], hPlayer[I_HIT_GROUP], hPlayer[V_POSITION]);

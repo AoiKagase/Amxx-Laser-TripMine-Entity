@@ -41,7 +41,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.29"
+#define VERSION 					"3.30"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -53,6 +53,11 @@ new gCvar				[E_CVAR_SETTING];
 new gEntMine;
 new gWeaponId;
 new gDeployingMines		[MAX_PLAYERS];
+
+// Custom Resources available.
+new gPathEntModels		[MAX_RESOURCE_PATH_LENGTH];
+new gPathEntSounds		[E_SOUNDS][MAX_RESOURCE_PATH_LENGTH];
+new gPathEntSprites		[E_SPRITES][MAX_RESOURCE_PATH_LENGTH];
 
 #if AMXX_VERSION_NUM > 183
 new Stack:gRecycleMine	[MAX_PLAYERS];
@@ -246,13 +251,19 @@ public plugin_precache()
 {
 	check_plugin();
 
-	for (new i = 0; i < sizeof(ENT_SOUNDS); i++)
-		precache_sound(ENT_SOUNDS[i]);
+	// Load Custom Resources.
+	lm_load_resources();
 
-	for (new i = 0; i < sizeof(ENT_SPRITES); i++)
-		gSprites[i] = precache_model(ENT_SPRITES[i]);
+	// MODELS.
+	precache_model(gPathEntModels);
 
-	precache_model(ENT_MODELS);
+	// SOUNDS.
+	for (new i = 0; i < E_SOUNDS; i++)
+		precache_sound(gPathEntSounds[i]);
+
+	// SPRITES.
+	for (new i = 0; i < E_SPRITES; i++)
+		gSprites[i] = precache_model(gPathEntSprites[i]);
 
 	return PLUGIN_CONTINUE;
 }
@@ -412,7 +423,7 @@ public lm_progress_deploy(id)
 	if (pev_valid(iEnt))
 	{
 		// set models.
-		engfunc(EngFunc_SetModel, iEnt, ENT_MODELS);
+		engfunc(EngFunc_SetModel, iEnt, gPathEntModels);
 		// set solid.
 		set_pev(iEnt, pev_solid, 		SOLID_NOT);
 		// set movetype.
@@ -702,7 +713,7 @@ public RemoveMine(id)
 	pev(target, pev_origin, tOrigin);
 
 	// Distance Check. far 70.0 (cm?)
-	if(get_distance_f(vOrigin, tOrigin) > 70.0)
+	if(get_distance_f(vOrigin, tOrigin) > 128.0)
 		return;
 	
 	new entityName[MAX_NAME_LENGTH];
@@ -1212,7 +1223,7 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 		const speed			= 255
 	)
 	*/
-	return lm_draw_laser(iEnt, vEndOrigin, ENT_SPRITES[LASER], 0, 0, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 255.0);
+	return lm_draw_laser(iEnt, vEndOrigin, gPathEntSprites[LASER], 0, 0, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 255.0);
 }
 
 //====================================================
@@ -1222,7 +1233,7 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 {
 	// Damage.
 	new Float:dmg 	= gCvar[CVAR_LASER_DMG];
-
+	new Float:vec[3];
 	new iAttacker = pev(iEnt,LASERMINE_OWNER);
 
 	if (!is_user_alive(iTarget))
@@ -1250,6 +1261,11 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 			// This will also call the client_damage() and client_kill() forwards if applicable.
 			// For a list of possible body hitplaces see the HIT_* constants in amxconst.inc
 			custom_weapon_dmg(gWeaponId, iAttacker, iTarget, floatround(dmg), hitGroup);
+
+			get_user_velocity(iTarget, vec);
+			vec[0] = -vec[0] * 1.2;
+			vec[1] = -vec[1] * 1.2;
+			set_user_velocity(iTarget, vec);
 		}
 		// Other target entities.
 		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
@@ -2080,29 +2096,29 @@ stock lm_play_sound(iEnt, iSoundType)
 	{
 		case SOUND_POWERUP:
 		{
-			emit_sound(iEnt, CHAN_VOICE, ENT_SOUNDS[DEPLOY], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
-			emit_sound(iEnt, CHAN_BODY , ENT_SOUNDS[CHARGE], 0.2, ATTN_NORM, 0, PITCH_NORM);
+			emit_sound(iEnt, CHAN_VOICE, 	gPathEntSounds[DEPLOY], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			emit_sound(iEnt, CHAN_BODY , 	gPathEntSounds[CHARGE], 0.2, ATTN_NORM, 0, PITCH_NORM);
 		}
 		case SOUND_ACTIVATE:
 		{
-			emit_sound(iEnt, CHAN_VOICE, ENT_SOUNDS[ACTIVATE], 0.5, ATTN_NORM, 1, 75);
+			emit_sound(iEnt, CHAN_VOICE, 	gPathEntSounds[ACTIVATE], 0.5, ATTN_NORM, 1, 75);
 		}
 		case SOUND_STOP:
 		{
-			emit_sound(iEnt, CHAN_BODY , ENT_SOUNDS[CHARGE], 0.2, ATTN_NORM, SND_STOP, PITCH_NORM);
-			emit_sound(iEnt, CHAN_VOICE, ENT_SOUNDS[ACTIVATE], 0.5, ATTN_NORM, SND_STOP, 75);
+			emit_sound(iEnt, CHAN_BODY , 	gPathEntSounds[CHARGE], 0.2, ATTN_NORM, SND_STOP, PITCH_NORM);
+			emit_sound(iEnt, CHAN_VOICE, 	gPathEntSounds[ACTIVATE], 0.5, ATTN_NORM, SND_STOP, 75);
 		}
 		case SOUND_PICKUP:
 		{
-			emit_sound(iEnt, CHAN_ITEM, ENT_SOUNDS[PICKUP], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			emit_sound(iEnt, CHAN_ITEM, 	gPathEntSounds[PICKUP], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 		}
 		case SOUND_HIT:
 		{
-			emit_sound(iEnt, CHAN_WEAPON, ENT_SOUNDS[LASER_HIT], 1.0, ATTN_NORM, 0, PITCH_NORM);
+			emit_sound(iEnt, CHAN_WEAPON, 	gPathEntSounds[LASER_HIT], 1.0, ATTN_NORM, 0, PITCH_NORM);
 		}
 		case SOUND_HIT_SHIELD:
 		{
-			emit_sound(iEnt, CHAN_VOICE, ENT_SOUNDS[SHIELD_HIT1 + random_num(0, 1)], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			emit_sound(iEnt, CHAN_VOICE, 	gPathEntSounds[SHIELD_HIT1 + random_num(0, 1)], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 		}
 	}
 }
@@ -2138,7 +2154,41 @@ stock IndicatorGlow(iEnt)
 	lm_set_glow_rendering(iEnt, kRenderFxGlowShell, color, kRenderNormal, 5);
 }
 
+//====================================================
+// Load setting for Custom Researces.
+//====================================================
+lm_load_resources()
+{
+	// Open INI.
+	new hFile	= ini_open(INI_FILE);
+	new szValue[MAX_RESOURCE_PATH_LENGTH];
 
+	// MODELS.
+	if (ini_read_string(hFile, INI_SECTION, INI_KEY_MODELS, szValue, MAX_RESOURCE_PATH_LENGTH))
+		copy(gPathEntModels, charsmax(gPathEntModels), szValue);
+	else
+		copy(gPathEntModels, charsmax(gPathEntModels), ENT_DEFAULT_MODELS);
+
+	// SOUNDS.
+	for(new i = 0; i < E_SOUNDS; i++)
+	{
+		if (ini_read_string(hFile, INI_SECTION, INI_KEY_SOUNDS[i], szValue, MAX_RESOURCE_PATH_LENGTH))
+			copy(gPathEntSounds[i], charsmax(gPathEntSounds[]), szValue);
+		else
+			copy(gPathEntSounds[i], charsmax(gPathEntSounds[]), ENT_DEFAULT_SOUNDS[i]);
+	}
+	
+	// SPRITES.
+	for(new i = 0; i < E_SPRITES; i++)
+	{
+		if (ini_read_string(hFile, INI_SECTION, INI_KEY_SPRITES[i], szValue, MAX_RESOURCE_PATH_LENGTH))
+			copy(gPathEntSprites[i], charsmax(gPathEntSprites[]), szValue);
+		else
+			copy(gPathEntSprites[i], charsmax(gPathEntSprites[]), ENT_DEFAULT_SPRITES[i]);
+		console_print(0, szValue);
+	}
+	ini_close(hFile);
+}
 //====================================================
 // Native Functions
 //====================================================

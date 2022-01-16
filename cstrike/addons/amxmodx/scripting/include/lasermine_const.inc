@@ -294,55 +294,83 @@ enum E_CVAR_SETTING
 //=====================================
 //  Resource Setting AREA
 //=====================================
-new const ENT_MODELS[]		=		"models/v_tripmine.mdl";
-new const ENT_SOUNDS[][]	=	
+new const ENT_DEFAULT_MODELS[]				= "models/v_tripmine.mdl";
+new const ENT_DEFAULT_SOUNDS[E_SOUNDS][]	=	
 {
-									"weapons/mine_deploy.wav"	,		// 0: DEPLOY
-									"weapons/mine_charge.wav"	,		// 1: CHARGE
-									"weapons/mine_activate.wav"	,		// 2: ACTIVATE
-									"items/gunpickup2.wav"		,		// 3: PICKUP
-									"debris/beamstart9.wav"		,		// 4: LASER HIT
-									"weapons/ric_metal-1.wav"	,		// 5: SHIELD HIT
-									"weapons/ric_metal-2.wav"	,		// 6: SHIELD HIT
-									"debris/bustglass1.wav"		,		// 7: GLASS
-									"debris/bustglass2.wav"				// 8: GLASS
+											"weapons/mine_deploy.wav"	,		// 0: DEPLOY
+											"weapons/mine_charge.wav"	,		// 1: CHARGE
+											"weapons/mine_activate.wav"	,		// 2: ACTIVATE
+											"items/gunpickup2.wav"		,		// 3: PICKUP
+											"debris/beamstart9.wav"		,		// 4: LASER HIT
+											"weapons/ric_metal-1.wav"	,		// 5: SHIELD HIT
+											"weapons/ric_metal-2.wav"	,		// 6: SHIELD HIT
+											"debris/bustglass1.wav"		,		// 7: GLASS
+											"debris/bustglass2.wav"				// 8: GLASS
 };
-new const ENT_SPRITES[][]	=
+new const ENT_DEFAULT_SPRITES[E_SPRITES][]	=
 {
-									"sprites/laserbeam.spr"		,		// 0: LASER
-									"sprites/fexplo.spr"		,		// 1: EXPLOSION
-									"sprites/eexplo.spr"		,		// 2: EXPLOSION
-									"sprites/WXplo1.spr"		,		// 3: WATER EXPLOSION
-									"sprites/blast.spr"			,		// 4: BLAST
-									"sprites/steam1.spr"		,		// 5: SMOKE
-									"sprites/bubble.spr"		,		// 6: BUBBLE
-									"sprites/blood.spr"			,		// 7: BLOOD SPLASH
-									"sprites/bloodspray.spr"			// 8: BLOOD SPRAY
+											"sprites/laserbeam.spr"		,		// 0: LASER
+											"sprites/fexplo.spr"		,		// 1: EXPLOSION
+											"sprites/eexplo.spr"		,		// 2: EXPLOSION
+											"sprites/WXplo1.spr"		,		// 3: WATER EXPLOSION
+											"sprites/blast.spr"			,		// 4: BLAST
+											"sprites/steam1.spr"		,		// 5: SMOKE
+											"sprites/bubble.spr"		,		// 6: BUBBLE
+											"sprites/blood.spr"			,		// 7: BLOOD SPLASH
+											"sprites/bloodspray.spr"			// 8: BLOOD SPRAY
+};
+new const INI_KEY_MODELS[]					= "LM_MODEL";
+new const INI_KEY_SOUNDS[E_SOUNDS][]		=
+{
+											"LM_SOUND_DEPLOY"			,
+											"LM_SOUND_CHARGE"			,
+											"LM_SOUND_ACTIVATE"			,
+											"LM_SOUND_PICKUP"			,
+											"LM_SOUND_HIT_LASER"		,
+											"LM_SOUND_HIT_SHIELD1"		,
+											"LM_SOUND_HIT_SHIELD2"		,
+											"LM_SOUND_GLASS1"			,		// unsupported.
+											"LM_SOUND_GLASS2"			,		// unsupported.
+};
+new const INI_KEY_SPRITES[E_SPRITES][]		=
+{
+											"LM_SPRITE_LASER"			,
+											"LM_SPRITE_EXPLOSION1"		,
+											"LM_SPRITE_EXPLOSION2"		,
+											"LM_SPRITE_EXPLOSION_WATER"	,
+											"LM_SPRITE_BLAST"			,
+											"LM_SPRITE_SMOKE"			,
+											"LM_SPRITE_BUBBLE"			,
+											"LM_SPRITE_BLOOD_SPLASH"	,
+											"LM_SPRITE_BLOOD_SPRAY"		,
 };
 new const LANG_KEY[][]		=
 {
-									"REFER"						,
-									"BOUGHT"					,
-									"NO_MONEY"					,
-									"NOT_ACCESS"				,
-									"NOT_ACTIVE"				,
-									"NOT_HAVE"					,
-									"NOT_BUY"					,
-									"NOT_BUY_TEAM"				,
-									"NOT_BUY_TEAMB"				,
-									"NOT_BUYZONE"				,
-									"NOT_PICKUP"				,
-									"MAX_DEPLOY"				,
-									"MAX_HAVE"					,
-									"MAX_PPL"					,
-									"DELAY_SEC"					,
-									"STATE_AMMO"				,
-									"STATE_INF"					,
-									"PLANT_WALL"				,
-									"SORRY_IMPL"				,
-									"NO_ROUND"					,
-									"ALL_REMOVE"				,
-									"GIVE_MINE"					,
-									"REMOVE_SPEC"				,
-									"MINE_HUD_MSG"				
+											"REFER"						,
+											"BOUGHT"					,
+											"NO_MONEY"					,
+											"NOT_ACCESS"				,
+											"NOT_ACTIVE"				,
+											"NOT_HAVE"					,
+											"NOT_BUY"					,
+											"NOT_BUY_TEAM"				,
+											"NOT_BUY_TEAMB"				,
+											"NOT_BUYZONE"				,
+											"NOT_PICKUP"				,
+											"MAX_DEPLOY"				,
+											"MAX_HAVE"					,
+											"MAX_PPL"					,
+											"DELAY_SEC"					,
+											"STATE_AMMO"				,
+											"STATE_INF"					,
+											"PLANT_WALL"				,
+											"SORRY_IMPL"				,
+											"NO_ROUND"					,
+											"ALL_REMOVE"				,
+											"GIVE_MINE"					,
+											"REMOVE_SPEC"				,
+											"MINE_HUD_MSG"				
 };
+
+#define INI_FILE							"plugins/lasermine/resources.ini"
+#define INI_SECTION							"Lasermine"

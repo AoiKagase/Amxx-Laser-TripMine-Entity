@@ -913,3 +913,71 @@ stock get_dec_string(const a[])
 // 					(vec1[2]-vec2[2]) * (vec1[2]-vec2[2]));
 // 	}
 // #endif
+
+stock ini_open(const file[])
+{
+	new hFile;
+	new szFile[64];
+	formatex(szFile[get_configsdir(szFile, charsmax(szFile))], charsmax(szFile), "/%s", file);
+
+	if (!(hFile = fopen(szFile, "rt")))
+		return 0;
+
+	return hFile;
+}
+
+stock ini_close(const hFile)
+{
+	fclose(hFile);
+}
+
+stock ini_read_string(const hFile, const section[], const key[], dest[], len)
+{
+	if (!hFile)
+		return 0;
+
+	new iRetVal;
+	new bool:bSectionFound = false;
+	new szBuffer[512], szKey[32], szSection[32];
+	fseek(hFile, 0, SEEK_SET);
+	while (!feof(hFile))
+	{
+		if (fgets(hFile, szBuffer, charsmax(szBuffer)) == 0)
+			break;
+
+		trim(szBuffer);
+
+		if (!szBuffer[0] || szBuffer[0] == ';' || szBuffer[0] == '#')
+			continue;
+
+		if (szBuffer[0] == '[')
+		{
+			if (bSectionFound)
+				break;
+
+			split_string(szBuffer[1], "]", szSection, charsmax(szSection));
+
+			if (equali(section, szSection))
+				bSectionFound = true;
+		}
+
+		if (bSectionFound)
+		{
+			split(szBuffer, szKey, charsmax(szKey), szBuffer, charsmax(szBuffer), "=");
+			trim(szKey);
+			trim(szBuffer);
+
+			if (equali(szKey, key))
+			{
+#if AMXX_VERSION_NUM > 182
+				replace_string(szBuffer, charsmax(szBuffer), "^"", "");
+#else
+				replace_all(szBuffer, charsmax(szBuffer), "^"", "");
+#endif
+				iRetVal = copy(dest, len, szBuffer);
+				break;
+			}
+		}
+	}
+	return iRetVal;
+}

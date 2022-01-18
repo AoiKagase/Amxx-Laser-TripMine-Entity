@@ -526,30 +526,21 @@ stock lm_hit_shield(id, Float:dmg)
 	set_pev(id, pev_punchangle, punchangle);	
 }
 
-stock lm_reflect_laser(const id, const entity)
+stock lm_reflect_laser(const id)
 {
-	if (!is_user_alive(id) || !pev_valid(entity))
+	if (!is_user_alive(id))
 		return;
 
-	new Float:vPlayer		[3];
-	new Float:vLaserStart	[3];
-	new Float:vLaserEnd		[3];
-	new Float:v1[3], Float:v2[3], Float:v3[3], Float:v4[3], Float:v5[3];
-
-	pev(entity, pev_origin, vLaserStart);
-	pev(entity, LASERMINE_BEAMENDPOINT1, vLaserEnd);
-	pev(id, pev_oldorigin, vPlayer);
-
-	xs_vec_sub(vPlayer, vLaserStart, v1);
-	xs_vec_sub(vLaserEnd, vLaserStart, v2);
-	for (new i = 0; i < 3; i++)
-		v3[i] = v1[i] * v2[i];
-	xs_vec_normalize(v3, v4);
-
-	get_user_velocity(id, v5);
-	xs_vec_reflect(v5, v4, v5);
-
-	set_user_velocity(id, v5);
+	new Float:vPlayer[3], Float:v1[3], Float:v2[3];
+	pev(id, pev_origin, vPlayer);
+	pev(id, pev_velocity, v1);
+	console_print(0, "%f %f %f", v1[0], v1[1], v1[2]);
+	v2[0] = -(v1[0] * 2.0);
+	v2[1] = -(v1[1] * 2.0);
+	v2[2] = -(v1[2] * 2.0);
+	console_print(0, "%f %f %f", v2[0], v2[1], v2[2]);
+	
+	set_pev(id, pev_velocity, v2);
 }
 
 //====================================================

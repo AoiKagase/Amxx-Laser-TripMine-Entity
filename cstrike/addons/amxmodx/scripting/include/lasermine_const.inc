@@ -251,6 +251,7 @@ enum E_CVAR_SETTING
 	CVAR_LASER_COLOR_CT     [13]	,   	// Laser line color. 0 = team color, 1 = green
 	CVAR_LASER_DMG_MODE     		,   	// Laser line damage mode. 0 = frame rate dmg, 1 = once dmg, 2 = 1second dmg.
 	Float:CVAR_LASER_DMG_DPS      	,   	// Laser line damage mode 2 only, damage/seconds. default 1 (sec)
+	CVAR_LASER_REFLECT				,		// Laser line reflect.
 	Float:CVAR_MINE_HEALTH     		,   	// Lasermine health. (Can break.)
 	CVAR_MINE_GLOW          		,   	// Glowing tripmine.
 	CVAR_MINE_GLOW_MODE     		,   	// Glowing color mode.

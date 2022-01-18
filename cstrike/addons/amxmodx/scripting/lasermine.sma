@@ -145,6 +145,7 @@ public plugin_init()
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_damage_mode"		), "0"		), gCvar[CVAR_LASER_DMG_MODE]);					// Laser line damage mode. 0 = frame dmg, 1 = once dmg, 2 = 1 second dmg.
 	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_dps"				), "1.0"	), gCvar[CVAR_LASER_DMG_DPS]);					// laser line damage mode 2 only, damage/seconds. default 1 (sec)
 	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_range"			), "8192.0"	), gCvar[CVAR_LASER_RANGE]);					// Laser beam lange (float range.)
+	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_reflect"			), "1"		), gCvar[CVAR_LASER_REFLECT]);					// Laser reflect. 0 = disable, 1 = enable
 
 	// Mine design.
 	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_health"			), "500"	), gCvar[CVAR_MINE_HEALTH]);					// Tripmine Health. (Can break.)
@@ -162,7 +163,6 @@ public plugin_init()
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_allow_pickup"			), "1"		), gCvar[CVAR_ALLOW_PICKUP]);					// allow pickup mine. (0 = disable, 1 = it's mine, 2 = allow friendly mine, 3 = allow enemy mine!)
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_shield_difence"		), "1"		), gCvar[CVAR_DIFENCE_SHIELD]);					// allow shiled difence.
 	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_realistic_detail"		), "0"		), gCvar[CVAR_REALISTIC_DETAIL]);				// Spark Effect.
-
 	bind_pcvar_num		(get_cvar_pointer("mp_friendlyfire"), gCvar[CVAR_FRIENDLY_FIRE]);														// Friendly fire. 0 or 1
 	bind_pcvar_num		(get_cvar_pointer("violence_hblood"), gCvar[CVAR_VIOLENCE_HBLOOD]);
 
@@ -1011,6 +1011,7 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 			get_tr2(trace, TR_vecEndPos, vHitPoint);				
 			iTarget		= get_tr2(trace, TR_pHit);
 			hitGroup	= get_tr2(trace, TR_iHitgroup);
+
 			if(gCvar[CVAR_REALISTIC_DETAIL]) 
 				lm_draw_spark_for_wall(vHitPoint);
 		}
@@ -1088,6 +1089,10 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 
 			// Laser line damage mode. Once or Second.
 			create_laser_damage(iEnt, hPlayer[I_TARGET], hPlayer[I_HIT_GROUP], hPlayer[V_POSITION]);
+
+			if (gCvar[CVAR_LASER_REFLECT])
+				// Laser reflect.
+				lm_reflect_laser(hPlayer[I_TARGET]);
 		}					
 
 		// Laser line damage mode. Once or Second.
@@ -1233,7 +1238,6 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 {
 	// Damage.
 	new Float:dmg 	= gCvar[CVAR_LASER_DMG];
-	new Float:vec[3];
 	new iAttacker = pev(iEnt,LASERMINE_OWNER);
 
 	if (!is_user_alive(iTarget))
@@ -1260,15 +1264,11 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 			// Triggers a damage event on a custom weapon, adding it to the internal stats.
 			// This will also call the client_damage() and client_kill() forwards if applicable.
 			// For a list of possible body hitplaces see the HIT_* constants in amxconst.inc
-			custom_weapon_dmg(gWeaponId, iAttacker, iTarget, floatround(dmg), hitGroup);
-
-			get_user_velocity(iTarget, vec);
-			vec[0] = -vec[0] * 1.2;
-			vec[1] = -vec[1] * 1.2;
-			set_user_velocity(iTarget, vec);
+			if (dmg > 0.0)
+				custom_weapon_dmg(gWeaponId, iAttacker, iTarget, floatround(dmg), hitGroup);
 		}
 		// Other target entities.
-		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
+//		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
 	}
 	set_pev(iEnt, LASERMINE_HITING, iTarget);
 	ExecuteForward(g_forward[E_FWD_ONHIT_POST], iRet, iTarget, iAttacker, iEnt, floatround(dmg));
@@ -2132,6 +2132,9 @@ stock ClearStack(Stack:handle)
 	}
 }
 
+//====================================================
+// Glow for Mine health indicator.
+//====================================================
 stock IndicatorGlow(iEnt)
 {
 	new Float:color[3]   = {0.0, 255.0, 0.0};
@@ -2189,6 +2192,7 @@ lm_load_resources()
 	}
 	ini_close(hFile);
 }
+
 //====================================================
 // Native Functions
 //====================================================
@@ -2207,6 +2211,9 @@ public plugin_natives()
 	
 }
 
+//====================================================
+// Give lasermine.
+//====================================================
 public _native_lm_give(iPlugin, iParams)
 {
 	new id		      = get_param(1);
@@ -2231,6 +2238,9 @@ public _native_lm_give(iPlugin, iParams)
 	return lm_get_user_have_mine(id);
 }
 
+//====================================================
+// Set Count of lasermine ammo.
+//====================================================
 public _native_lm_set(iPlugin, iParams)
 {
 	new id		      	= get_param(1);
@@ -2252,6 +2262,9 @@ public _native_lm_set(iPlugin, iParams)
 	return lm_get_user_have_mine(id);
 }
 
+//====================================================
+// Subtract of lasermine ammo.
+//====================================================
 public _native_lm_sub(iPlugin, iParams)
 {
 	new id		      = get_param(1);
@@ -2265,17 +2278,26 @@ public _native_lm_sub(iPlugin, iParams)
 	return lm_get_user_have_mine(id);
 }
 
+//====================================================
+// Get amount count haveing ammo for lasermine.
+//====================================================
 public _native_lm_get_have(iPlugin, iParams)
 {
 	return lm_get_user_have_mine(get_param(1));
 }
 
+//====================================================
+// Remove all lasermine of the world.
+//====================================================
 public _native_lm_remove_all(iPlugin, iParams)
 {
 	new id = get_param(1);
 	lm_remove_all_entity(id, ENT_CLASS_LASER);
 }
 
+//====================================================
+// Is this lasermine?
+//====================================================
 public _native_lm_is_lasermine(iPlugin, iParams)
 {
 	new iEnt = get_param(1);
@@ -2288,12 +2310,18 @@ public _native_lm_is_lasermine(iPlugin, iParams)
 	return false;
 }
 
+//====================================================
+// Get owner id of lasermine.
+//====================================================
 public _native_lm_get_owner(iPlugin, iParams)
 {
 	new iEnt = get_param(1);
 	return pev(iEnt, LASERMINE_OWNER);
 }
 
+//====================================================
+// Get Laser entity id of lasermine.
+//====================================================
 public _native_lm_get_laser(iPlugin, iParams)
 {
 	new iEnt = get_param(1);

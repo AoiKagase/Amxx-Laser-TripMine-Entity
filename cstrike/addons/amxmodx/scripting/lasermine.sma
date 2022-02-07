@@ -17,6 +17,7 @@
 #include <fakemeta>
 #include <hamsandwich>
 #include <xs>
+#include <json>
 
 //=====================================
 //  VERSION CHECK
@@ -46,18 +47,17 @@
 //====================================================
 //  GLOBAL VARIABLES
 //====================================================
-new Float:gNowTime;
 new gMsgBarTime;
-new gSprites			[E_SPRITES];
+new Array:gSprites		[E_SPRITES];
 new gCvar				[E_CVAR_SETTING];
 new gEntMine;
 new gWeaponId;
 new gDeployingMines		[MAX_PLAYERS];
 
 // Custom Resources available.
-new gPathEntModels		[MAX_RESOURCE_PATH_LENGTH];
-new gPathEntSounds		[E_SOUNDS][MAX_RESOURCE_PATH_LENGTH];
-new gPathEntSprites		[E_SPRITES][MAX_RESOURCE_PATH_LENGTH];
+new Array:gPathEntModels;
+new Array:gPathEntSound		[E_SOUNDS];
+new Array:gPathEntSprites	[E_SPRITES];
 
 #if AMXX_VERSION_NUM > 183
 new Stack:gRecycleMine	[MAX_PLAYERS];
@@ -241,6 +241,15 @@ public plugin_end()
 {
 	for(new i = 0; i < MAX_PLAYERS; i++)
 		DestroyStack(gRecycleMine[i]);
+
+	// =================
+	// INITIALIZE ARRAY.
+	// =================
+	ArrayDestroy(gPathEntModels);
+	for(new E_SOUNDS:i = DEPLOY; i < E_SOUNDS; i++)
+		ArrayDestroy(gPathEntSound[i]);
+	for(new E_SPRITES:i = LASER; i < E_SPRITES; i++)
+		ArrayDestroy(gPathEntSprites[i]);
 }
 #endif
 
@@ -254,16 +263,36 @@ public plugin_precache()
 	// Load Custom Resources.
 	lm_load_resources();
 
+	new szValue[MAX_RESOURCE_PATH_LENGTH];
 	// MODELS.
-	precache_model(gPathEntModels);
+	for (new i = 0; i < ArraySize(gPathEntModels); i++)
+	{
+		szValue = "";
+		ArrayGetString(gPathEntModels, i, szValue, charsmax(szValue));
+		precache_model(szValue);
+	}
 
 	// SOUNDS.
-	for (new i = 0; i < E_SOUNDS; i++)
-		precache_sound(gPathEntSounds[i]);
+	for (new E_SOUNDS:i = DEPLOY; i < E_SOUNDS; i++)
+	{
+		for(new n = 0; n < ArraySize(gPathEntSound[i]); n++)
+		{
+			szValue = "";
+			ArrayGetString(gPathEntSound[i], n, szValue, charsmax(szValue));
+			precache_sound(szValue);
+		}
+	}
 
 	// SPRITES.
-	for (new i = 0; i < E_SPRITES; i++)
-		gSprites[i] = precache_model(gPathEntSprites[i]);
+	for (new E_SPRITES:i = LASER; i < E_SPRITES; i++)
+	{
+		for(new n = 0; n < ArraySize(gPathEntSprites[i]); n++)
+		{
+			szValue = "";
+			ArrayGetString(gPathEntSprites[i], n, szValue, charsmax(szValue));
+			ArrayPushCell(gSprites[i], precache_model(szValue));
+		}
+	}
 
 	return PLUGIN_CONTINUE;
 }
@@ -322,7 +351,7 @@ public NewRound(id)
 	if (is_user_alive(id) && pev(id, pev_flags) & (FL_CLIENT)) 
 	{
 		// Delay time reset
-		lm_set_user_delay_count(id, int:floatround(get_gametime()));
+		lm_set_user_delay_count(id, get_gametime());
 
 #if AMXX_VERSION_NUM > 183
 		// Init Recycle Health.
@@ -422,8 +451,10 @@ public lm_progress_deploy(id)
 	new iEnt = gDeployingMines[id] = engfunc(EngFunc_CreateNamedEntity, gEntMine);
 	if (pev_valid(iEnt))
 	{
+		new szValue[MAX_RESOURCE_PATH_LENGTH];
+		ArrayGetString(gPathEntModels, 0, szValue, charsmax(szValue));
 		// set models.
-		engfunc(EngFunc_SetModel, iEnt, gPathEntModels);
+		engfunc(EngFunc_SetModel, iEnt, szValue);
 		// set solid.
 		set_pev(iEnt, pev_solid, 		SOLID_NOT);
 		// set movetype.
@@ -1087,12 +1118,12 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 			ArrayGetArray(aTarget, n, hPlayer);
 			xs_vec_copy(hPlayer[V_POSITION], vEndPosition);
 
-			// Laser line damage mode. Once or Second.
-			create_laser_damage(iEnt, hPlayer[I_TARGET], hPlayer[I_HIT_GROUP], hPlayer[V_POSITION]);
-
 			if (gCvar[CVAR_LASER_REFLECT])
 				// Laser reflect.
 				lm_reflect_laser(hPlayer[I_TARGET]);
+
+			// Laser line damage mode. Once or Second.
+			create_laser_damage(iEnt, hPlayer[I_TARGET], hPlayer[I_HIT_GROUP], hPlayer[V_POSITION]);
 		}					
 
 		// Laser line damage mode. Once or Second.
@@ -1154,13 +1185,19 @@ lm_step_explosion(iEnt, iOwner)
 
 	if(engfunc(EngFunc_PointContents, vOrigin) != CONTENTS_WATER) 
 	{
-		lm_create_explosion	(vOrigin, fDamageMax, fDamageRadius, gSprites[EXPLOSION_1], gSprites[EXPLOSION_2], gSprites[BLAST]);
-		lm_create_smoke		(vOrigin, fDamageMax, fDamageRadius, gSprites[SMOKE]);
+		new sprExp1 = ArrayGetCell(gSprites[EXPLOSION_1], random_num(0, ArraySize(gSprites[EXPLOSION_1]) - 1));
+		new sprExp2 = ArrayGetCell(gSprites[EXPLOSION_2], random_num(0, ArraySize(gSprites[EXPLOSION_2]) - 1));
+		new sprBlast= ArrayGetCell(gSprites[BLAST], 	  random_num(0, ArraySize(gSprites[BLAST]) - 1));
+		new sprSmoke= ArrayGetCell(gSprites[SMOKE], 	  random_num(0, ArraySize(gSprites[SMOKE]) - 1));
+		lm_create_explosion	(vOrigin, fDamageMax, fDamageRadius, sprExp1, sprExp2, sprBlast);
+		lm_create_smoke		(vOrigin, fDamageMax, fDamageRadius, sprSmoke);
 	}
 	else 
 	{
-		lm_create_water_explosion(vOrigin, fDamageMax, fDamageRadius, gSprites[EXPLOSION_WATER]);
-		lm_create_bubbles(vOrigin, fDamageMax * 1.0, fDamageRadius * 1.0, gSprites[BUBBLE]);
+		new sprExpW = ArrayGetCell(gSprites[EXPLOSION_WATER], 	random_num(0, ArraySize(gSprites[EXPLOSION_WATER]) - 1));
+		new sprExpB = ArrayGetCell(gSprites[BUBBLE], 			random_num(0, ArraySize(gSprites[BUBBLE]) - 1));
+		lm_create_water_explosion(vOrigin, fDamageMax, fDamageRadius, sprExpW);
+		lm_create_bubbles(vOrigin, fDamageMax * 1.0, fDamageRadius * 1.0, sprExpB);
 	}
 	lm_create_explosion_decals(vDecals);
 
@@ -1228,7 +1265,9 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 		const speed			= 255
 	)
 	*/
-	return lm_draw_laser(iEnt, vEndOrigin, gPathEntSprites[LASER], 0, 0, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 255.0);
+	new szValue[MAX_RESOURCE_PATH_LENGTH];
+	ArrayGetString(gPathEntSprites[LASER], random_num(0, ArraySize(gPathEntSprites[LASER]) - 1), szValue, charsmax(szValue));
+	return lm_draw_laser(iEnt, vEndOrigin, szValue, 0, 0, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 255.0);
 }
 
 //====================================================
@@ -1259,7 +1298,11 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 			lm_play_sound(iTarget, SOUND_HIT);
 			lm_set_user_lasthit(iTarget, hitGroup);
 			if (gCvar[CVAR_VIOLENCE_HBLOOD])
-				lm_create_hblood(hitPoint, floatround(dmg), gSprites[BLOOD_SPRAY], gSprites[BLOOD_SPLASH]);
+			{
+				new sprBloodSpray  = ArrayGetCell(gSprites[BLOOD_SPRAY], random_num(0, ArraySize(gSprites[BLOOD_SPRAY]) - 1));
+				new sprBloodSplash = ArrayGetCell(gSprites[BLOOD_SPLASH], random_num(0, ArraySize(gSprites[BLOOD_SPLASH]) - 1));
+				lm_create_hblood(hitPoint, floatround(dmg), sprBloodSpray, sprBloodSplash);
+			}
 
 			// Triggers a damage event on a custom weapon, adding it to the internal stats.
 			// This will also call the client_damage() and client_kill() forwards if applicable.
@@ -1268,7 +1311,7 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 				custom_weapon_dmg(gWeaponId, iAttacker, iTarget, floatround(dmg), hitGroup);
 		}
 		// Other target entities.
-//		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
+		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
 	}
 	set_pev(iEnt, LASERMINE_HITING, iTarget);
 	ExecuteForward(g_forward[E_FWD_ONHIT_POST], iRet, iTarget, iAttacker, iEnt, floatround(dmg));
@@ -1643,13 +1686,13 @@ stock ERROR:check_for_time(id)
 	new Float:cvar_delay = gCvar[CVAR_START_DELAY];
 
 	// gametime - playertime = delay count.
-	gNowTime = get_gametime() - lm_get_user_delay_count(id);
+	new Float:nowTime = get_gametime() - lm_get_user_delay_count(id);
 
 	// check.
-	if(gNowTime >= cvar_delay)
+	if(nowTime >= cvar_delay)
 		return ERROR:E_NONE;
 
-	return show_error_message(id, ERROR:E_DELAY_TIME);
+	return show_error_message(id, ERROR:E_DELAY_TIME, nowTime);
 }
 
 //====================================================
@@ -1762,7 +1805,7 @@ stock ERROR:check_for_max_deploy(id)
 //====================================================
 // Show Chat area Messages
 //====================================================
-stock ERROR:show_error_message(id, ERROR:err_num)
+stock ERROR:show_error_message(id, ERROR:err_num, any:param = 0)
 {
 	switch(ERROR:err_num)
 	{
@@ -1776,7 +1819,7 @@ stock ERROR:show_error_message(id, ERROR:err_num)
 		case E_NO_MONEY:		cp_no_money(id);
 		case E_MAXIMUM_DEPLOYED:cp_maximum_deployed(id);
 		case E_MANY_PPL:		cp_many_ppl(id);
-		case E_DELAY_TIME:		cp_delay_time(id);
+		case E_DELAY_TIME:		cp_delay_time(id, param);
 		case E_MUST_WALL:		cp_must_wall(id);
 		case E_NOT_IMPLEMENT:	cp_sorry(id);
 		case E_NOT_BUYZONE:		cp_buyzone(id);
@@ -2092,33 +2135,46 @@ public CheckSpectator()
 //====================================================
 stock lm_play_sound(iEnt, iSoundType)
 {
+	new szValue[MAX_RESOURCE_PATH_LENGTH] = "";
 	switch (iSoundType)
 	{
 		case SOUND_POWERUP:
 		{
-			emit_sound(iEnt, CHAN_VOICE, 	gPathEntSounds[DEPLOY], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
-			emit_sound(iEnt, CHAN_BODY , 	gPathEntSounds[CHARGE], 0.2, ATTN_NORM, 0, PITCH_NORM);
+			ArrayGetString(gPathEntSound[DEPLOY], random_num(0, ArraySize(gPathEntSound[DEPLOY]) - 1), szValue, charsmax(szValue));
+			// log_amx("[LASERMINE] EMIT SOUND => %s", szValue);
+			emit_sound(iEnt, CHAN_VOICE, szValue, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			ArrayGetString(gPathEntSound[CHARGE], random_num(0, ArraySize(gPathEntSound[CHARGE]) - 1), szValue, charsmax(szValue));
+			// log_amx("[LASERMINE] EMIT SOUND => %s", szValue);
+			emit_sound(iEnt, CHAN_BODY , szValue, 0.2, ATTN_NORM, 0, PITCH_NORM);
 		}
 		case SOUND_ACTIVATE:
 		{
-			emit_sound(iEnt, CHAN_VOICE, 	gPathEntSounds[ACTIVATE], 0.5, ATTN_NORM, 1, 75);
+			ArrayGetString(gPathEntSound[ACTIVATE], random_num(0, ArraySize(gPathEntSound[ACTIVATE]) - 1), szValue, charsmax(szValue));
+			// log_amx("[LASERMINE] EMIT SOUND => %s", szValue);
+			emit_sound(iEnt, CHAN_VOICE, szValue, 0.5, ATTN_NORM, 1, 75);
 		}
 		case SOUND_STOP:
 		{
-			emit_sound(iEnt, CHAN_BODY , 	gPathEntSounds[CHARGE], 0.2, ATTN_NORM, SND_STOP, PITCH_NORM);
-			emit_sound(iEnt, CHAN_VOICE, 	gPathEntSounds[ACTIVATE], 0.5, ATTN_NORM, SND_STOP, 75);
+			// emit_sound(iEnt, CHAN_BODY , "", 0.2, ATTN_NORM, SND_STOP, PITCH_NORM);
+			// emit_sound(iEnt, CHAN_VOICE, "", 0.5, ATTN_NORM, SND_STOP, 75);
 		}
 		case SOUND_PICKUP:
 		{
-			emit_sound(iEnt, CHAN_ITEM, 	gPathEntSounds[PICKUP], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			ArrayGetString(gPathEntSound[PICKUP], random_num(0, ArraySize(gPathEntSound[PICKUP]) - 1), szValue, charsmax(szValue));
+			// log_amx("[LASERMINE] EMIT SOUND => %s", szValue);
+			emit_sound(iEnt, CHAN_ITEM,	szValue, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 		}
 		case SOUND_HIT:
 		{
-			emit_sound(iEnt, CHAN_WEAPON, 	gPathEntSounds[LASER_HIT], 1.0, ATTN_NORM, 0, PITCH_NORM);
+			ArrayGetString(gPathEntSound[LASER_HIT], random_num(0, ArraySize(gPathEntSound[LASER_HIT]) - 1), szValue, charsmax(szValue));
+			// log_amx("[LASERMINE] EMIT SOUND => %s", szValue);
+			emit_sound(iEnt, CHAN_WEAPON,szValue, 1.0, ATTN_NORM, 0, PITCH_NORM);
 		}
 		case SOUND_HIT_SHIELD:
 		{
-			emit_sound(iEnt, CHAN_VOICE, 	gPathEntSounds[SHIELD_HIT1 + random_num(0, 1)], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			ArrayGetString(gPathEntSound[SHIELD_HIT], random_num(0, ArraySize(gPathEntSound[SHIELD_HIT]) - 1), szValue, charsmax(szValue));
+			// log_amx("[LASERMINE] EMIT SOUND => %s", szValue);
+			emit_sound(iEnt, CHAN_VOICE, szValue, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 		}
 	}
 }
@@ -2160,37 +2216,215 @@ stock IndicatorGlow(iEnt)
 //====================================================
 // Load setting for Custom Researces.
 //====================================================
+/*
+new const ENT_DEFAULT_MODELS[]				= "models/v_tripmine.mdl";
+new const ENT_DEFAULT_SOUNDS[E_SOUNDS][]	=	
+{
+											"weapons/mine_deploy.wav"	,		// 0: DEPLOY
+											"weapons/mine_charge.wav"	,		// 1: CHARGE
+											"weapons/mine_activate.wav"	,		// 2: ACTIVATE
+											"items/gunpickup2.wav"		,		// 3: PICKUP
+											"debris/beamstart9.wav"		,		// 4: LASER HIT
+											"weapons/ric_metal-1.wav"	,		// 5: SHIELD HIT
+											"weapons/ric_metal-2.wav"	,		// 6: SHIELD HIT
+											"debris/bustglass1.wav"		,		// 7: GLASS
+											"debris/bustglass2.wav"				// 8: GLASS
+};
+new const ENT_DEFAULT_SPRITES[E_SPRITES][]	=
+{
+											"sprites/laserbeam.spr"		,		// 0: LASER
+											"sprites/fexplo.spr"		,		// 1: EXPLOSION
+											"sprites/eexplo.spr"		,		// 2: EXPLOSION
+											"sprites/WXplo1.spr"		,		// 3: WATER EXPLOSION
+											"sprites/blast.spr"			,		// 4: BLAST
+											"sprites/steam1.spr"		,		// 5: SMOKE
+											"sprites/bubble.spr"		,		// 6: BUBBLE
+											"sprites/blood.spr"			,		// 7: BLOOD SPLASH
+											"sprites/bloodspray.spr"			// 8: BLOOD SPRAY
+};
+enum _:E_SOUNDS
+{
+	DEPLOY							,
+	CHARGE							,
+	ACTIVATE						,
+	PICKUP							,
+	LASER_HIT						,
+	SHIELD_HIT						,
+	BREAK							,
+}
+
+enum _:E_SPRITES
+{
+	LASER							,
+	EXPLOSION						,
+	EXPLOSION_WATER					,
+	BLAST							,
+	SMOKE							,
+	BUBBLE							,
+	BLOOD_SPLASH					,
+	BLOOD_SPRAY						,
+};
+*/
 lm_load_resources()
 {
-	// Open INI.
-	new hFile	= ini_open(INI_FILE);
+	// =================
+	// INITIALIZE ARRAY.
+	// =================
+//	console_print(0, "[LASERMINE] START LOAD RESOURCES");
+//	console_print(0, "[LASERMINE] INITIALIZE");
+	gPathEntModels = ArrayCreate(MAX_RESOURCE_PATH_LENGTH);
+	for(new E_SOUNDS:i = DEPLOY; i < E_SOUNDS; i++)
+		gPathEntSound	[i] = ArrayCreate(MAX_RESOURCE_PATH_LENGTH);
+	for(new E_SPRITES:i = LASER; i < E_SPRITES; i++)
+	{
+		gPathEntSprites	[i] = ArrayCreate(MAX_RESOURCE_PATH_LENGTH);
+		gSprites[i] = ArrayCreate();
+	}
+
+//	console_print(0, "[LASERMINE] JSON PARSE");
+	// Open JSON.
+	
+	new file[64];
+	new len = charsmax(file);
+	get_localinfo("amxx_configsdir", file, len);
+	format(file, len, "%s/%s", file, JSON_FILE);
+
+	new JSON:json = json_parse(file, true, false);
+	if (!file_exists(file))
+	{
+		console_print(0, "[LASERMINE] JSON FILE NOT FOUND => %s", JSON_FILE);
+		// console_print(0, "[LASERMINE] INVALID FORMAT");
+		console_print(0, "[LASERMINE] LOAD DEFAULTS");
+		ArrayPushString(gPathEntModels, "models/v_tripmine.mdl");
+
+		ArrayPushString(gPathEntSound	[DEPLOY],			"weapons/mine_deploy.wav");
+		ArrayPushString(gPathEntSound	[CHARGE], 			"weapons/mine_charge.wav");
+		ArrayPushString(gPathEntSound	[ACTIVATE], 		"weapons/mine_activate.wav");
+		ArrayPushString(gPathEntSound	[PICKUP], 			"items/gunpickup2.wav");
+		ArrayPushString(gPathEntSound	[LASER_HIT], 		"debris/beamstart9.wav");
+		ArrayPushString(gPathEntSound	[SHIELD_HIT], 		"weapons/ric_metal-1.wav");
+		ArrayPushString(gPathEntSound	[SHIELD_HIT], 		"weapons/ric_metal-2.wav");
+		ArrayPushString(gPathEntSound	[BREAK], 			"debris/bustglass1.wav");
+		ArrayPushString(gPathEntSound	[BREAK], 			"debris/bustglass2.wav");
+
+		ArrayPushString(gPathEntSprites	[LASER], 			"sprites/laserbeam.spr");
+		ArrayPushString(gPathEntSprites	[EXPLOSION_1], 		"sprites/fexplo.spr");
+		ArrayPushString(gPathEntSprites	[EXPLOSION_2], 		"sprites/eexplo.spr");
+		ArrayPushString(gPathEntSprites	[EXPLOSION_WATER], 	"sprites/WXplo1.spr");
+		ArrayPushString(gPathEntSprites	[BLAST], 			"sprites/blast.spr");
+		ArrayPushString(gPathEntSprites	[SMOKE], 			"sprites/steam1.spr");
+		ArrayPushString(gPathEntSprites	[BUBBLE], 			"sprites/bubble.spr");
+		ArrayPushString(gPathEntSprites	[BLOOD_SPLASH], 	"sprites/blood.spr");
+		ArrayPushString(gPathEntSprites	[BLOOD_SPRAY], 		"sprites/bloodspray.spr");
+
+		return;
+	}
+
 	new szValue[MAX_RESOURCE_PATH_LENGTH];
+	new JSON:value;
+	new count;
 
 	// MODELS.
-	if (ini_read_string(hFile, INI_SECTION, INI_KEY_MODELS, szValue, MAX_RESOURCE_PATH_LENGTH))
-		copy(gPathEntModels, charsmax(gPathEntModels), szValue);
+//	object = json_array_get_value(json, 0);
+	json_object_get_string(json, "model", szValue, charsmax(szValue));
+	if (equali(szValue, ""))
+		ArrayPushString(gPathEntModels, "models/v_tripmine.mdl");
 	else
-		copy(gPathEntModels, charsmax(gPathEntModels), ENT_DEFAULT_MODELS);
+		ArrayPushString(gPathEntModels, szValue);
+	// SOUNDS.
+	for (new E_SOUNDS:i = DEPLOY; i < E_SOUNDS; i++)
+	{
+		value = json_object_get_value(json, JSON_KEY_SOUNDS[_:i], true);
+		count = json_array_get_count(value);
+		if (count > 0)
+		{
+			for(new n = 0; n < count; n++)
+			{
+				json_array_get_string(value, n, szValue, charsmax(szValue));
+				ArrayPushString(gPathEntSound[i], szValue);
+				// console_print(0, "%s => %s", JSON_KEY_SOUNDS[_:i], szValue);
+			}
+		}
+		else
+		{
+			switch(i)
+			{
+				case DEPLOY:
+				{
+					ArrayPushString(gPathEntSound[i], "weapons/mine_deploy.wav");
+				}
+				case CHARGE:
+				{
+					ArrayPushString(gPathEntSound[i], "weapons/mine_charge.wav");
+				}
+				case ACTIVATE:
+				{
+					ArrayPushString(gPathEntSound[i], "weapons/mine_activate.wav");
+				}
+				case PICKUP:
+				{
+					ArrayPushString(gPathEntSound[i], "items/gunpickup2.wav");
+				}
+				case LASER_HIT:
+				{
+					ArrayPushString(gPathEntSound[i], "debris/beamstart9.wav");
+				}
+				case SHIELD_HIT:
+				{
+					ArrayPushString(gPathEntSound[i], "weapons/ric_metal-1.wav");
+					ArrayPushString(gPathEntSound[i], "weapons/ric_metal-2.wav");
+				}
+				case BREAK:
+				{
+					ArrayPushString(gPathEntSound[i], "debris/bustglass1.wav");
+					ArrayPushString(gPathEntSound[i], "debris/bustglass2.wav");
+				}
+			}
+		}
+		json_free(value);
+	}
 
 	// SOUNDS.
-	for(new i = 0; i < E_SOUNDS; i++)
+	for (new E_SPRITES:i = LASER; i < E_SPRITES; i++)
 	{
-		if (ini_read_string(hFile, INI_SECTION, INI_KEY_SOUNDS[i], szValue, MAX_RESOURCE_PATH_LENGTH))
-			copy(gPathEntSounds[i], charsmax(gPathEntSounds[]), szValue);
+		value = json_object_get_value(json, JSON_KEY_SPRITES[_:i], true);
+		count = json_array_get_count(value);
+		if (count > 0)
+		{
+			for(new n = 0; n < count; n++)
+			{
+				json_array_get_string(value, n, szValue, charsmax(szValue));
+				ArrayPushString(gPathEntSprites[i], szValue);
+//				console_print(0, "%s => %s", JSON_KEY_SPRITES[_:i], szValue);
+			}
+		}
 		else
-			copy(gPathEntSounds[i], charsmax(gPathEntSounds[]), ENT_DEFAULT_SOUNDS[i]);
+		{
+			switch(i)
+			{
+				case LASER:
+					ArrayPushString(gPathEntSprites	[i], "sprites/laserbeam.spr");
+				case EXPLOSION_1:
+					ArrayPushString(gPathEntSprites	[i], "sprites/fexplo.spr");
+				case EXPLOSION_2:
+					ArrayPushString(gPathEntSprites	[i], "sprites/eexplo.spr");
+				case EXPLOSION_WATER:
+					ArrayPushString(gPathEntSprites	[i], "sprites/WXplo1.spr");
+				case BLAST:	
+					ArrayPushString(gPathEntSprites	[i], "sprites/blast.spr");
+				case SMOKE:
+					ArrayPushString(gPathEntSprites	[i], "sprites/steam1.spr");
+				case BUBBLE:
+					ArrayPushString(gPathEntSprites	[i], "sprites/bubble.spr");
+				case BLOOD_SPLASH:
+					ArrayPushString(gPathEntSprites	[i], "sprites/blood.spr");
+				case BLOOD_SPRAY:
+					ArrayPushString(gPathEntSprites	[i], "sprites/bloodspray.spr");
+			}
+		}
+		json_free(value);
 	}
-	
-	// SPRITES.
-	for(new i = 0; i < E_SPRITES; i++)
-	{
-		if (ini_read_string(hFile, INI_SECTION, INI_KEY_SPRITES[i], szValue, MAX_RESOURCE_PATH_LENGTH))
-			copy(gPathEntSprites[i], charsmax(gPathEntSprites[]), szValue);
-		else
-			copy(gPathEntSprites[i], charsmax(gPathEntSprites[]), ENT_DEFAULT_SPRITES[i]);
-		console_print(0, szValue);
-	}
-	ini_close(hFile);
+	json_free(json);
 }
 
 //====================================================

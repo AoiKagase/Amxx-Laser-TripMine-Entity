@@ -131,8 +131,7 @@ enum _:ERROR
 //
 enum int:PLAYER_DATA_INT
 {
-	PLAYER_DELAY_COUNT				= 0,
-	PLAYER_HAVE_MINE				,
+	PLAYER_HAVE_MINE				= 0,
 	PLAYER_MINE_SETTING				,
 	PLAYER_DEPLOYED					,
 }
@@ -140,6 +139,7 @@ enum int:PLAYER_DATA_INT
 enum Float:PLAYER_DATA_FLOAT
 {
 	PLAYER_MAX_SPEED				= 0,
+	PLAYER_DELAY_COUNT				,
 }
 
 enum int:PLAYER_DEPLOY_STATE
@@ -158,30 +158,28 @@ enum _:PICKUP_MODE
 	ALLOW_ENEMY						,
 }
 
-enum _:E_SOUNDS
+enum E_SOUNDS
 {
-	DEPLOY							,
-	CHARGE							,
-	ACTIVATE						,
-	PICKUP							,
-	LASER_HIT						,
-	SHIELD_HIT1						,
-	SHIELD_HIT2						,
-	GLASS_1							,
-	GLASS_2							,
+	Array:DEPLOY					= 0,
+	Array:CHARGE					,
+	Array:ACTIVATE					,
+	Array:PICKUP					,
+	Array:LASER_HIT					,
+	Array:SHIELD_HIT				,
+	Array:BREAK						,
 }
 
-enum _:E_SPRITES
+enum E_SPRITES
 {
-	LASER							,
-	EXPLOSION_1						,
-	EXPLOSION_2						,
-	EXPLOSION_WATER					,
-	BLAST							,
-	SMOKE							,
-	BUBBLE							,
-	BLOOD_SPLASH					,
-	BLOOD_SPRAY						,
+	Array:LASER						= 0,
+	Array:EXPLOSION_1				,
+	Array:EXPLOSION_2				,
+	Array:EXPLOSION_WATER			,
+	Array:BLAST						,
+	Array:SMOKE						,
+	Array:BUBBLE					,
+	Array:BLOOD_SPLASH				,
+	Array:BLOOD_SPRAY				,
 };
 
 enum _:E_LANG_KEY
@@ -284,7 +282,7 @@ enum E_CVAR_SETTING
 #define cp_maximum_deployed(%1)		client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_DEPLOY],	CHAT_TAG)
 #define cp_have_max(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_HAVE],	CHAT_TAG)
 #define cp_many_ppl(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_PPL],		CHAT_TAG)
-#define cp_delay_time(%1)			client_print_color(%1, %1, "%L", %1, LANG_KEY[DELAY_SEC],	CHAT_TAG, gCvar[CVAR_START_DELAY] - gNowTime)
+#define cp_delay_time(%1,%2)		client_print_color(%1, %1, "%L", %1, LANG_KEY[DELAY_SEC],	CHAT_TAG, gCvar[CVAR_START_DELAY] - %2)
 #define cp_must_wall(%1)			client_print_color(%1, %1, "%L", %1, LANG_KEY[PLANT_WALL],	CHAT_TAG)
 #define cp_sorry(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[SORRY_IMPL],	CHAT_TAG)
 #define cp_noround(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[NOROUND], 	CHAT_TAG)
@@ -295,56 +293,6 @@ enum E_CVAR_SETTING
 //=====================================
 //  Resource Setting AREA
 //=====================================
-new const ENT_DEFAULT_MODELS[]				= "models/v_tripmine.mdl";
-new const ENT_DEFAULT_SOUNDS[E_SOUNDS][]	=	
-{
-											"weapons/mine_deploy.wav"	,		// 0: DEPLOY
-											"weapons/mine_charge.wav"	,		// 1: CHARGE
-											"weapons/mine_activate.wav"	,		// 2: ACTIVATE
-											"items/gunpickup2.wav"		,		// 3: PICKUP
-											"debris/beamstart9.wav"		,		// 4: LASER HIT
-											"weapons/ric_metal-1.wav"	,		// 5: SHIELD HIT
-											"weapons/ric_metal-2.wav"	,		// 6: SHIELD HIT
-											"debris/bustglass1.wav"		,		// 7: GLASS
-											"debris/bustglass2.wav"				// 8: GLASS
-};
-new const ENT_DEFAULT_SPRITES[E_SPRITES][]	=
-{
-											"sprites/laserbeam.spr"		,		// 0: LASER
-											"sprites/fexplo.spr"		,		// 1: EXPLOSION
-											"sprites/eexplo.spr"		,		// 2: EXPLOSION
-											"sprites/WXplo1.spr"		,		// 3: WATER EXPLOSION
-											"sprites/blast.spr"			,		// 4: BLAST
-											"sprites/steam1.spr"		,		// 5: SMOKE
-											"sprites/bubble.spr"		,		// 6: BUBBLE
-											"sprites/blood.spr"			,		// 7: BLOOD SPLASH
-											"sprites/bloodspray.spr"			// 8: BLOOD SPRAY
-};
-new const INI_KEY_MODELS[]					= "LM_MODEL";
-new const INI_KEY_SOUNDS[E_SOUNDS][]		=
-{
-											"LM_SOUND_DEPLOY"			,
-											"LM_SOUND_CHARGE"			,
-											"LM_SOUND_ACTIVATE"			,
-											"LM_SOUND_PICKUP"			,
-											"LM_SOUND_HIT_LASER"		,
-											"LM_SOUND_HIT_SHIELD1"		,
-											"LM_SOUND_HIT_SHIELD2"		,
-											"LM_SOUND_GLASS1"			,		// unsupported.
-											"LM_SOUND_GLASS2"			,		// unsupported.
-};
-new const INI_KEY_SPRITES[E_SPRITES][]		=
-{
-											"LM_SPRITE_LASER"			,
-											"LM_SPRITE_EXPLOSION1"		,
-											"LM_SPRITE_EXPLOSION2"		,
-											"LM_SPRITE_EXPLOSION_WATER"	,
-											"LM_SPRITE_BLAST"			,
-											"LM_SPRITE_SMOKE"			,
-											"LM_SPRITE_BUBBLE"			,
-											"LM_SPRITE_BLOOD_SPLASH"	,
-											"LM_SPRITE_BLOOD_SPRAY"		,
-};
 new const LANG_KEY[][]		=
 {
 											"REFER"						,
@@ -373,5 +321,26 @@ new const LANG_KEY[][]		=
 											"MINE_HUD_MSG"				
 };
 
-#define INI_FILE							"plugins/lasermine/resources.ini"
-#define INI_SECTION							"Lasermine"
+#define JSON_FILE							"plugins/lasermine/resources.json"
+new const JSON_KEY_SOUNDS[][]	=
+{
+											"sound.deploy",
+											"sound.charge",
+											"sound.activate",
+											"sound.pickup",
+											"sound.laser_hit",
+											"sound.shield_hit",
+											"sound.break",
+};
+new const JSON_KEY_SPRITES[][]	=
+{
+											"sprite.laser",
+											"sprite.explosion_a",
+											"sprite.explosion_b",
+											"sprite.explosion_water",
+											"sprite.explosion_blast",
+											"sprite.explosion_smoke",
+											"sprite.explosion_bubble",
+											"sprite.laser_hit_blood_splash",
+											"sprite.laser_hit_blood_spray",
+}

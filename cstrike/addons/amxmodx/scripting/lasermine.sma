@@ -42,7 +42,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.30"
+#define VERSION 					"3.31"
 
 //====================================================
 //  GLOBAL VARIABLES

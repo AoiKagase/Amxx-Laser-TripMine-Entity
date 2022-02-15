@@ -23,6 +23,7 @@ ALL_REMOVE    = ^4%s ^1admin's removed %s's all lasermines.
 TAKE_MINE     = ^4%s ^1admin's given lasermine for %s.
 REMOVE_SPEC   = ^4%s ^1%s's all lasers have been removed because moved to the spectator!
 MINE_HUD_MSG  = Owner: %s^nHealth: %i/%i
+NO_ROUND      = ^4%s ^1Wait for the round to begin!
 
 [es]
 REFER         = ^4%s ^1Para ver las instrucciones acerca de la mina láser, escribe 'lasermine'.
@@ -49,6 +50,7 @@ ALL_REMOVE    = ^4%s ^1El administrador eliminó todas las minas láser de %s.
 TAKE_MINE     = ^4%s ^1El administrador ha dado %s minas láser.
 REMOVE_SPEC   = ^4%s ^1¡Todas las minas láser de %s fueron removidas debido a que este jugador está en el equipo de espectadores!
 MINE_HUD_MSG  = Dueño: %s^nSalud: %i/%i
+NO_ROUND      = ^4%s ^1Wait for the round to begin!
 
 [tr]
 REFER         = ^4%s ^1Bu serverdeki bir lazer kuralina bakmak icin, say 'lasermine'.
@@ -75,6 +77,7 @@ ALL_REMOVE    = ^4%s ^1admin butun %s'larin lazerini kaldirdi.
 TAKE_MINE     = ^4%s ^1admin %s icin lazer verdi.
 REMOVE_SPEC   = ^4%s ^1%s kisisinin butun lazerleri kaldirildi cunku izleyice gecti!
 MINE_HUD_MSG  = Sahip: %s^nSaglik: %i/%i
+NO_ROUND      = ^4%s ^1Wait for the round to begin!
 
 [ro]
 REFER         = ^4%s ^1Pentru a accesa informatiile despre minele laser, scrie 'lasermine'.
@@ -101,6 +104,7 @@ ALL_REMOVE    = ^4Admin %s ^1i-a eliminat toate minele laser lui %s.
 TAKE_MINE     = ^4Admin %s ^1i-a adaugat mine laser lui %s.
 REMOVE_SPEC   = ^4%s Toate minele laser ale lui ^1%s au fost eliminate pentru ca a fost mutat la Spectator!
 MINE_HUD_MSG  = Detinator: %s^nViata: %i/%i
+NO_ROUND      = ^4%s ^1Wait for the round to begin!
 
 [pt]
 REFER         = ^4%s ^1Para veres as regras das minas laser deste servidor escreve 'lasermine'.
@@ -127,3 +131,4 @@ ALL_REMOVE    = ^4%s ^1Os admin's removeram %s's todas as minas laser.
 TAKE_MINE     = ^4%s ^1Os admin's deram minas laser para %s.
 REMOVE_SPEC   = ^4%s ^1%s's todos os lasers foram removidos porque foste movido para espectador!
 MINE_HUD_MSG  = Dono: %s^nSaude: %i/%i
+NO_ROUND      = ^4%s ^1Wait for the round to begin!

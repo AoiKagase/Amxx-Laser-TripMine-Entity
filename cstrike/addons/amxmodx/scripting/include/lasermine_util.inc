@@ -23,18 +23,18 @@ new gNumDecalsBlood;
 //====================================================
 //  Player Data functions
 //====================================================
-stock lm_set_user_delay_count		(id, int:value) 	{ gPlayerInt[id][PLAYER_DELAY_COUNT]	= int:value; }
 stock lm_set_user_have_mine			(id, int:value) 	{ gPlayerInt[id][PLAYER_HAVE_MINE]		= int:value; }
 stock lm_set_user_mine_deployed		(id, int:value)		{ gPlayerInt[id][PLAYER_DEPLOYED]		= int:value; }
 stock lm_set_user_deploy_state		(id, int:value)		{ gPlayerInt[id][PLAYER_MINE_SETTING]	= int:value; }
 stock lm_set_user_health			(id, Float:health)	{ health > 0 ? set_pev(id, pev_health, health) : user_kill(id, 1); }
+stock lm_set_user_delay_count		(id, Float:value) 	{ gPlayerFloat[id][PLAYER_DELAY_COUNT]	= Float:value; }
 stock lm_save_user_max_speed		(id, Float:value)	{ gPlayerFloat[id][PLAYER_MAX_SPEED]	= Float:value; }
 stock lm_set_user_max_speed			(id, Float:value)	{ engfunc(EngFunc_SetClientMaxspeed, id, value);set_pev(id, pev_maxspeed, value); }
 
 stock int:lm_get_user_have_mine		(id) 				{ return int:gPlayerInt[id][PLAYER_HAVE_MINE]; }
 stock int:lm_get_user_mine_deployed	(id) 				{ return int:gPlayerInt[id][PLAYER_DEPLOYED]; }
 stock int:lm_get_user_deploy_state	(id)				{ return int:gPlayerInt[id][PLAYER_MINE_SETTING]; }
-stock Float:lm_get_user_delay_count	(id) 				{ return Float:gPlayerInt[id][PLAYER_DELAY_COUNT]; }
+stock Float:lm_get_user_delay_count	(id) 				{ return Float:gPlayerFloat[id][PLAYER_DELAY_COUNT]; }
 stock Float:lm_load_user_max_speed	(id)				{ return Float:gPlayerFloat[id][PLAYER_MAX_SPEED]; }
 stock Float:lm_get_user_max_speed	(id)				{ return Float:pev(id, pev_maxspeed); }
 stock Float:lm_get_user_health		(id)
@@ -552,11 +552,11 @@ stock lm_reflect_laser(const id)
 	new Float:vPlayer[3], Float:v1[3], Float:v2[3];
 	pev(id, pev_origin, vPlayer);
 	pev(id, pev_velocity, v1);
-	console_print(0, "%f %f %f", v1[0], v1[1], v1[2]);
+//	console_print(0, "%f %f %f", v1[0], v1[1], v1[2]);
 	v2[0] = -(v1[0] * 2.0);
 	v2[1] = -(v1[1] * 2.0);
 	v2[2] = -(v1[2] * 2.0);
-	console_print(0, "%f %f %f", v2[0], v2[1], v2[2]);
+//	console_print(0, "%f %f %f", v2[0], v2[1], v2[2]);
 	
 	set_pev(id, pev_velocity, v2);
 }

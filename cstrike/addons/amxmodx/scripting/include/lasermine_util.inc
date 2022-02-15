@@ -393,6 +393,7 @@ stock lm_create_explosion_damage(iEnt, iAttacker, Float:dmgMax, Float:radius)
 	new iHit;
 	new tClassName[MAX_NAME_LENGTH];
 	new iClassName[MAX_NAME_LENGTH];
+	new target;
 	// Calculate falloff
 	new Float:falloff;
 	if (radius > 0.0)
@@ -419,10 +420,27 @@ stock lm_create_explosion_damage(iEnt, iAttacker, Float:dmgMax, Float:radius)
 		// is alive?
 		if (!lm_is_user_alive(rEnt))
 			continue;
-		
-		// friendly fire
-		if (!is_valid_takedamage(iAttacker, rEnt))
-			continue;
+
+		if (!IsPlayer(rEnt))
+		{
+			new class[MAX_NAME_LENGTH];
+			class = lm_get_entity_class_name(rEnt);
+			if (equali(class, ENT_CLASS_LASER))
+				target = pev(rEnt, LASERMINE_OWNER);
+			else
+				target = pev(rEnt, pev_owner);
+
+			if (IsPlayer(target))
+				// friendly fire
+				if (!is_valid_takedamage(iAttacker, target))
+					continue;
+		}
+		else
+		{
+			// friendly fire
+			if (!is_valid_takedamage(iAttacker, rEnt))
+				continue;
+		}
 
 		// Reset data
 		kickBack = 1.0;

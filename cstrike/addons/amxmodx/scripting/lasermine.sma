@@ -1068,7 +1068,7 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 					continue;
 
 				// is dead?
-				if (!is_user_alive(iTarget))
+				if (!is_user_alive(iTarget) || !(1 <= iTarget <= MAX_PLAYERS))
 					continue;
 
 				// Hit friend and No FF.
@@ -1700,7 +1700,7 @@ stock ERROR:check_for_time(id)
 //====================================================
 stock bool:check_for_team(id)
 {
-	new arg[4];
+	new arg[7];
 	new CsTeams:team;
 
 	// Get Cvar

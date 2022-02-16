@@ -237,7 +237,7 @@ enum E_CVAR_SETTING
 	Float:CVAR_EXPLODE_DMG     		,   	// Explosion Damage.
 	CVAR_FRIENDLY_FIRE      		,   	// Friendly Fire.
 	CVAR_VIOLENCE_HBLOOD			,		// Violence High blood
-	CVAR_CBT				[4]		,   	// Can buy team. TR/CT/ALL
+	CVAR_CBT				[7]		,   	// Can buy team. TR/CT/ALL (Zombie or Z/Human or H/ALL)
 	CVAR_BUY_MODE           		,   	// Buy mode. 0 = off, 1 = on.
 	Float:CVAR_START_DELAY       	,   	// Round start delay time.
 	// Laser design.

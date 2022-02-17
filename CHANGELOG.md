@@ -42,7 +42,7 @@ Due to the use of EntityID instead of player ID in FiendlyFire check during expl
 ### Fixed
 - Server crash.
 
-## [3.22.0]
+## [3.22.0] [YANKED]
 ### Fixed
 - Undefined pev index.(Typo)
 

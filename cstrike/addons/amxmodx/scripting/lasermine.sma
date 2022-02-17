@@ -1062,13 +1062,16 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 					ArrayPushArray(aTarget, hPlayer);
 					continue;
 				}
-
+				#if defined BIOHAZARD_SUPPORT
+				if (equali(classname, "player_model"))
+					iTarget = pev(iTarget, pev_owner);
+				#endif
 				// is user?
-				if (!(pev(iTarget, pev_flags) & (FL_CLIENT | FL_FAKECLIENT | FL_MONSTER)))
+				if (!(pev(iTarget, pev_flags) & (FL_CLIENT | FL_FAKECLIENT | FL_MONSTER)) && !IsPlayer(iTarget))
 					continue;
 
 				// is dead?
-				if (!is_user_alive(iTarget) || !(1 <= iTarget <= MAX_PLAYERS))
+				if (!is_user_alive(iTarget))
 					continue;
 
 				// Hit friend and No FF.

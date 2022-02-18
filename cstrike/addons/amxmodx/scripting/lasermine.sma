@@ -1063,7 +1063,7 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 					continue;
 				}
 				#if defined BIOHAZARD_SUPPORT
-				if (equali(classname, "player_model"))
+				if (equali(className, "player_model"))
 					iTarget = pev(iTarget, pev_owner);
 				#endif
 				// is user?
@@ -1306,12 +1306,6 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 				new sprBloodSplash = ArrayGetCell(gSprites[BLOOD_SPLASH], random_num(0, ArraySize(gSprites[BLOOD_SPLASH]) - 1));
 				lm_create_hblood(hitPoint, floatround(dmg), sprBloodSpray, sprBloodSplash);
 			}
-
-			// Triggers a damage event on a custom weapon, adding it to the internal stats.
-			// This will also call the client_damage() and client_kill() forwards if applicable.
-			// For a list of possible body hitplaces see the HIT_* constants in amxconst.inc
-			if (dmg > 0.0)
-				custom_weapon_dmg(gWeaponId, iAttacker, iTarget, floatround(dmg), hitGroup);
 		}
 		// Other target entities.
 		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
@@ -1334,6 +1328,12 @@ public PlayerKilling(iVictim, inflictor, iAttacker, Float:damage, bits)
 	//
 	if (equali(entityName, ENT_CLASS_LASER) && is_user_alive(iVictim))
 	{
+		// Triggers a damage event on a custom weapon, adding it to the internal stats.
+		// This will also call the client_damage() and client_kill() forwards if applicable.
+		// For a list of possible body hitplaces see the HIT_* constants in amxconst.inc
+		if (damage > 0.0)
+			custom_weapon_dmg(gWeaponId, iAttacker, iVictim, floatround(damage), lm_get_user_lasthit(iVictim));		
+
 		if (lm_get_user_health(iVictim) - damage > 0.0)
 			return HAM_IGNORED;
 

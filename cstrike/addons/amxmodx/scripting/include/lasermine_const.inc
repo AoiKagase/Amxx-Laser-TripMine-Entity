@@ -21,8 +21,10 @@
 #define XTRA_OFS_PLAYER        		5
 #define m_LastHitGroup        		75
 #define lm_set_user_lasthit(%1,%2)	set_pdata_int(%1, m_LastHitGroup, %2)
+#define lm_get_user_lasthit(%1,%2)	get_pdata_int(%1, m_LastHitGroup, %2)
 #else
 #define lm_set_user_lasthit(%1,%2)	set_ent_data(%1, "CBaseMonster","m_LastHitGroup", %2)
+#define lm_get_user_lasthit(%1)		get_ent_data(%1, "CBaseMonster","m_LastHitGroup")
 #endif
 
 #define ENT_CLASS_LASER				"lasermine"

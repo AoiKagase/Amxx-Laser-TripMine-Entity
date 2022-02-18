@@ -17,14 +17,14 @@
 
 #define CHAT_TAG 				"[Biohazard]"
 #define CVAR_TAG				"bh_ltm"
-#define CVAR_CFG				"bh_ltm_cvars.cfg"
+#define CVAR_CFG				"lasermine/bh_ltm_cvars"
 
 register_zombie()
 {
-	gCvar[CVAR_NOROUND]			= register_cvar(fmt("%s%s", CVAR_TAG, "_check_started_round"),	"1"			);	// Check Started Round.
+//	gCvar[CVAR_NOROUND]			= register_cvar(fmt("%s%s", CVAR_TAG, "_check_started_round"),	"1"			);	// Check Started Round.
 
 #if AMXX_VERSION_NUM > 183
-	AutoExecConfig(true, "plugin-lasermine_bh");
+	AutoExecConfig(true, CVAR_CFG);
 #endif
 }
 #endif
@@ -39,7 +39,7 @@ register_zombie()
 #define PLUGIN 					"[ZP]Laser/Tripmine Entity"
 #define CHAT_TAG 				"[ZP][LM]"
 #define CVAR_TAG				"zp_ltm"
-#define CVAR_CFG				"zp_ltm_cvars.cfg"
+#define CVAR_CFG				"lasermine/zp_ltm_cvars"
 
 new ITEM_NAME[][]	= {"LaserMines", "TripMines", "Claymores"};
 new gZpWeaponId;
@@ -50,7 +50,7 @@ register_zombie()
 	new cost						= gCvar[CVAR_COST];
 	gZpWeaponId						= zp_items_register(ITEM_NAME[wmode], cost);
 #if AMXX_VERSION_NUM > 183
-	AutoExecConfig(true, "plugin-lasermine_zp");
+	AutoExecConfig(true, CVAR_CFG);
 #endif
 }
 

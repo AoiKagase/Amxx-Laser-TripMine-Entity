@@ -34,7 +34,7 @@
 	#define PLUGIN 					"Laser/Tripmine Entity"
 	#define CHAT_TAG 				"[Lasermine]"
 	#define CVAR_TAG				"amx_ltm"
-	#define CVAR_CFG				"ltm_cvars.cfg"
+	#define CVAR_CFG				"lasermine/ltm_cvars"
 #endif
 
 //=====================================
@@ -50,6 +50,7 @@
 new gMsgBarTime;
 new Array:gSprites		[E_SPRITES];
 new gCvar				[E_CVAR_SETTING];
+new gCvarPointer		[E_CVAR_SETTING];
 new gEntMine;
 new gWeaponId;
 new gDeployingMines		[MAX_PLAYERS];
@@ -114,58 +115,29 @@ public plugin_init()
 	register_clcmd("buy_lasermine", "lm_buy_lasermine");
 #endif
 	// CVar settings.
-	// Common.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_enable"				), "1"		), gCvar[CVAR_ENABLE]);							// 0 = off, 1 = on.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_access"				), "0"		), gCvar[CVAR_ACCESS_LEVEL]);					// 0 = all, 1 = admin
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_mode"					), "0"		), gCvar[CVAR_MODE]);							// 0 = lasermine, 1 = tripmine, 2 = claymore wire trap
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_round_delay"			), "5"		), gCvar[CVAR_START_DELAY]);					// Round start delay time.
-
-	// Ammo.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_amount"				), "1"		), gCvar[CVAR_START_HAVE]);						// Round start have ammo count.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_max_amount"			), "2"		), gCvar[CVAR_MAX_HAVE]);						// Max having ammo.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_team_max"				), "10"		), gCvar[CVAR_TEAM_MAX]);						// Max deployed in team.
-
-	// Buy system.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_mode"				), "1"		), gCvar[CVAR_BUY_MODE]);						// 0 = off, 1 = on.
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_team"				), "ALL"	), gCvar[CVAR_CBT], charsmax(gCvar[CVAR_CBT]));	// Can buy team. TR / CT / ALL. (BIOHAZARD: Z = Zombie, H = human)
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_price"				), "2500"	), gCvar[CVAR_COST]);							// Buy cost.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_buy_zone"				), "1"		), gCvar[CVAR_BUY_ZONE]);						// Stay in buy zone can buy.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_frag_money"			), "300"	), gCvar[CVAR_FRAG_MONEY]);						// Get money.
-
-	// Laser design.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_visible"			), "1"		), gCvar[CVAR_LASER_VISIBLE]);					// Laser line visibility.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_mode"		), "0"		), gCvar[CVAR_LASER_COLOR]);					// laser line color 0 = team color, 1 = green.
-	// Leser beam color for team color mode.
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_t"			), "255,0,0"), gCvar[CVAR_LASER_COLOR_TR], charsmax(gCvar[CVAR_LASER_COLOR_TR]));				// Team-Color for Terrorist. default:red (R,G,B)
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_color_ct"		), "0,0,255"), gCvar[CVAR_LASER_COLOR_CT], charsmax(gCvar[CVAR_LASER_COLOR_CT]));				// Team-Color for Counter-Terrorist. default:blue (R,G,B)
-
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_brightness"		), "255"	), gCvar[CVAR_LASER_BRIGHT]);					// laser line brightness. 0 to 255
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_width"			), "2"		), gCvar[CVAR_LASER_WIDTH]);					// laser line width. 0 to 255
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_damage"			), "60.0"	), gCvar[CVAR_LASER_DMG]);						// laser hit dmg. Float Value!
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_damage_mode"		), "0"		), gCvar[CVAR_LASER_DMG_MODE]);					// Laser line damage mode. 0 = frame dmg, 1 = once dmg, 2 = 1 second dmg.
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_dps"				), "1.0"	), gCvar[CVAR_LASER_DMG_DPS]);					// laser line damage mode 2 only, damage/seconds. default 1 (sec)
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_range"			), "8192.0"	), gCvar[CVAR_LASER_RANGE]);					// Laser beam lange (float range.)
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_laser_reflect"			), "1"		), gCvar[CVAR_LASER_REFLECT]);					// Laser reflect. 0 = disable, 1 = enable
-
-	// Mine design.
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_health"			), "500"	), gCvar[CVAR_MINE_HEALTH]);					// Tripmine Health. (Can break.)
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow"				), "1"		), gCvar[CVAR_MINE_GLOW]);						// Tripmine glowing. 0 = off, 1 = on.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_mode"	), "0"		), gCvar[CVAR_MINE_GLOW_MODE]);					// Mine glow coloer 0 = team color, 1 = green, 2 = Health Indicator Glow(green to red).
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_t"		), "255,0,0"), gCvar[CVAR_MINE_GLOW_TR], charsmax(gCvar[CVAR_MINE_GLOW_TR]));				// Team-Color for Terrorist. default:red (R,G,B)
-	bind_pcvar_string	(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_glow_color_ct"	), "0,0,255"), gCvar[CVAR_MINE_GLOW_CT], charsmax(gCvar[CVAR_MINE_GLOW_CT]));				// Team-Color for Counter-Terrorist. default:blue (R,G,B)
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_mine_broken"			), "0"		), gCvar[CVAR_MINE_BROKEN]);					// Can broken Mines.(0 = mines, 1 = Team, 2 = Enemy)
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_explode_radius"		), "320.0"	), gCvar[CVAR_EXPLODE_RADIUS]);					// Explosion radius.
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_explode_damage"		), "100.0"	), gCvar[CVAR_EXPLODE_DMG]);					// Explosion radius damage.
-
-	// Misc Settings.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_death_remove"			), "0"		), gCvar[CVAR_DEATH_REMOVE]);					// Dead Player remove lasermine. 0 = off, 1 = on.
-	bind_pcvar_float	(create_cvar(fmt("%s%s", CVAR_TAG, "_activate_time"			), "1.0"	), gCvar[CVAR_LASER_ACTIVATE]);					// Waiting for put lasermine. (int:seconds. 0 = no progress bar.)
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_allow_pickup"			), "1"		), gCvar[CVAR_ALLOW_PICKUP]);					// allow pickup mine. (0 = disable, 1 = it's mine, 2 = allow friendly mine, 3 = allow enemy mine!)
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_shield_difence"		), "1"		), gCvar[CVAR_DIFENCE_SHIELD]);					// allow shiled difence.
-	bind_pcvar_num		(create_cvar(fmt("%s%s", CVAR_TAG, "_realistic_detail"		), "0"		), gCvar[CVAR_REALISTIC_DETAIL]);				// Spark Effect.
-	bind_pcvar_num		(get_cvar_pointer("mp_friendlyfire"), gCvar[CVAR_FRIENDLY_FIRE]);														// Friendly fire. 0 or 1
-	bind_pcvar_num		(get_cvar_pointer("violence_hblood"), gCvar[CVAR_VIOLENCE_HBLOOD]);
-
+	for(new i = 0; i < E_CVAR_SETTING_LIST; i++)
+	{
+		if (i == CL_FRIENDLY_FIRE || i == CL_VIOLENCE_HBLOOD)
+			gCvarPointer[i] = get_cvar_pointer(CVAR_CONFIGRATION[i][0]);
+		else
+			gCvarPointer[i] = create_cvar(fmt("%s%s", CVAR_TAG, CVAR_CONFIGRATION[i][0]), CVAR_CONFIGRATION[i][2], FCVAR_NONE, CVAR_CONFIGRATION[i][1]);
+		if (equali(CVAR_CONFIGRATION[i][3], "num"))
+			bind_pcvar_num(gCvarPointer[i], gCvar[i]);
+		else if(equali(CVAR_CONFIGRATION[i][3], "float"))
+			bind_pcvar_float(gCvarPointer[i], Float:gCvar[i]);
+		else if(equali(CVAR_CONFIGRATION[i][3], "string")) {
+			switch(i)
+			{
+				case CL_CBT: 			bind_pcvar_string(gCvarPointer[CL_CBT], gCvar[CVAR_CBT], charsmax(gCvar[CVAR_CBT]));
+				case CL_LASER_COLOR_TR: bind_pcvar_string(gCvarPointer[CL_LASER_COLOR_TR], gCvar[CVAR_LASER_COLOR_TR], charsmax(gCvar[CVAR_LASER_COLOR_TR]));
+				case CL_LASER_COLOR_CT: bind_pcvar_string(gCvarPointer[CL_LASER_COLOR_CT], gCvar[CVAR_LASER_COLOR_CT], charsmax(gCvar[CVAR_LASER_COLOR_CT]));
+				case CL_MINE_GLOW_TR: 	bind_pcvar_string(gCvarPointer[CL_MINE_GLOW_TR], gCvar[CVAR_MINE_GLOW_TR], charsmax(gCvar[CVAR_MINE_GLOW_TR]));
+				case CL_MINE_GLOW_CT: 	bind_pcvar_string(gCvarPointer[CL_MINE_GLOW_CT], gCvar[CVAR_MINE_GLOW_CT], charsmax(gCvar[CVAR_MINE_GLOW_CT]));
+			}
+		}
+		
+//		hook_cvar_change(g_cvarPointer[i], "cvar_change_callback");
+	}
 	gMsgBarTime	= get_user_msgid("BarTime");
 	
 	// Register Hamsandwich
@@ -188,8 +160,6 @@ public plugin_init()
 	// Multi Language Dictionary.
 	register_dictionary	("lasermine.txt");
 
-	create_cvar			("ltm_version", 	VERSION, FCVAR_SERVER|FCVAR_SPONLY);
-
 #if AMXX_VERSION_NUM > 183
 	for(new i = 0; i < MAX_PLAYERS; i++)
 		gRecycleMine[i] = CreateStack(1);
@@ -199,9 +169,11 @@ public plugin_init()
 	register_zombie();
 #else
 #if AMXX_VERSION_NUM > 183
-	AutoExecConfig(true);
+	AutoExecConfig(true, CVAR_CFG);
 #endif
 #endif
+
+	create_cvar			("ltm_version", 	VERSION, FCVAR_SERVER|FCVAR_SPONLY);
 
 	// Add Custom weapon id to CSX.
 	gWeaponId = custom_weapon_add("Laser Mine", 0, ENT_CLASS_LASER);
@@ -223,7 +195,7 @@ public plugin_cfg()
 	new file[64];
 	new len = charsmax(file);
 	get_localinfo("amxx_configsdir", file, len);
-	format(file, len, "%s/%s", file, CVAR_CFG);
+	format(file, len, "%s/plugins/%s.cfg", file, CVAR_CFG);
 
 	if(file_exists(file)) 
 	{
@@ -1121,9 +1093,9 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 			ArrayGetArray(aTarget, n, hPlayer);
 			xs_vec_copy(hPlayer[V_POSITION], vEndPosition);
 
-			if (gCvar[CVAR_LASER_REFLECT])
+			if (gCvar[CVAR_LASER_FENCE])
 				// Laser reflect.
-				lm_reflect_laser(hPlayer[I_TARGET]);
+				lm_fence_laser(hPlayer[I_TARGET]);
 
 			// Laser line damage mode. Once or Second.
 			create_laser_damage(iEnt, hPlayer[I_TARGET], hPlayer[I_HIT_GROUP], hPlayer[V_POSITION]);
@@ -2330,7 +2302,7 @@ lm_load_resources()
 	// MODELS.
 //	object = json_array_get_value(json, 0);
 	json_object_get_string(json, "model", szValue, charsmax(szValue));
-	if (equali(szValue, ""))
+	if (strlen(szValue) == 0 || equali(szValue, ""))
 		ArrayPushString(gPathEntModels, "models/v_tripmine.mdl");
 	else
 		ArrayPushString(gPathEntModels, szValue);
@@ -2344,45 +2316,16 @@ lm_load_resources()
 			for(new n = 0; n < count; n++)
 			{
 				json_array_get_string(value, n, szValue, charsmax(szValue));
-				ArrayPushString(gPathEntSound[i], szValue);
+				if (equali(szValue, ""))
+					load_default_sounds(i);
+				else
+					ArrayPushString(gPathEntSound[i], szValue);
 				// console_print(0, "%s => %s", JSON_KEY_SOUNDS[_:i], szValue);
 			}
 		}
 		else
 		{
-			switch(i)
-			{
-				case DEPLOY:
-				{
-					ArrayPushString(gPathEntSound[i], "weapons/mine_deploy.wav");
-				}
-				case CHARGE:
-				{
-					ArrayPushString(gPathEntSound[i], "weapons/mine_charge.wav");
-				}
-				case ACTIVATE:
-				{
-					ArrayPushString(gPathEntSound[i], "weapons/mine_activate.wav");
-				}
-				case PICKUP:
-				{
-					ArrayPushString(gPathEntSound[i], "items/gunpickup2.wav");
-				}
-				case LASER_HIT:
-				{
-					ArrayPushString(gPathEntSound[i], "debris/beamstart9.wav");
-				}
-				case SHIELD_HIT:
-				{
-					ArrayPushString(gPathEntSound[i], "weapons/ric_metal-1.wav");
-					ArrayPushString(gPathEntSound[i], "weapons/ric_metal-2.wav");
-				}
-				case BREAK:
-				{
-					ArrayPushString(gPathEntSound[i], "debris/bustglass1.wav");
-					ArrayPushString(gPathEntSound[i], "debris/bustglass2.wav");
-				}
-			}
+			load_default_sounds(i);
 		}
 		json_free(value);
 	}
@@ -2397,39 +2340,81 @@ lm_load_resources()
 			for(new n = 0; n < count; n++)
 			{
 				json_array_get_string(value, n, szValue, charsmax(szValue));
-				ArrayPushString(gPathEntSprites[i], szValue);
+				if (equali(szValue, ""))
+					load_default_sprites(i);
+				else
+					ArrayPushString(gPathEntSprites[i], szValue);
 //				console_print(0, "%s => %s", JSON_KEY_SPRITES[_:i], szValue);
 			}
 		}
 		else
 		{
-			switch(i)
-			{
-				case LASER:
-					ArrayPushString(gPathEntSprites	[i], "sprites/laserbeam.spr");
-				case EXPLOSION_1:
-					ArrayPushString(gPathEntSprites	[i], "sprites/fexplo.spr");
-				case EXPLOSION_2:
-					ArrayPushString(gPathEntSprites	[i], "sprites/eexplo.spr");
-				case EXPLOSION_WATER:
-					ArrayPushString(gPathEntSprites	[i], "sprites/WXplo1.spr");
-				case BLAST:	
-					ArrayPushString(gPathEntSprites	[i], "sprites/blast.spr");
-				case SMOKE:
-					ArrayPushString(gPathEntSprites	[i], "sprites/steam1.spr");
-				case BUBBLE:
-					ArrayPushString(gPathEntSprites	[i], "sprites/bubble.spr");
-				case BLOOD_SPLASH:
-					ArrayPushString(gPathEntSprites	[i], "sprites/blood.spr");
-				case BLOOD_SPRAY:
-					ArrayPushString(gPathEntSprites	[i], "sprites/bloodspray.spr");
-			}
+			load_default_sprites(i);
 		}
 		json_free(value);
 	}
 	json_free(json);
 }
-
+load_default_sounds(E_SOUNDS:i)
+{
+	switch(i)
+	{
+		case DEPLOY:
+		{
+			ArrayPushString(gPathEntSound[i], "weapons/mine_deploy.wav");
+		}
+		case CHARGE:
+		{
+			ArrayPushString(gPathEntSound[i], "weapons/mine_charge.wav");
+		}
+		case ACTIVATE:
+		{
+			ArrayPushString(gPathEntSound[i], "weapons/mine_activate.wav");
+		}
+		case PICKUP:
+		{
+			ArrayPushString(gPathEntSound[i], "items/gunpickup2.wav");
+		}
+		case LASER_HIT:
+		{
+			ArrayPushString(gPathEntSound[i], "debris/beamstart9.wav");
+		}
+		case SHIELD_HIT:
+		{
+			ArrayPushString(gPathEntSound[i], "weapons/ric_metal-1.wav");
+			ArrayPushString(gPathEntSound[i], "weapons/ric_metal-2.wav");
+		}
+		case BREAK:
+		{
+			ArrayPushString(gPathEntSound[i], "debris/bustglass1.wav");
+			ArrayPushString(gPathEntSound[i], "debris/bustglass2.wav");
+		}
+	}
+}
+load_default_sprites(E_SPRITES:i)
+{
+	switch(i)
+	{
+		case LASER:
+			ArrayPushString(gPathEntSprites	[i], "sprites/laserbeam.spr");
+		case EXPLOSION_1:
+			ArrayPushString(gPathEntSprites	[i], "sprites/fexplo.spr");
+		case EXPLOSION_2:
+			ArrayPushString(gPathEntSprites	[i], "sprites/eexplo.spr");
+		case EXPLOSION_WATER:
+			ArrayPushString(gPathEntSprites	[i], "sprites/WXplo1.spr");
+		case BLAST:	
+			ArrayPushString(gPathEntSprites	[i], "sprites/blast.spr");
+		case SMOKE:
+			ArrayPushString(gPathEntSprites	[i], "sprites/steam1.spr");
+		case BUBBLE:
+			ArrayPushString(gPathEntSprites	[i], "sprites/bubble.spr");
+		case BLOOD_SPLASH:
+			ArrayPushString(gPathEntSprites	[i], "sprites/blood.spr");
+		case BLOOD_SPRAY:
+			ArrayPushString(gPathEntSprites	[i], "sprites/bloodspray.spr");
+	}
+}
 //====================================================
 // Native Functions
 //====================================================

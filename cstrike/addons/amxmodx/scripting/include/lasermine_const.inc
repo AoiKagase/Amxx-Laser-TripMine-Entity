@@ -222,50 +222,118 @@ enum _:HIT_PLAYER
 //
 // CVAR SETTINGS
 //
-enum E_CVAR_SETTING
+enum _:E_CVAR_SETTING
 {
 	CVAR_ENABLE						= 0,    // Plugin Enable.
 	CVAR_ACCESS_LEVEL				,		// Access level for 0 = ADMIN or 1 = ALL.
-	CVAR_NOROUND					,		// Check Started Round.
 	CVAR_MODE						,    	// 0 = Lasermine, 1 = Tripmine.
-	CVAR_MAX_HAVE					,    	// Max having ammo.
+	Float:CVAR_START_DELAY       	,   	// Round start delay time.
+
+	// Ammo.
 	CVAR_START_HAVE					,    	// Start having ammo.
-	CVAR_FRAG_MONEY     		    ,    	// Get money per kill.
+	CVAR_MAX_HAVE					,    	// Max having ammo.
+	CVAR_TEAM_MAX           		,    	// Max deployed in team.
+
+	// Buy system.
+	CVAR_BUY_MODE           		,   	// Buy mode. 0 = off, 1 = on.
+	CVAR_CBT				[7]		,   	// Can buy team. TR/CT/ALL (Zombie or Z/Human or H/ALL)
 	CVAR_COST               		,    	// Buy cost.
 	CVAR_BUY_ZONE           		,    	// Stay in buy zone can buy.
-	Float:CVAR_LASER_DMG         	,    	// Laser hit Damage.
-	CVAR_TEAM_MAX           		,    	// Max deployed in team.
-	Float:CVAR_EXPLODE_RADIUS    	,   	// Explosion Radius.
-	Float:CVAR_EXPLODE_DMG     		,   	// Explosion Damage.
-	CVAR_FRIENDLY_FIRE      		,   	// Friendly Fire.
-	CVAR_VIOLENCE_HBLOOD			,		// Violence High blood
-	CVAR_CBT				[7]		,   	// Can buy team. TR/CT/ALL (Zombie or Z/Human or H/ALL)
-	CVAR_BUY_MODE           		,   	// Buy mode. 0 = off, 1 = on.
-	Float:CVAR_START_DELAY       	,   	// Round start delay time.
+	CVAR_FRAG_MONEY     		    ,    	// Get money per kill.
+
 	// Laser design.
 	CVAR_LASER_VISIBLE      		,   	// Laser line Visiblity. 0 = off, 1 = on.
-	Float:CVAR_LASER_BRIGHT    		,   	// Laser line brightness.
-	Float:CVAR_LASER_WIDTH			,		// Laser line width.
 	CVAR_LASER_COLOR        		,   	// Laser line color. 0 = team color, 1 = green
+	// Leser beam color for team color mode.
 	CVAR_LASER_COLOR_TR     [13]	,   	// Laser line color. 0 = team color, 1 = green
 	CVAR_LASER_COLOR_CT     [13]	,   	// Laser line color. 0 = team color, 1 = green
+	Float:CVAR_LASER_BRIGHT    		,   	// Laser line brightness.
+	Float:CVAR_LASER_WIDTH			,		// Laser line width.
+	Float:CVAR_LASER_DMG         	,    	// Laser hit Damage.
 	CVAR_LASER_DMG_MODE     		,   	// Laser line damage mode. 0 = frame rate dmg, 1 = once dmg, 2 = 1second dmg.
 	Float:CVAR_LASER_DMG_DPS      	,   	// Laser line damage mode 2 only, damage/seconds. default 1 (sec)
-	CVAR_LASER_REFLECT				,		// Laser line reflect.
+	Float:CVAR_LASER_RANGE			,		// Laserbeam range.
+	CVAR_LASER_FENCE				,		// Laser line fence.
+
+	// Mine design.
 	Float:CVAR_MINE_HEALTH     		,   	// Lasermine health. (Can break.)
 	CVAR_MINE_GLOW          		,   	// Glowing tripmine.
 	CVAR_MINE_GLOW_MODE     		,   	// Glowing color mode.
-	CVAR_MINE_GLOW_CT     	[13]	,   	// Glowing color for CT.
 	CVAR_MINE_GLOW_TR    	[13]	,   	// Glowing color for T.
+	CVAR_MINE_GLOW_CT     	[13]	,   	// Glowing color for CT.
 	CVAR_MINE_BROKEN				,		// Can Broken Mines. 0 = Mine, 1 = Team, 2 = Enemy.
+	Float:CVAR_EXPLODE_RADIUS    	,   	// Explosion Radius.
+	Float:CVAR_EXPLODE_DMG     		,   	// Explosion Damage.
+	// Misc Settings.
 	CVAR_DEATH_REMOVE				,		// Dead Player Remove Lasermine.
 	Float:CVAR_LASER_ACTIVATE		,		// Waiting for put lasermine. (0 = no progress bar.)
-	Float:CVAR_LASER_RANGE			,		// Laserbeam range.
 	CVAR_ALLOW_PICKUP				,		// allow pickup.
 	CVAR_DIFENCE_SHIELD				,		// Shield hit.
 	CVAR_REALISTIC_DETAIL			,		// Spark Effect.
+	CVAR_FRIENDLY_FIRE      		,   	// Friendly Fire.
+	CVAR_VIOLENCE_HBLOOD			,		// Violence High blood
+#if defined BIOHAZARD_SUPPORT
+	CVAR_NOROUND					,		// Check Started Round.
+#endif
 };
 
+//
+// CVAR SETTINGS
+//
+enum _:E_CVAR_SETTING_LIST
+{
+	CL_ENABLE						= 0,    // Plugin Enable.
+	CL_ACCESS_LEVEL				,		// Access level for 0 = ADMIN or 1 = ALL.
+	CL_MODE						,    	// 0 = Lasermine, 1 = Tripmine.
+	CL_START_DELAY       			,   	// Round start delay time.
+
+	// Ammo.
+	CL_START_HAVE					,    	// Start having ammo.
+	CL_MAX_HAVE					,    	// Max having ammo.
+	CL_TEAM_MAX           		,    	// Max deployed in team.
+
+	// Buy system.
+	CL_BUY_MODE           		,   	// Buy mode. 0 = off, 1 = on.
+	CL_CBT						,   	// Can buy team. TR/CT/ALL (Zombie or Z/Human or H/ALL)
+	CL_COST               		,    	// Buy cost.
+	CL_BUY_ZONE           		,    	// Stay in buy zone can buy.
+	CL_FRAG_MONEY     		    ,    	// Get money per kill.
+
+	// Laser design.
+	CL_LASER_VISIBLE      		,   	// Laser line Visiblity. 0 = off, 1 = on.
+	CL_LASER_COLOR        		,   	// Laser line color. 0 = team color, 1 = green
+	// Leser beam color for team color mode.
+	CL_LASER_COLOR_TR     		,   	// Laser line color. 0 = team color, 1 = green
+	CL_LASER_COLOR_CT     		,   	// Laser line color. 0 = team color, 1 = green
+	CL_LASER_BRIGHT    			,   	// Laser line brightness.
+	CL_LASER_WIDTH				,		// Laser line width.
+	CL_LASER_DMG         			,    	// Laser hit Damage.
+	CL_LASER_DMG_MODE     		,   	// Laser line damage mode. 0 = frame rate dmg, 1 = once dmg, 2 = 1second dmg.
+	CL_LASER_DMG_DPS      		,   	// Laser line damage mode 2 only, damage/seconds. default 1 (sec)
+	CL_LASER_RANGE				,		// Laserbeam range.
+	CL_LASER_FENCE				,		// Laser line fence.
+
+	// Mine design.
+	CL_MINE_HEALTH    	 		,   	// Lasermine health. (Can break.)
+	CL_MINE_GLOW          		,   	// Glowing tripmine.
+	CL_MINE_GLOW_MODE     		,   	// Glowing color mode.
+	CL_MINE_GLOW_TR    			,   	// Glowing color for T.
+	CL_MINE_GLOW_CT     			,   	// Glowing color for CT.
+	CL_MINE_BROKEN				,		// Can Broken Mines. 0 = Mine, 1 = Team, 2 = Enemy.
+	CL_EXPLODE_RADIUS    			,   	// Explosion Radius.
+	CL_EXPLODE_DMG     			,   	// Explosion Damage.
+	// Misc Settings.
+	CL_DEATH_REMOVE				,		// Dead Player Remove Lasermine.
+	CL_LASER_ACTIVATE				,		// Waiting for put lasermine. (0 = no progress bar.)
+	CL_ALLOW_PICKUP				,		// allow pickup.
+	CL_DIFENCE_SHIELD				,		// Shield hit.
+	CL_REALISTIC_DETAIL			,		// Spark Effect.
+	CL_FRIENDLY_FIRE      		,   	// Friendly Fire.
+	CL_VIOLENCE_HBLOOD			,		// Violence High blood
+#if defined BIOHAZARD_SUPPORT
+	CL_NOROUND					,		// Check Started Round.
+#endif
+};
 // ADMIN LEVEL
 #define ADMIN_ACCESSLEVEL			ADMIN_LEVEL_H
 // Client Print Command Macro.
@@ -346,3 +414,101 @@ new const JSON_KEY_SPRITES[][]	=
 											"sprite.laser_hit_blood_splash",
 											"sprite.laser_hit_blood_spray",
 }
+
+new const CVAR_CONFIGRATION	[E_CVAR_SETTING_LIST][][] =
+{
+	// CVAR, DESCRIPTION, DEFAULT, TYPE
+	// CVar settings.
+	// Common.
+	{"_enable",					"[COMMON] - Enable plugin. [0 = Disable, 1 = Enable]",
+			"1", 		"num"},			// 0 = off, 1 = on.
+	{"_access",					"[COMMON] - Player can use plugin this access level. [0 = ALL, 1 = ADMIN_ACCESS_LEVEL_H]", 
+			"0", 		"num"},			// 0 = all, 1 = admin
+	{"_mode",					"[COMMON] - Mines Mode. [0 = Lasermine, 1 = Tripmine]", 
+			"0", 		"num"},			// 0 = lasermine, 1 = tripmine
+	{"_round_delay",			"[COMMON] - Delay at start of round. [Seconds]",
+	 		"5.0", 		"float"},		// Round start delay time.
+
+	// Ammo.
+	{"_amount",					"[AMMO] - Number of mines in your possession at the start of the round.", 
+			"1", 		"num"},			// Round start have ammo count.
+	{"_max_amount",				"[AMMO] - The largest number of mines you can carry.", 
+			"2", 		"num"},			// Max having ammo.
+	{"_team_max",				"[AMMO] - Maximum number of mines that can be placed in a team.", 
+			"10", 		"num"},			// Max deployed in team.
+
+	// Buy system.
+	{"_buy_mode",				"[BUY SYSTEM] - Make them buy to use. [0 = Disable, 1 = Enable]", 
+			"1", 		"num"},			// 0 = off, 1 = on.
+	{"_buy_team",				"[BUY SYSTEM] - Teams that are allowed to buy. [TR / CT / ALL. (BIOHAZARD: Z = Zombie, H = human)]", 
+			"ALL", 		"string"},			// Can buy team. TR / CT / ALL. (BIOHAZARD: Z = Zombie, H = human)
+	{"_buy_price",				"[BUY SYSTEM] - The price of mines", 
+			"2500", 	"num"},			// Buy cost.
+	{"_buy_zone",				"[BUY SYSTEM] - Purchases are made through Buy zone only. [0 = Disable, 1 = Enable]",
+			 "1", 		"num"},			// Stay in buy zone can buy.
+	{"_frag_money",				"[BUY SYSTEM] - Kill reward money.", 
+			"300", 		"num"},			// Get money.
+
+	// Laser design.
+	{"_laser_visible",			"[LASER] - Laser line visibility. [0 = No, 1 = YES]",
+			"1", 		"num"},	// Laser line visibility.
+	{"_laser_color_mode",		"[LASER] - Laser line Color mode. [0 = Teams, 1 = Green]", 
+			"0",		"num"},	// laser line color 0 = team color, 1 = green.
+
+	// Leser beam color for team color mode.
+	{"_laser_color_t",			"[LASER] - Team-Color for Terrorist. [R,G,B]",
+			"255,0,0", 	"string"},		// Team-Color for Terrorist. default:red (R,G,B)
+	{"_laser_color_ct",			"[LASER] - Team-Color for Counter-Terrorist. [R,G,B]", 
+			"0,0,255", 	"string"},		// Team-Color for Counter-Terrorist. default:blue (R,G,B)
+
+	{"_laser_brightness",		"[LASER] - Laser line Brightness. [0 - 255]",
+			"255", 		"float"},		// laser line brightness. 0 to 255
+	{"_laser_width",			"[LASER] - Laser line width. [0 - 255]", 
+			"2", 		"float"},		// laser line width. 0 to 255
+	{"_laser_damage_mode",		"[LASER] - Damage mode. [0 = Frame, 1 = Once, 2 = Second repeat]",
+			"0", 		"num"},
+	{"_laser_damage",			"[LASER] - Damage.", 
+			"60.0", 	"float"},		// laser hit dmg. Float Value!
+	{"_laser_dps",				"[LASER] - Damage mode = 2, Damage/Seconds [Seconds]",
+			 "1.0", 	"float"},		// laser line damage mode 2 only, damage/seconds. default 1 (sec)
+	{"_laser_range",			"[LASER] - Laser line range.",
+			 "8192.0", 	"float"},		// Laser beam lange (float range.)
+	{"_laser_fence",			"[LASER] - Laser hit the body bounces back.",
+			 "1", 		"num"},			// Laser reflect. 0 = disable, 1 = enable
+
+	// Mine design.
+	{"_mine_health",			"[MINE] - Health.",
+			"500.0", 	"float"},		// Tripmine Health. (Can break.)
+	{"_mine_glow",				"[MINE] - Glowing. [0 = Disable, 1 = Enable]",
+			"1", 		"num"},			// Tripmine glowing. 0 = off, 1 = on.
+	{"_mine_glow_color_mode",	"[MINE] - Glow color mode. [0 = Team, 1 = Green, 2 = Health Indicator(Green to Red)]",
+			"0", 		"num"},			// Mine glow coloer 0 = team color, 1 = green, 2 = Health Indicator Glow(green to red).
+	{"_mine_glow_color_t",		"[MINE] - Glow color mode = 0, for Terrorist.[R,G,B]",
+			"255,0,0", 	"string"},		// Team-Color for Terrorist. default:red (R,G,B)
+	{"_mine_glow_color_ct",		"[MINE] - Glow color mode = 0, for Counter-Terrorist.[R,G,B]", 
+			"0,0,255", 	"string"},		// Team-Color for Counter-Terrorist. default:blue (R,G,B)
+	{"_mine_broken",			"[MINE] - Can broken.[0 = Owner, 1 = Team, 2 = and Enemy]", 
+			"0", 		"num"},			// Can broken Mines.(0 = mines, 1 = Team, 2 = Enemy)
+	{"_explode_radius",			"[MINE] - Explosion radius.", 
+			"320.0", 	"float"},		// Explosion radius.
+	{"_explode_damage",			"[MINE] - Explosion radius damage.", 
+			"100.0", 	"float"},		// Explosion radius damage.
+
+	// Misc Settings.
+	{"_death_remove",			"[MISC] - Dead player remove mines. [0 = Disable, 1 = Enable]",
+			"1", 		"num"},			// Dead Player remove lasermine. 0 = off, 1 = on.
+	{"_activate_time",			"[MISC] - Waiting for put mines. [Seconds, 0 = no progress bar]",
+			"1.0", 		"float"},		// Waiting for put lasermine. (int:seconds. 0 = no progress bar.)
+	{"_allow_pickup",			"[MISC] - Allow pickup mines. [0 = Disable, 1 = Owner, 2 = Allow Friendly, 3 = and Allow Enemy]", "1", 	"num"},			// allow pickup mine. (0 = disable, 1 = it's mine, 2 = allow friendly mine, 3 = allow enemy mine!)
+	{"_shield_difence",			"[MISC] - Allow Shield difence. [0 = Disable, 1 = Enable]",
+			"1", 		"num"},			// allow shiled difence.
+	{"_realistic_detail",		"[MISC] - Show hit sparks on wall. [0 = Disable, 1 = Enable]",
+			"0", 		"num"},			// Hit sparks.
+
+	{"mp_friendlyfire", "", "", "num"},
+	{"violence_hblood", "", "", "num"},
+#if defined BIOHAZARD_SUPPORT
+	{"_check_started_round", 	"[BIOHAZARD] - Check started round. [0 = Disable, 1 = Enable]","1", "num"},
+#endif
+};
+

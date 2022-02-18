@@ -1,0 +1,23 @@
+{
+	"model": "",
+	"sprite": {
+		"laser":[""],
+		"explosion_a":[],
+		"explosion_b":[],
+		"explosion_water":[],
+		"explosion_blast":[],
+		"explosion_smoke":[],
+		"explosion_bubble":[],
+		"laser_hit_blood_splash":[],
+		"laser_hit_blood_spray":[]
+	},
+	"sound":{
+		"deploy":[],
+		"charge":[],
+		"activate":[],
+		"pickup":[],
+		"laser_hit":[],
+		"shield_hit":[],
+		"break":[]
+	}
+}

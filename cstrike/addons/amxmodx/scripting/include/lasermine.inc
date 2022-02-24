@@ -20,7 +20,7 @@
  * @param uselimit  			Set to true to use the plugin limitation, false to ignore
  * @return 						new amount of laser mines
  */
-native      LM_Give(client, amount = 1, bool:uselimit = true);
+native LM_Give(client, amount = 1, bool:uselimit = true);
 
 /**
  * Sets the player's amount of the remaining laser mines
@@ -30,7 +30,7 @@ native      LM_Give(client, amount = 1, bool:uselimit = true);
  * @param uselimit				Set to true to use the plugin limitation, false to ignore
  * @return 						new amount of laser mines
  */
-native 		LM_Set(client, amount, bool:uselimit = true);
+native LM_Set(client, amount, bool:uselimit = true);
 
 /**
  * Subtracts one or more remaining lasermines from the player
@@ -39,7 +39,7 @@ native 		LM_Set(client, amount, bool:uselimit = true);
  * @param amount 				Amount of laser mines to substract.
  * @return 						new amount of laser mines
  */
-native      LM_Sub(client, amount = 1);
+native LM_Sub(client, amount = 1);
 
 /**
  * Returns number of remaining laser mines a player has.
@@ -47,7 +47,7 @@ native      LM_Sub(client, amount = 1);
  * @param client 				Client index to get from
  * @return 						number of remaining laser mines.
  */
-native      LM_Get(client);
+native LM_Get(client);
 
 /**
  * Clears the map from the player's laser mines
@@ -55,7 +55,7 @@ native      LM_Get(client);
  * @param client   				Client index to clear
  * @noreturn
  */
-native      LM_RemoveAll(client);
+native LM_RemoveAll(client);
 
 /**
  * Checks whether the entity is a lasermine
@@ -71,7 +71,7 @@ native bool:IsLM(entity);
  * @param entity 				Entity index to get the owner for
  * @return 						Client index or -1 if no client found
  */
-native      LM_GetOwner(entity);
+native LM_GetOwner(entity);
 
 /**
  * Gets beam index by the lasermine
@@ -79,7 +79,7 @@ native      LM_GetOwner(entity);
  * @param entity 				The lasermine index to get the laser for
  * @return 						Beam index or -1 if no laser found
  */
-native      LM_GetLaser(entity);
+native LM_GetLaser(entity);
 
 /**
  * Called when the player is about to buy a laser mine
@@ -87,9 +87,9 @@ native      LM_GetLaser(entity);
  * @param client 				Client index of the player who is buying a laser mine
  * @param amount 				The amount of laser mines a player is going to buy. Set by reference
  * @param price 				The laser mine price. Set by reference
- * @return 						Plugin_Changed to apply new values, Plugin_Contninue to allow buy as is and >= Plugin_Handled to block the operation
+ * @noreturn
  */
-forward     LM_OnBuy_Pre(client, &amount, &price);
+forward LM_OnBuy_Pre(client, &amount, &price);
 
 
 /**
@@ -100,16 +100,16 @@ forward     LM_OnBuy_Pre(client, &amount, &price);
  * @param sum	 				The sum of money the player cost
  * @noreturn
  */
-forward     LM_OnBuy_Post(client, amount, sum);
+forward LM_OnBuy_Post(client, amount, sum);
 
 /**
  * Called when the player is about to plant a laser mine
  *
  * @param client 				Client index of the player
  * @param act_delay 			Activation time. Set by reference
- * @return         				Plugin_Changed to apply new values, Plugin_Contninue to allow the planting as is and >= Plugin_Handled to block the planting
+ * @noreturn
  */
-forward     LM_OnPlant(client, &Float:act_delay);
+forward LM_OnPlant(client, &Float:act_delay);
 
 /**
  * Called when the player planted a laser mine
@@ -118,7 +118,7 @@ forward     LM_OnPlant(client, &Float:act_delay);
  * @param lasermine 			The lasermine index
  * @noreturn
  */
-forward     LM_OnPlanted(client, lasermine);
+forward LM_OnPlanted(client, lasermine);
 
 /**
  * Called when the player is about to be hitted by a laser mine
@@ -128,9 +128,9 @@ forward     LM_OnPlanted(client, lasermine);
  * @param beam 					The beam index which is going to inflict the victim. Set by reference
  * @param lasermine 			The lasermine index which is going to inflict the victim. Set by reference
  * @param damage 				Damage of the hit. Set by reference
- * @return 						Plugin_Changed to apply new values, Plugin_Contninue to allow the hit as is and >= Plugin_Handled to block the hit
+ * @noreturn
  */
-forward     LM_OnHit_Pre(victim, &attacker, &lasermine, &damage);
+forward LM_OnHit_Pre(victim, &attacker, &lasermine, &damage);
 
 
 /**
@@ -143,16 +143,16 @@ forward     LM_OnHit_Pre(victim, &attacker, &lasermine, &damage);
  * @param damage 				Damage of the hit
  * @noreturn
  */
-forward     LM_OnHit_Post(victim, attacker, lasermine, damage);
+forward LM_OnHit_Post(victim, attacker, lasermine, damage);
 
 /**
  * Called when the player is about to pickup a lasermine
  *
  * @param client 				Client index of the player who is going to pickup
  * @param lasermine 			Lasermine index which is being picked up
- * @return 						Plugin_Contninue or Plugin_Changed to allow the pickup and Plugin_Handled or Plugin_Stop to block the pickup
+ * @noreturn
  */
-forward     LM_OnPickup_Pre(client, lasermine);
+forward LM_OnPickup_Pre(client, lasermine);
 
 
 /**
@@ -161,4 +161,4 @@ forward     LM_OnPickup_Pre(client, lasermine);
  * @param client 				Client index of the player who has picked up a lasermine
  * @noreturn
  */
-forward     LM_OnPickup_Post(client); 
+forward LM_OnPickup_Post(client); 

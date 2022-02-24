@@ -35,6 +35,53 @@
 ### 2. Write Plugins.ini
 * lasermine.amxx
 
+### 3. If using Custom Resources.
+* Modify resources.json. example.
+```JSON
+{
+	"model": "models/[YOUR MINES MODELS PATH/MODEL NAME].mdl",
+	"sprite": {
+		"laser":[
+         "sprites/[YOUR LASER SPRITE PATH/SPRITE NAME].spr",
+         "sprites/[YOUR LASER SPRITE PATH/SPRITE NAME].spr"
+      ],
+		"explosion_a":[],
+		"explosion_b":[],
+		"explosion_water":[],
+		"explosion_blast":[],
+		"explosion_smoke":[],
+		"explosion_bubble":[],
+		"laser_hit_blood_splash":[],
+		"laser_hit_blood_spray":[]
+	},
+	"sound":{
+		"deploy":[
+         "[YOUR DEPLOY SOUND PATH/SOUND NAME].wav"
+      ],
+		"charge":[
+         "[YOUR DEPLOY SOUND PATH/SOUND NAME].wav"
+      ],
+		"activate":[
+         "[YOUR DEPLOY SOUND PATH/SOUND NAME].wav"
+      ],
+		"pickup":[
+         "[YOUR DEPLOY SOUND PATH/SOUND NAME].wav"
+      ],
+		"laser_hit":[
+         "[YOUR DEPLOY SOUND PATH/SOUND NAME].wav",
+         "[YOUR DEPLOY SOUND PATH/SOUND NAME].wav",
+         "[YOUR DEPLOY SOUND PATH/SOUND NAME].wav",
+         "[YOUR DEPLOY SOUND PATH/SOUND NAME].wav",
+      ],
+		"shield_hit":[],
+		"break":[]
+	}
+}
+```
+* Attention: 
+  1. Only one Model file.
+  2. If multiple Sprite and Sound files are specified, they will be played at random.
+  3. Sound files can only be specified under the sound/ directory.
 ## Modules:
 * **[required]**: AMXMODX v1.9.0 or Higher.(The end of support for v1.8.2.)
   * If you want to compile with 1.8.2, you can use `cromchat.inc` (by OciXCrom) is required. And no recycle logic is available.

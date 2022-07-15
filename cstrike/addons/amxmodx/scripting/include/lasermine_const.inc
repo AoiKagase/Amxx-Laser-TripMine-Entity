@@ -12,7 +12,7 @@
 
 #if AMXX_VERSION_NUM < 190
 #include <cromchat>
-
+#define MAX_RESOURCE_PATH_LENGTH 	64
 #define MAX_PLAYERS					32
 #define MAX_NAME_LENGTH				32
 #define MAX_AUTHID_LENGTH			64

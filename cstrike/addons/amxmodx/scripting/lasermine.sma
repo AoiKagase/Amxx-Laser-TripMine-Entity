@@ -42,7 +42,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.33"
+#define VERSION 					"3.34"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -50,7 +50,7 @@
 new gMsgBarTime;
 new Array:gSprites		[E_SPRITES];
 new gCvar				[E_CVAR_SETTING];
-new gCvarPointer		[E_CVAR_SETTING];
+new gCvarPointer		[E_CVAR_SETTING_LIST];
 new gEntMine;
 new gWeaponId;
 new gDeployingMines		[MAX_PLAYERS];
@@ -114,30 +114,8 @@ public plugin_init()
 #if !defined ZP_SUPPORT	
 	register_clcmd("buy_lasermine", "lm_buy_lasermine");
 #endif
-	// CVar settings.
-	for(new i = 0; i < E_CVAR_SETTING_LIST; i++)
-	{
-		if (i == CL_FRIENDLY_FIRE || i == CL_VIOLENCE_HBLOOD)
-			gCvarPointer[i] = get_cvar_pointer(CVAR_CONFIGRATION[i][0]);
-		else
-			gCvarPointer[i] = create_cvar(fmt("%s%s", CVAR_TAG, CVAR_CONFIGRATION[i][0]), CVAR_CONFIGRATION[i][2], FCVAR_NONE, CVAR_CONFIGRATION[i][1]);
-		if (equali(CVAR_CONFIGRATION[i][3], "num"))
-			bind_pcvar_num(gCvarPointer[i], gCvar[i]);
-		else if(equali(CVAR_CONFIGRATION[i][3], "float"))
-			bind_pcvar_float(gCvarPointer[i], Float:gCvar[i]);
-		else if(equali(CVAR_CONFIGRATION[i][3], "string")) {
-			switch(i)
-			{
-				case CL_CBT: 			bind_pcvar_string(gCvarPointer[CL_CBT], gCvar[CVAR_CBT], charsmax(gCvar[CVAR_CBT]));
-				case CL_LASER_COLOR_TR: bind_pcvar_string(gCvarPointer[CL_LASER_COLOR_TR], gCvar[CVAR_LASER_COLOR_TR], charsmax(gCvar[CVAR_LASER_COLOR_TR]));
-				case CL_LASER_COLOR_CT: bind_pcvar_string(gCvarPointer[CL_LASER_COLOR_CT], gCvar[CVAR_LASER_COLOR_CT], charsmax(gCvar[CVAR_LASER_COLOR_CT]));
-				case CL_MINE_GLOW_TR: 	bind_pcvar_string(gCvarPointer[CL_MINE_GLOW_TR], gCvar[CVAR_MINE_GLOW_TR], charsmax(gCvar[CVAR_MINE_GLOW_TR]));
-				case CL_MINE_GLOW_CT: 	bind_pcvar_string(gCvarPointer[CL_MINE_GLOW_CT], gCvar[CVAR_MINE_GLOW_CT], charsmax(gCvar[CVAR_MINE_GLOW_CT]));
-			}
-		}
-		
-//		hook_cvar_change(g_cvarPointer[i], "cvar_change_callback");
-	}
+	register_cvars();
+
 	gMsgBarTime	= get_user_msgid("BarTime");
 	
 	// Register Hamsandwich
@@ -186,6 +164,38 @@ public plugin_init()
 	return PLUGIN_CONTINUE;
 }
 
+public register_cvars()
+{
+	new E_CVAR_SETTING:key;
+	// CVar settings.
+	for(new E_CVAR_SETTING_LIST:i = CL_ENABLE; i < E_CVAR_SETTING_LIST; i++)
+	{
+		key = get_cvar_key(i);
+		if (i == CL_FRIENDLY_FIRE || i == CL_VIOLENCE_HBLOOD)
+			gCvarPointer[i] = get_cvar_pointer(CVAR_CONFIGRATION[i][0]);
+		else
+			gCvarPointer[i] = create_cvar(fmt("%s%s", CVAR_TAG, CVAR_CONFIGRATION[i][0]), CVAR_CONFIGRATION[i][2], FCVAR_NONE, CVAR_CONFIGRATION[i][1]);
+		if (equali(CVAR_CONFIGRATION[i][3], "num")) {
+			bind_pcvar_num(gCvarPointer[i], gCvar[key]);
+		}
+		else if(equali(CVAR_CONFIGRATION[i][3], "float")) {
+			bind_pcvar_float(gCvarPointer[i], Float:gCvar[key]);
+		}
+		else if(equali(CVAR_CONFIGRATION[i][3], "string")) {
+			switch(i)
+			{
+				case CL_CBT: 			bind_pcvar_string(gCvarPointer[CL_CBT], gCvar[CVAR_CBT], charsmax(gCvar[CVAR_CBT]));
+				case CL_LASER_COLOR_TR: bind_pcvar_string(gCvarPointer[CL_LASER_COLOR_TR], gCvar[CVAR_LASER_COLOR_TR], charsmax(gCvar[CVAR_LASER_COLOR_TR]));
+				case CL_LASER_COLOR_CT: bind_pcvar_string(gCvarPointer[CL_LASER_COLOR_CT], gCvar[CVAR_LASER_COLOR_CT], charsmax(gCvar[CVAR_LASER_COLOR_CT]));
+				case CL_MINE_GLOW_TR: 	bind_pcvar_string(gCvarPointer[CL_MINE_GLOW_TR], gCvar[CVAR_MINE_GLOW_TR], charsmax(gCvar[CVAR_MINE_GLOW_TR]));
+				case CL_MINE_GLOW_CT: 	bind_pcvar_string(gCvarPointer[CL_MINE_GLOW_CT], gCvar[CVAR_MINE_GLOW_CT], charsmax(gCvar[CVAR_MINE_GLOW_CT]));				
+			}
+		}
+		
+		hook_cvar_change(gCvarPointer[i], "cvar_change_callback");
+	}	
+}
+
 #if AMXX_VERSION_NUM < 190
 //====================================================
 //  PLUGIN CONFIG (for 1.8.2)
@@ -222,6 +232,37 @@ public plugin_end()
 		ArrayDestroy(gPathEntSound[i]);
 	for(new E_SPRITES:i = LASER; i < E_SPRITES; i++)
 		ArrayDestroy(gPathEntSprites[i]);
+}
+
+// ====================================================
+//  Callback cvar change.
+// ====================================================
+public cvar_change_callback(pcvar, const old_value[], const new_value[])
+{
+	new E_CVAR_SETTING:key;
+	for(new E_CVAR_SETTING_LIST:i = CL_ENABLE; i < E_CVAR_SETTING_LIST; i++)
+	{
+		key = get_cvar_key(i);
+		if (gCvarPointer[i] == pcvar)
+		{
+			if (equali(CVAR_CONFIGRATION[i][3], "num"))
+				gCvar[key] = str_to_num(new_value);
+			else if (equali(CVAR_CONFIGRATION[i][3], "float"))
+				gCvar[key] = _:str_to_float(new_value);
+			else if (equali(CVAR_CONFIGRATION[i][3], "string"))
+			{
+				switch(i)
+				{
+					case CL_CBT: 			copy(gCvar[CVAR_CBT], charsmax(gCvar[CVAR_CBT]), new_value);
+					case CL_LASER_COLOR_TR: copy(gCvar[CVAR_LASER_COLOR_TR], charsmax(gCvar[CVAR_LASER_COLOR_TR]), new_value);
+					case CL_LASER_COLOR_CT: copy(gCvar[CVAR_LASER_COLOR_CT], charsmax(gCvar[CVAR_LASER_COLOR_CT]), new_value);
+					case CL_MINE_GLOW_TR: 	copy(gCvar[CVAR_MINE_GLOW_TR], charsmax(gCvar[CVAR_MINE_GLOW_TR]), new_value);
+					case CL_MINE_GLOW_CT: 	copy(gCvar[CVAR_MINE_GLOW_CT], charsmax(gCvar[CVAR_MINE_GLOW_CT]), new_value);				
+				}
+			}
+			console_print(0,"[LM Debug]: Changed Cvar '%s' => '%s' to '%s'", fmt("%s%s", CVAR_TAG, CVAR_CONFIGRATION[i][0]), old_value, new_value);
+		}
+	}
 }
 #endif
 
@@ -298,8 +339,19 @@ bool:is_valid_takedamage(iAttacker, iTarget)
 	if (gCvar[CVAR_FRIENDLY_FIRE])
 		return true;
 
-	if (cs_get_user_team(iAttacker) != cs_get_user_team(iTarget))
-		return true;
+	new name[MAX_NAME_LENGTH];
+	pev(iTarget, pev_classname, name, charsmax(name));
+
+	if (equali(name, ENT_CLASS_LASER))
+	{
+		if (cs_get_user_team(iAttacker) != lm_get_laser_team(iTarget))
+			return true;
+	}
+	else
+	{
+		if (cs_get_user_team(iAttacker) != cs_get_user_team(iTarget))
+			return true;
+	}
 
 	return false;
 }
@@ -414,7 +466,7 @@ public lm_progress_deploy(id)
 	if (!check_for_deploy(id))
 		return PLUGIN_HANDLED;
 
-	new Float:wait = gCvar[CVAR_LASER_ACTIVATE];
+	new wait = gCvar[CVAR_LASER_ACTIVATE];
 	new iRet;
 	ExecuteForward(g_forward[E_FWD_ONPLANT], iRet, id, wait);
 	// Set Flag. start progress.
@@ -446,11 +498,11 @@ public lm_progress_deploy(id)
 
 	if (wait > 0)
 	{
-		lm_show_progress(id, int:floatround(wait), gMsgBarTime);
+		lm_show_progress(id, wait, gMsgBarTime);
 	}
 
 	// Start Task. Put Lasermine.
-	set_task(wait, "SpawnMine", (TASK_PLANT + id));
+	set_task(float(wait), "SpawnMine", (TASK_PLANT + id));
 
 	return PLUGIN_HANDLED;
 }
@@ -464,15 +516,15 @@ public lm_progress_remove(id)
 	if (!check_for_remove(id))
 		return PLUGIN_HANDLED;
 
-	new Float:wait = gCvar[CVAR_LASER_ACTIVATE];
+	new wait = gCvar[CVAR_LASER_ACTIVATE];
 	if (wait > 0)
-		lm_show_progress(id, int:floatround(wait), gMsgBarTime);
+		lm_show_progress(id, wait, gMsgBarTime);
 
 	// Set Flag. start progress.
 	lm_set_user_deploy_state(id, int:STATE_PICKING);
 
 	// Start Task. Remove Lasermine.
-	set_task(wait, "RemoveMine", (TASK_RELEASE + id));
+	set_task(float(wait), "RemoveMine", (TASK_RELEASE + id));
 
 	return PLUGIN_HANDLED;
 }
@@ -538,7 +590,9 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 	}
 	else
 	{
-		lm_set_user_health(iEnt, 		gCvar[CVAR_MINE_HEALTH]);
+//		client_print(uID, print_chat, "[DEBUG] %f", gCvar[CVAR_MINE_HEALTH]);
+		set_pev(iEnt, pev_health, gCvar[CVAR_MINE_HEALTH]);
+//		client_print(uID, print_chat, "[DEBUG] %f", lm_get_user_health(iEnt));
 	}
 #else
 	lm_set_user_health(iEnt, 			gCvar[CVAR_MINE_HEALTH]);
@@ -1123,8 +1177,11 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 
 	// break?
 	if (iHealth <= 0.0 || (pev(iEnt, pev_flags) & FL_KILLME))
+	{
 		// next step explosion.
 		set_pev(iEnt, LASERMINE_STEP, EXPLOSE_THINK);
+//		client_print(iOwner, print_chat, "[DEBUG] LM EXPLODE. %f", iHealth);
+	}
 				
 	// Think time. random_float = laser line blinking.
 	set_pev(iEnt, pev_nextthink, fCurrTime + 0.1);
@@ -1934,7 +1991,7 @@ stock mine_glowing(iEnt)
 //====================================================
 public MinesShowInfo(Float:vStart[3], Float:vEnd[3], Conditions, id, iTrace)
 { 
-	static iHit, szName[MAX_NAME_LENGTH], iOwner, health;
+	static iHit, szName[MAX_NAME_LENGTH], iOwner, Float:health;
 	static hudMsg[64];
 	iHit = get_tr2(iTrace, TR_pHit);
 
@@ -1947,10 +2004,10 @@ public MinesShowInfo(Float:vStart[3], Float:vEnd[3], Conditions, id, iTrace)
 			if (equali(szName, ENT_CLASS_LASER))
 			{
 				iOwner = pev(iHit, LASERMINE_OWNER);
-				health = floatround(lm_get_user_health(iHit));
+				health = lm_get_user_health(iHit);
 
 				get_user_name(iOwner, szName, charsmax(szName));
-				formatex(hudMsg, charsmax(hudMsg), "%L", id, LANG_KEY[MINE_HUD], szName, health, floatround(gCvar[CVAR_MINE_HEALTH]));
+				formatex(hudMsg, charsmax(hudMsg), "%L", id, LANG_KEY[MINE_HUD], szName, floatround(health), floatround(gCvar[CVAR_MINE_HEALTH]));
 
 				// set_hudmessage(red = 200, green = 100, blue = 0, Float:x = -1.0, Float:y = 0.35, effects = 0, Float:fxtime = 6.0, Float:holdtime = 12.0, Float:fadeintime = 0.1, Float:fadeouttime = 0.2, channel = -1)
 				set_hudmessage(50, 100, 150, -1.0, 0.60, 0, 6.0, 0.4, 0.0, 0.0, -1);

@@ -26,7 +26,7 @@ new gNumDecalsBlood;
 stock lm_set_user_have_mine			(id, int:value) 	{ gPlayerInt[id][PLAYER_HAVE_MINE]		= int:value; }
 stock lm_set_user_mine_deployed		(id, int:value)		{ gPlayerInt[id][PLAYER_DEPLOYED]		= int:value; }
 stock lm_set_user_deploy_state		(id, int:value)		{ gPlayerInt[id][PLAYER_MINE_SETTING]	= int:value; }
-stock lm_set_user_health			(id, Float:health)	{ health > 0 ? set_pev(id, pev_health, health) : user_kill(id, 1); }
+stock lm_set_user_health			(id, Float:health)	{ set_pev(id, pev_health, health); }
 stock lm_set_user_delay_count		(id, Float:value) 	{ gPlayerFloat[id][PLAYER_DELAY_COUNT]	= Float:value; }
 stock lm_save_user_max_speed		(id, Float:value)	{ gPlayerFloat[id][PLAYER_MAX_SPEED]	= Float:value; }
 stock lm_set_user_max_speed			(id, Float:value)	{ engfunc(EngFunc_SetClientMaxspeed, id, value);set_pev(id, pev_maxspeed, value); }
@@ -37,11 +37,11 @@ stock int:lm_get_user_deploy_state	(id)				{ return int:gPlayerInt[id][PLAYER_MI
 stock Float:lm_get_user_delay_count	(id) 				{ return Float:gPlayerFloat[id][PLAYER_DELAY_COUNT]; }
 stock Float:lm_load_user_max_speed	(id)				{ return Float:gPlayerFloat[id][PLAYER_MAX_SPEED]; }
 stock Float:lm_get_user_max_speed	(id)				{ return Float:pev(id, pev_maxspeed); }
-stock Float:lm_get_user_health		(id)
+stock Float:lm_get_user_health			(id)				
 {
 	new Float:health;
 	pev(id, pev_health, health);
-	return health;
+	return health; 
 }
 stock bool:lm_is_user_godmode		(id) 				{ return (pev(id, pev_takedamage) == DAMAGE_NO); }
 stock bool:lm_is_user_alive			(id)				{ return (pev(id, pev_deadflag) == DEAD_NO);}
@@ -99,7 +99,7 @@ stock int:lm_get_team_deployed_count(id)
 //====================================================
 // Show Progress Bar.
 //====================================================
-stock lm_show_progress(id, int:time, msg)
+stock lm_show_progress(id, time, msg)
 {
 	if (pev_valid(id))
 	{
@@ -1026,4 +1026,98 @@ stock ini_read_string(const hFile, const section[], const key[], dest[], len)
 		}
 	}
 	return iRetVal;
+}
+
+stock E_CVAR_SETTING:get_cvar_key(E_CVAR_SETTING_LIST:param)
+{
+	switch(param)
+	{
+		case CL_ENABLE					:    	// Plugin Enable.
+			return CVAR_ENABLE;
+		case CL_ACCESS_LEVEL			:		// Access level for 0 = ADMIN or 1 = ALL.
+			return CVAR_ACCESS_LEVEL;
+		case CL_MODE					:    	// 0 = Lasermine, 1 = Tripmine.
+			return CVAR_MODE;
+		case CL_START_DELAY       		:   	// Round start delay time.
+			return CVAR_START_DELAY;
+		// Ammo.
+		case CL_START_HAVE				:    	// Start having ammo.
+			return CVAR_START_HAVE;
+		case CL_MAX_HAVE				:    	// Max having ammo.
+			return CVAR_MAX_HAVE;
+		case CL_TEAM_MAX           		:    	// Max deployed in team.
+			return CVAR_TEAM_MAX;
+		// Buy system.
+		case CL_BUY_MODE           		:   	// Buy mode. 0 = off, 1 = on.
+			return CVAR_BUY_MODE;
+		case CL_CBT						:   	// Can buy team. TR/CT/ALL (Zombie or Z/Human or H/ALL)
+			return CVAR_CBT;
+		case CL_COST               		:    	// Buy cost.
+			return CVAR_COST;
+		case CL_BUY_ZONE           		:    	// Stay in buy zone can buy.
+			return CVAR_BUY_ZONE;
+		case CL_FRAG_MONEY     		    :    	// Get money per kill.
+			return CVAR_FRAG_MONEY;
+		// Laser design.
+		case CL_LASER_VISIBLE      		:   	// Laser line Visiblity. 0 = off, 1 = on.
+			return CVAR_LASER_VISIBLE;
+		case CL_LASER_COLOR        		:   	// Laser line color. 0 = team color, 1 = green
+			return CVAR_LASER_COLOR;
+		// Leser beam color for team color mode.
+		case CL_LASER_COLOR_TR     		:   	// Laser line color. 0 = team color, 1 = green
+			return CVAR_LASER_COLOR_TR;
+		case CL_LASER_COLOR_CT     		:   	// Laser line color. 0 = team color, 1 = green
+			return CVAR_LASER_COLOR_CT;
+		case CL_LASER_BRIGHT    		:   	// Laser line brightness.
+			return CVAR_LASER_BRIGHT;
+		case CL_LASER_WIDTH				:		// Laser line width.
+			return CVAR_LASER_WIDTH;
+		case CL_LASER_DMG         		:    	// Laser hit Damage.
+			return CVAR_LASER_DMG;
+		case CL_LASER_DMG_MODE     		:   	// Laser line damage mode. 0 = frame rate dmg, 1 = once dmg, 2 = 1second dmg.
+			return CVAR_LASER_DMG_MODE;
+		case CL_LASER_DMG_DPS      		:   	// Laser line damage mode 2 only, damage/seconds. default 1 (sec)
+			return CVAR_LASER_DMG_DPS;
+		case CL_LASER_RANGE				:		// Laserbeam range.
+			return CVAR_LASER_RANGE;
+		case CL_LASER_FENCE				:		// Laser line fence.
+			return CVAR_LASER_FENCE;
+		// Mine design.
+		case CL_MINE_HEALTH    	 		:   	// Lasermine health. (Can break.)
+			return CVAR_MINE_HEALTH;
+		case CL_MINE_GLOW          		:   	// Glowing tripmine.
+			return CVAR_MINE_GLOW;
+		case CL_MINE_GLOW_MODE     		:   	// Glowing color mode.
+			return CVAR_MINE_GLOW_MODE;
+		case CL_MINE_GLOW_TR    		:   	// Glowing color for T.
+			return CVAR_MINE_GLOW_TR;
+		case CL_MINE_GLOW_CT     		:   	// Glowing color for CT.
+			return CVAR_MINE_GLOW_CT;
+		case CL_MINE_BROKEN				:		// Can Broken Mines. 0 = Mine, 1 = Team, 2 = Enemy.
+			return CVAR_MINE_BROKEN;
+		case CL_EXPLODE_RADIUS    		:   	// Explosion Radius.
+			return CVAR_EXPLODE_RADIUS;
+		case CL_EXPLODE_DMG     		:   	// Explosion Damage.
+			return CVAR_EXPLODE_DMG;
+		// Misc Settings.
+		case CL_DEATH_REMOVE			:		// Dead Player Remove Lasermine.
+			return CVAR_DEATH_REMOVE;
+		case CL_LASER_ACTIVATE			:		// Waiting for put lasermine. (0 = no progress bar.)
+			return CVAR_LASER_ACTIVATE;
+		case CL_ALLOW_PICKUP			:		// allow pickup.
+			return CVAR_ALLOW_PICKUP;
+		case CL_DIFENCE_SHIELD			:		// Shield hit.
+			return CVAR_DIFENCE_SHIELD;
+		case CL_REALISTIC_DETAIL		:		// Spark Effect.
+			return CVAR_REALISTIC_DETAIL;
+		case CL_FRIENDLY_FIRE      		:   	// Friendly Fire.
+			return CVAR_FRIENDLY_FIRE;
+		case CL_VIOLENCE_HBLOOD			:		// Violence High blood
+			return CVAR_VIOLENCE_HBLOOD;
+#if defined BIOHAZARD_SUPPORT
+		case CL_NOROUND					:		// Check Started Round.
+			return CVAR_NOROUND;
+#endif
+	}
+	return CVAR_ENABLE;
 }

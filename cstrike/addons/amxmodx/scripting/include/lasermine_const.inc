@@ -222,7 +222,7 @@ enum _:HIT_PLAYER
 //
 // CVAR SETTINGS
 //
-enum _:E_CVAR_SETTING
+enum E_CVAR_SETTING
 {
 	CVAR_ENABLE						= 0,    // Plugin Enable.
 	CVAR_ACCESS_LEVEL				,		// Access level for 0 = ADMIN or 1 = ALL.
@@ -256,7 +256,7 @@ enum _:E_CVAR_SETTING
 	CVAR_LASER_FENCE				,		// Laser line fence.
 
 	// Mine design.
-	Float:CVAR_MINE_HEALTH     		,   	// Lasermine health. (Can break.)
+	Float:CVAR_MINE_HEALTH 	   		,   	// Lasermine health. (Can break.)
 	CVAR_MINE_GLOW          		,   	// Glowing tripmine.
 	CVAR_MINE_GLOW_MODE     		,   	// Glowing color mode.
 	CVAR_MINE_GLOW_TR    	[13]	,   	// Glowing color for T.
@@ -266,7 +266,7 @@ enum _:E_CVAR_SETTING
 	Float:CVAR_EXPLODE_DMG     		,   	// Explosion Damage.
 	// Misc Settings.
 	CVAR_DEATH_REMOVE				,		// Dead Player Remove Lasermine.
-	Float:CVAR_LASER_ACTIVATE		,		// Waiting for put lasermine. (0 = no progress bar.)
+	CVAR_LASER_ACTIVATE				,		// Waiting for put lasermine. (0 = no progress bar.)
 	CVAR_ALLOW_PICKUP				,		// allow pickup.
 	CVAR_DIFENCE_SHIELD				,		// Shield hit.
 	CVAR_REALISTIC_DETAIL			,		// Spark Effect.
@@ -280,7 +280,7 @@ enum _:E_CVAR_SETTING
 //
 // CVAR SETTINGS
 //
-enum _:E_CVAR_SETTING_LIST
+enum E_CVAR_SETTING_LIST
 {
 	CL_ENABLE						= 0,    // Plugin Enable.
 	CL_ACCESS_LEVEL				,		// Access level for 0 = ADMIN or 1 = ALL.
@@ -498,7 +498,7 @@ new const CVAR_CONFIGRATION	[E_CVAR_SETTING_LIST][][] =
 	{"_death_remove",			"[MISC] - Dead player remove mines. [0 = Disable, 1 = Enable]",
 			"1", 		"num"},			// Dead Player remove lasermine. 0 = off, 1 = on.
 	{"_activate_time",			"[MISC] - Waiting for put mines. [Seconds, 0 = no progress bar]",
-			"1.0", 		"float"},		// Waiting for put lasermine. (int:seconds. 0 = no progress bar.)
+			"1", 		"num"},			// Waiting for put lasermine. (int:seconds. 0 = no progress bar.)
 	{"_allow_pickup",			"[MISC] - Allow pickup mines. [0 = Disable, 1 = Owner, 2 = Allow Friendly, 3 = and Allow Enemy]", "1", 	"num"},			// allow pickup mine. (0 = disable, 1 = it's mine, 2 = allow friendly mine, 3 = allow enemy mine!)
 	{"_shield_difence",			"[MISC] - Allow Shield difence. [0 = Disable, 1 = Enable]",
 			"1", 		"num"},			// allow shiled difence.

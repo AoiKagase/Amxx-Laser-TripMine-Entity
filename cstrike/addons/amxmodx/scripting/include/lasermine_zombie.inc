@@ -36,7 +36,7 @@ register_zombie()
 #include <zp50_colorchat>
 #include <zp50_ammopacks>
 
-#define PLUGIN 					"[ZP]Laser/Tripmine Entity"
+#define PLUGIN 					"[ZP] Laser/Tripmine Entity"
 #define CHAT_TAG 				"[ZP][LM]"
 #define CVAR_TAG				"zp_ltm"
 #define CVAR_CFG				"lasermine/zp_ltm_cvars"
@@ -122,13 +122,16 @@ public zp_fw_items_select_post(id, itemid, ignorecost)
 
 zp_mines_breaked(attacker, victim)
 {
-	if (lm_get_user_health(victim) <= 0)
+	if (cs_get_user_team(attacker) != lm_get_laser_team(victim))
 	{
-		new szName[MAX_NAME_LENGTH];
-		new addpoint = gCvar[CVAR_FRAG_MONEY];
-		get_user_name(attacker, szName, charsmax(szName));
-		zp_ammopacks_set(attacker, zp_ammopacks_get(attacker) + addpoint);
-		zp_colored_print(0, "^4%s ^1earned^4 %i points ^1for destorying a lasermine !", szName, addpoint);
+		if (lm_get_user_health(victim) <= 0)
+		{
+			new szName[MAX_NAME_LENGTH];
+			new addpoint = gCvar[CVAR_FRAG_MONEY];
+			get_user_name(attacker, szName, charsmax(szName));
+			zp_ammopacks_set(attacker, zp_ammopacks_get(attacker) + addpoint);
+			zp_colored_print(0, "^4%s ^1earned^4 %i points ^1for destorying a lasermine !", szName, addpoint);
+		}
 	}
 }
 #endif

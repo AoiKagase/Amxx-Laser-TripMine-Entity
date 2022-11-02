@@ -465,10 +465,10 @@ new const CVAR_CONFIGRATION	[E_CVAR_SETTING_LIST][][] =
 			"255", 		"float"},		// laser line brightness. 0 to 255
 	{"_laser_width",			"[LASER] - Laser line width. [0 - 255]", 
 			"2", 		"float"},		// laser line width. 0 to 255
-	{"_laser_damage_mode",		"[LASER] - Damage mode. [0 = Frame, 1 = Once, 2 = Second repeat]",
-			"0", 		"num"},
 	{"_laser_damage",			"[LASER] - Damage.", 
 			"60.0", 	"float"},		// laser hit dmg. Float Value!
+	{"_laser_damage_mode",		"[LASER] - Damage mode. [0 = Frame, 1 = Once, 2 = Second repeat]",
+			"0", 		"num"},
 	{"_laser_dps",				"[LASER] - Damage mode = 2, Damage/Seconds [Seconds]",
 			 "1.0", 	"float"},		// laser line damage mode 2 only, damage/seconds. default 1 (sec)
 	{"_laser_range",			"[LASER] - Laser line range.",

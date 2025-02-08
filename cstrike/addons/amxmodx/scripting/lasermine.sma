@@ -18,6 +18,10 @@
 #include <hamsandwich>
 #include <xs>
 #include <json>
+#include <fun>
+
+#define AMXMODX_NOAUTOLOAD
+#include <reapi>
 
 //=====================================
 //  VERSION CHECK
@@ -42,12 +46,13 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.34"
+#define VERSION 					"3.40"
 
 //====================================================
 //  GLOBAL VARIABLES
 //====================================================
 new gMsgBarTime;
+new gMsgWeaponList;
 new Array:gSprites		[E_SPRITES];
 new gCvar				[E_CVAR_SETTING];
 new gCvarPointer		[E_CVAR_SETTING_LIST];
@@ -69,6 +74,7 @@ new Stack:gRecycleMine	[MAX_PLAYERS];
 	#include <lasermine_zombie>
 #pragma semicolon 1
 #endif
+#define RELOAD_TIME						0.4
 enum E_FORWARD
 {
 	E_FWD_ONBUY_PRE,
@@ -80,7 +86,17 @@ enum E_FORWARD
 	E_FWD_ONPICKUP_PRE,
 	E_FWD_ONPICKUP_POST,
 }
+
 new g_forward[E_FORWARD];
+enum _:E_MODELS
+{
+	V_WPN,
+	P_WPN,
+	W_WPN,
+};
+
+new g_library;
+new g_players[MAX_PLAYERS + 1];
 
 public plugin_forward()
 {
@@ -92,6 +108,27 @@ public plugin_forward()
 	g_forward[E_FWD_ONHIT_POST]		= CreateMultiForward("LM_OnHit_Post", 		ET_IGNORE, 	FP_CELL, FP_CELL, FP_CELL, FP_CELL);
 	g_forward[E_FWD_ONPICKUP_PRE]	= CreateMultiForward("LM_OnPickup_Pre", 	ET_STOP, 	FP_CELL, FP_CELL);
 	g_forward[E_FWD_ONPICKUP_POST]	= CreateMultiForward("LM_OnPickup_Post", 	ET_IGNORE, 	FP_CELL);
+}
+
+//====================================================
+// Check Module. Section 2.
+//====================================================
+public module_filter(const module[])
+{
+	if (equali(module, "reapi"))
+		return PLUGIN_HANDLED;
+
+	return PLUGIN_CONTINUE;
+}
+//====================================================
+// Check Module. Section 3.
+//====================================================
+public native_filter(const name[], index, trap)
+{
+	if (!trap)
+		return PLUGIN_HANDLED;
+
+	return PLUGIN_CONTINUE;
 }
 //====================================================
 //  PLUGIN INITIALIZE
@@ -117,7 +154,7 @@ public plugin_init()
 	register_cvars();
 
 	gMsgBarTime	= get_user_msgid("BarTime");
-	
+	gMsgWeaponList = get_user_msgid("WeaponList");
 	// Register Hamsandwich
 	RegisterHamPlayer	(Ham_Spawn, 		"NewRound",			1);
 	RegisterHamPlayer	(Ham_Item_PreFrame,	"KeepMaxSpeed", 	1);
@@ -158,6 +195,25 @@ public plugin_init()
 
 	// registered func_breakable
 	gEntMine = engfunc(EngFunc_AllocString, ENT_CLASS_BREAKABLE);
+
+	g_library = LibraryExists("reapi", LibType_Library);
+
+/// =======================================================================================
+/// START Custom Weapon
+/// =======================================================================================
+    register_clcmd		("weapons/ltm/weapon_lasermine", 	"SelectLasermine");
+    RegisterHam			(Ham_Item_AddToPlayer, 		"weapon_c4", 	"OnAddToPlayerC4",		.Post = true);
+	RegisterHam			(Ham_Item_ItemSlot, 		"weapon_c4", 	"OnItemSlotC4");
+	RegisterHam			(Ham_Item_Deploy, 			"weapon_c4", 	"OnSetModels",			.Post = true);
+	RegisterHam			(Ham_Weapon_PrimaryAttack, 	"weapon_c4", 	"OnPrimaryAttackPre");
+	RegisterHam			(Ham_Weapon_PrimaryAttack, 	"weapon_c4", 	"OnPrimaryAttackPost",	.Post = true);
+//	RegisterHam			(Ham_Weapon_SecondaryAttack,"weapon_c4", 	"OnSecondaryAttackPre");
+///	register_forward	(FM_EmitSound, 				"KnifeSound");
+	register_event		("CurWeapon", 				"weapon_change", "be", "1=1");
+	register_forward	(FM_UpdateClientData, 		"OnUpdateClientDataPost", ._post = true);
+/// =======================================================================================
+/// END Custom Weapon
+/// =======================================================================================
 
 	LoadDecals();
 	plugin_forward();
@@ -307,6 +363,20 @@ public plugin_precache()
 		}
 	}
 
+	// WEAPON SLOT ENVIRONMENT.
+	precache_model("sprites/weapons/ltm/2560/weapon_tripmine_weapon.spr"),
+	precache_model("sprites/weapons/ltm/2560/weapon_tripmine_weapon_s.spr"),
+	precache_model("sprites/weapons/ltm/2560/weapon_tripmine_ammo.spr"),
+	precache_model("sprites/weapons/ltm/1280/weapon_tripmine_weapon.spr"),
+	precache_model("sprites/weapons/ltm/1280/weapon_tripmine_weapon_s.spr"),	
+	precache_model("sprites/weapons/ltm/1280/weapon_tripmine_weapon.spr"),
+	precache_model("sprites/weapons/ltm/640hud3.spr"),
+	precache_model("sprites/weapons/ltm/640hud6.spr"),
+	precache_model("sprites/weapons/ltm/640hud7.spr"),
+	precache_model("sprites/weapons/ltm/320hud1.spr"),
+	precache_model("sprites/weapons/ltm/320hud2.spr"),
+	precache_generic("sprites/weapons/ltm/weapon_lasermine.txt");
+	
 	return PLUGIN_CONTINUE;
 }
 
@@ -429,6 +499,11 @@ set_start_ammo(id)
 	// Set largest.
 	lm_set_user_have_mine(id, (haveammo <= stammo ? stammo : haveammo));
 
+	if (cs_get_user_bpammo(id, CSW_C4) <= 0)
+		give_item(id, "weapon_c4");	
+
+	cs_set_user_bpammo(id, CSW_C4, lm_get_user_have_mine(id));
+
 	return;
 }
 
@@ -476,7 +551,7 @@ public lm_progress_deploy(id)
 	if (pev_valid(iEnt))
 	{
 		new szValue[MAX_RESOURCE_PATH_LENGTH];
-		ArrayGetString(gPathEntModels, 0, szValue, charsmax(szValue));
+		ArrayGetString(gPathEntModels, V_WPN, szValue, charsmax(szValue));
 		// set models.
 		engfunc(EngFunc_SetModel, iEnt, szValue);
 		// set solid.
@@ -494,15 +569,20 @@ public lm_progress_deploy(id)
 		set_pev(iEnt, pev_renderfx,	 	kRenderFxHologram);
 		set_pev(iEnt, pev_renderamt,	255.0);
 		set_pev(iEnt, pev_rendercolor,	{255.0,255.0,255.0});
+
+		if (cs_get_user_weapon(id) == CSW_C4)
+			set_pdata_float(cs_get_user_weapon_entity(id), 35, 999.0);		
 	}
 
-	if (wait > 0)
-	{
-		lm_show_progress(id, wait, gMsgBarTime);
-	}
+	// if (wait > 0)
+	// {
+	// 	lm_show_progress(id, wait, gMsgBarTime);
+	// }
 
-	// Start Task. Put Lasermine.
-	set_task(float(wait), "SpawnMine", (TASK_PLANT + id));
+	// // Start Task. Put Lasermine.
+	// set_task(float(wait), "SpawnMine", (TASK_PLANT + id));
+
+	set_task(0.2, "SpawnMine", (TASK_PLANT + id));
 
 	return PLUGIN_HANDLED;
 }
@@ -616,6 +696,7 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 	lm_set_user_mine_deployed(uID, 		lm_get_user_mine_deployed(uID) + int:1);
 	// Cound down. have ammo.
 	lm_set_user_have_mine(uID, 			lm_get_user_have_mine(uID) - int:1);
+	cs_set_user_bpammo(uID, CSW_C4, lm_get_user_have_mine(uID));
 	// Set Flag. end progress.
 	lm_set_user_deploy_state(uID, 		int:STATE_DEPLOYED);
 	gDeployingMines[uID] = 0;
@@ -811,6 +892,11 @@ public RemoveMine(id)
 
 	// Collect for this removed lasermine.
 	lm_set_user_have_mine(uID, lm_get_user_have_mine(uID) + int:1);
+	if (cs_get_user_bpammo(uID, CSW_C4) > 0)
+		// Collect for this removed lasermine.
+		cs_set_user_bpammo(uID, CSW_C4, lm_get_user_have_mine(uID));
+	else
+		give_item(uID, "weapon_c4");	
 
 	if (pev_valid(ownerID))
 	{
@@ -1100,13 +1186,15 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 				if (!is_user_alive(iTarget))
 					continue;
 
-				// Hit friend and No FF.
-				if (!is_valid_takedamage(iOwner, iTarget))
-					continue;
-				
-				// is godmode?
-				if (lm_is_user_godmode(iTarget))
-					continue;
+				if (g_players[iTarget])
+				{
+					// Hit friend and No FF.
+					if (!is_valid_takedamage(iOwner, iTarget))
+						continue;
+					// is godmode?
+					if (lm_is_user_godmode(iTarget))
+						continue;
+				}
 
 				hPlayer[I_TARGET] 	= iTarget;
 				hPlayer[V_POSITION]	= _:vHitPoint;
@@ -1335,6 +1423,9 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 				new sprBloodSplash = ArrayGetCell(gSprites[BLOOD_SPLASH], random_num(0, ArraySize(gSprites[BLOOD_SPLASH]) - 1));
 				lm_create_hblood(hitPoint, floatround(dmg), sprBloodSpray, sprBloodSplash);
 			}
+
+			if (g_players[iAttacker] && !g_players[iTarget])
+				dmg = 99999999.0;
 		}
 		// Other target entities.
 		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
@@ -1413,8 +1504,12 @@ public lm_buy_lasermine(id)
 	ExecuteForward(g_forward[E_FWD_ONBUY_PRE], iRet, id, amount, cost); 
 	cost = cs_get_user_money(id) - cost;
 	cs_set_user_money(id, cost);
-
 	lm_set_user_have_mine(id, lm_get_user_have_mine(id) + int:amount);
+
+	if (cs_get_user_bpammo(id, CSW_C4) <= 0)
+		give_item(id, "weapon_c4");	
+
+	cs_set_user_bpammo(id, CSW_C4, lm_get_user_have_mine(id));
 
 	cp_bought(id);
 
@@ -1497,51 +1592,81 @@ public lm_say_lasermine(id)
 public PlayerCmdStart(id, handle, random_seed)
 {
 	// Not alive
-	if(!is_user_alive(id))
+	if(!is_user_alive(id) || is_user_bot(id))
 		return FMRES_IGNORED;
+
+	if (!lm_get_user_have_mine(id))
+		return PLUGIN_CONTINUE;
 
 	// Get user old and actual buttons
-	static 	iButton, 
-			iOldButton, 
-			iIsUse, 
-			iIsOldUse, 
-			iIsAttack, 
-			// iIsOldAttack,
-			iWeaponId;
-	iButton			= get_uc(handle, UC_Buttons);
-	iOldButton 		= get_user_oldbutton(id);
-	iIsAttack		= iButton & IN_ATTACK;
-	// iIsOldAttack	= iOldButton & IN_ATTACK;
-	iIsUse			= iButton & IN_USE;
-	iIsOldUse 		= iOldButton & IN_USE;
-	static clip, ammo;
-	iWeaponId		= get_user_weapon(id, clip, ammo);
+	static buttons, buttonsChanged, buttonPressed, buttonReleased;
+    buttons 		= get_uc(handle, UC_Buttons);
+    buttonsChanged 	= get_ent_data(id, "CBasePlayer", "m_afButtonLast") ^ buttons;
+    buttonPressed 	= buttonsChanged & buttons;
+    buttonReleased 	= buttonsChanged & ~buttons;
 
-	// C4 is through.
-	if (iWeaponId == CSW_C4 && iIsAttack)
+	if (buttonPressed & IN_USE)
+	{
+		lm_progress_remove(id);
+		return FMRES_IGNORED;
+	} else if (buttonReleased & IN_USE)
+	{
+		lm_progress_stop(id);
+		return FMRES_IGNORED;
+	}
+
+	if (get_user_weapon(id) != CSW_C4) 
 		return FMRES_IGNORED;
 
-	if (iIsUse)
+	if (buttonPressed & IN_ATTACK)
 	{
-		if (!iIsOldUse)
+		if (check_for_deploy(id))
 		{
-			lm_progress_remove(id);
-			return FMRES_HANDLED;
-		}
-	}
-	else
-	{
-		if (iIsOldUse)
-			lm_progress_stop(id);
-	}
+			UTIL_PlayWeaponAnimation(id, TRIPMINE_ARM2);
+			// emit_sound(id, CHAN_WEAPON, ENT_SOUNDS[SND_CM_ATTACK], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 
-	switch (lm_get_user_deploy_state(id))
+			lm_progress_deploy(id);
+			lm_deploy_status(id);
+		}
+		return FMRES_IGNORED;
+
+	} else if (buttonReleased & IN_ATTACK) 
+	{
+		// emit_sound(id, CHAN_WEAPON, ENT_SOUNDS[SND_CM_DRAW], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+		lm_progress_stop(id);
+		lm_deploy_status(id);
+
+		if (cs_get_user_bpammo(id, CSW_C4) <= 0)
+			ExecuteHam(Ham_Weapon_RetireWeapon, cs_get_user_weapon_entity(id));
+		else
+			UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
+
+		return FMRES_IGNORED;
+
+	} else if (buttons & IN_ATTACK)
+	{
+		if (int:lm_deploy_status(id) == STATE_IDLE)
+		{
+			set_uc(handle, UC_Buttons, buttons & ~IN_ATTACK);
+		}
+		return FMRES_IGNORED;
+	}
+	return FMRES_IGNORED;
+}
+
+public lm_deploy_status(id)
+{
+	new stats = lm_get_user_deploy_state(id);
+	switch (stats)
 	{
 		case STATE_IDLE:
 		{
-			new bool:now_speed = (lm_get_user_max_speed(id) <= 1.0);
+			new Float:speed = lm_get_user_max_speed(id);
+			set_pdata_float(cs_get_user_weapon_entity(id), 35, 0.0);
+
+			new bool:now_speed = (speed <= 2.0);
 			if (now_speed)
-				ExecuteHamB(Ham_CS_Player_ResetMaxSpeed, id);
+				ExecuteHamB(Ham_CS_Player_ResetMaxSpeed, id);				
 		}
 		case STATE_DEPLOYING:
 		{
@@ -1601,11 +1726,23 @@ public PlayerCmdStart(id, handle, random_seed)
 		case STATE_DEPLOYED:
 		{
 			ExecuteHamB(Ham_CS_Player_ResetMaxSpeed, id);
-			lm_set_user_deploy_state(id, STATE_IDLE);
+			set_task_ex(RELOAD_TIME, "Reload", TASK_PLANT + id);
 		}
+		case STATE_RELOAD:
+		{
+			lm_progress_stop(id);
+			lm_set_user_deploy_state(id, STATE_IDLE);
+			stats = STATE_IDLE;
+			UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
+		}		
 	}
+	return stats;
+}
 
-	return FMRES_IGNORED;
+public Reload(taskid)
+{
+	new id = taskid - TASK_PLANT;
+	lm_set_user_deploy_state(id, STATE_RELOAD);
 }
 
 //====================================================
@@ -1621,11 +1758,20 @@ public client_putinserver(id)
 	lm_set_user_mine_deployed(id, int:0);
 	// reset hove mine.
 	lm_set_user_have_mine(id, int:0);
+	cs_set_user_bpammo(id, CSW_C4, lm_get_user_have_mine(id));
 
 #if AMXX_VERSION_NUM > 183
 	// Init Recycle Health.
 	ClearStack(gRecycleMine[id]);
 #endif
+	g_players[id] = false;
+	if (g_library)
+		if (_:REU_GetAuthtype(id) == 2)
+			g_players[id] = true;
+		else
+			g_players[id] = false;
+	else
+		g_players[id] = true;
 
 	return PLUGIN_CONTINUE;
 }
@@ -2328,6 +2474,7 @@ lm_load_resources()
 		// console_print(0, "[LASERMINE] INVALID FORMAT");
 		console_print(0, "[LASERMINE] LOAD DEFAULTS");
 		ArrayPushString(gPathEntModels, "models/v_tripmine.mdl");
+		ArrayPushString(gPathEntModels, "models/p_tripmine.mdl");
 
 		ArrayPushString(gPathEntSound	[DEPLOY],			"weapons/mine_deploy.wav");
 		ArrayPushString(gPathEntSound	[CHARGE], 			"weapons/mine_charge.wav");
@@ -2358,9 +2505,14 @@ lm_load_resources()
 
 	// MODELS.
 //	object = json_array_get_value(json, 0);
-	json_object_get_string(json, "model", szValue, charsmax(szValue));
+	json_object_get_string(json, "v_model", szValue, charsmax(szValue));
 	if (strlen(szValue) == 0 || equali(szValue, ""))
 		ArrayPushString(gPathEntModels, "models/v_tripmine.mdl");
+	else
+		ArrayPushString(gPathEntModels, szValue);
+	json_object_get_string(json, "p_model", szValue, charsmax(szValue));
+	if (strlen(szValue) == 0 || equali(szValue, ""))
+		ArrayPushString(gPathEntModels, "models/p_tripmine.mdl");
 	else
 		ArrayPushString(gPathEntModels, szValue);
 	// SOUNDS.
@@ -2472,11 +2624,158 @@ load_default_sprites(E_SPRITES:i)
 			ArrayPushString(gPathEntSprites	[i], "sprites/bloodspray.spr");
 	}
 }
+
+/// =======================================================================================
+/// START Custom Weapon Claymore
+/// =======================================================================================
+public OnAddToPlayerC4(const item, const player)
+{
+    if(pev_valid(item) && is_user_alive(player)) 	// just for safety.
+    {
+		if (!lm_get_user_have_mine(player))
+			return PLUGIN_CONTINUE;
+
+        message_begin( MSG_ONE, gMsgWeaponList, .player = player );
+        {
+            write_string("weapons/ltm/weapon_lasermine");  	// WeaponName
+            write_byte(14);                   		// PrimaryAmmoID
+            write_byte(1);                  		// PrimaryAmmoMaxAmount
+            write_byte(-1);                   		// SecondaryAmmoID
+            write_byte(-1);                   		// SecondaryAmmoMaxAmount
+            write_byte(4);                    		// SlotID (0...N)
+            write_byte(3);                    		// NumberInSlot (1...N)
+            write_byte(CSW_C4); 	        // WeaponID
+            write_byte(0);                    		// Flags
+        }
+        message_end();
+    }
+	return PLUGIN_CONTINUE;
+}
+
+public SelectLasermine(const client) 
+{ 
+	if (!lm_get_user_have_mine(client))
+		return PLUGIN_CONTINUE;	
+
+    engclient_cmd(client, "weapon_c4"); 
+	return PLUGIN_CONTINUE;	
+} 
+
+public OnItemSlotC4(const item)
+{
+	static client;
+	client = get_ent_data_entity(item, "CBasePlayerItem", "m_pPlayer");
+
+	if (is_user_alive(client))
+	{
+		if (!lm_get_user_have_mine(client))
+			return HAM_IGNORED;
+
+	    SetHamReturnInteger(5);
+	    return HAM_SUPERCEDE;
+	}
+	return HAM_IGNORED;
+}
+
+public OnSetModels(const item)
+{
+	if(pev_valid(item) != 2)
+		return HAM_IGNORED;
+
+	static client; client = get_pdata_cbase(item, 41, 4);
+	if(!is_user_alive(client))
+		return HAM_IGNORED;
+	if (!lm_get_user_have_mine(client))
+		return PLUGIN_CONTINUE;
+	if(get_pdata_cbase(client, 373) != item)
+		return HAM_IGNORED;
+
+	new szValue[MAX_RESOURCE_PATH_LENGTH];
+	ArrayGetString(gPathEntModels, V_WPN, szValue, charsmax(szValue));
+
+	set_pev(client, pev_viewmodel2, 	szValue);
+
+	ArrayGetString(gPathEntModels, P_WPN, szValue, charsmax(szValue));
+	set_pev(client, pev_weaponmodel2, 	szValue);
+
+	UTIL_PlayWeaponAnimation(client, TRIPMINE_DRAW);
+	// emit_sound(client, CHAN_WEAPON, ENT_SOUNDS[SND_CM_DRAW], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+
+	return HAM_IGNORED;
+}
+
+public weapon_change(id)
+{
+	if (!is_user_alive(id))
+		return;
+	if (is_user_bot(id))
+		return;
+	if (!lm_get_user_have_mine(id))
+		return;
+	new clip, ammo;
+	if (cs_get_user_weapon(id, clip, ammo) != CSW_C4)
+	{
+		lm_progress_stop(id);
+		lm_deploy_status(id);
+	}
+}
+
+public OnPrimaryAttackPre(Weapon)
+{
+	new client = get_pdata_cbase(Weapon, 41, 4);
+	
+	if (get_pdata_cbase(client, 373) != Weapon)
+		return HAM_IGNORED;
+
+	return HAM_HANDLED;
+}
+
+public OnPrimaryAttackPost(Weapon)
+{
+	new client = get_pdata_cbase(Weapon, 41, 4);
+	
+	if (get_pdata_cbase(client, 373) != Weapon)
+		return HAM_IGNORED;
+
+	if (int:lm_get_user_deploy_state(client) == STATE_DEPLOYING) 
+	{
+//		UTIL_PlayWeaponAnimation(client, SEQ_SHOOT);
+//		emit_sound(client, CHAN_WEAPON, ENT_SOUNDS[SND_CM_ATTACK], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+		set_ent_data_float(Weapon, "CBasePlayerWeapon", "m_flNextPrimaryAttack", 999.9);
+	}
+	return HAM_HANDLED;
+}
+
+public OnUpdateClientDataPost(Player, SendWeapons, CD_Handle)
+{
+	if (!is_user_alive(Player) || (cs_get_user_weapon(Player) != CSW_C4))
+		return FMRES_IGNORED;
+	
+	if (!lm_get_user_have_mine(Player))
+		return FMRES_IGNORED;
+
+	set_cd(CD_Handle, CD_flNextAttack, halflife_time () + 0.001);
+	return FMRES_HANDLED;
+}
+
+stock UTIL_PlayWeaponAnimation(const Player, const Sequence)
+{
+	set_pev(Player, pev_weaponanim, Sequence);
+	
+	message_begin(MSG_ONE_UNRELIABLE, SVC_WEAPONANIM, .player = Player);
+	write_byte(Sequence);
+	write_byte(pev(Player, pev_body));
+	message_end();
+}
+
 //====================================================
 // Native Functions
 //====================================================
 public plugin_natives()
 {
+	set_module_filter("module_filter");
+	set_native_filter("native_filter");
+
 	register_library("lasermine_natives");
 
 	register_native("LM_Give", 		"_native_lm_give");
@@ -2513,6 +2812,12 @@ public _native_lm_give(iPlugin, iParams)
 		lm_set_user_have_mine(id, int:(have + amount));
 	}
 
+	if (cs_get_user_bpammo(id, CSW_C4) > 0)
+		// Collect for this removed lasermine.
+		cs_set_user_bpammo(id, CSW_C4, lm_get_user_have_mine(id));
+	else
+		give_item(id, "weapon_c4");	
+
 	lm_play_sound(id, SOUND_PICKUP);
 	return lm_get_user_have_mine(id);
 }
@@ -2537,6 +2842,13 @@ public _native_lm_set(iPlugin, iParams)
 	{
 		lm_set_user_have_mine(id, int:(amount));
 	}
+
+	if (cs_get_user_bpammo(id, CSW_C4) > 0)
+		// Collect for this removed lasermine.
+		cs_set_user_bpammo(id, CSW_C4, lm_get_user_have_mine(id));
+	else
+		give_item(id, "weapon_c4");	
+
 	lm_play_sound(id, SOUND_PICKUP);
 	return lm_get_user_have_mine(id);
 }
@@ -2554,6 +2866,8 @@ public _native_lm_sub(iPlugin, iParams)
 		lm_set_user_have_mine(id, int:(have - amount));
 	else
 		lm_set_user_have_mine(id, int:0);
+
+	cs_set_user_bpammo(id, CSW_C4, lm_get_user_have_mine(id));
 	return lm_get_user_have_mine(id);
 }
 
@@ -2606,3 +2920,4 @@ public _native_lm_get_laser(iPlugin, iParams)
 	new iEnt = get_param(1);
 	return pev(iEnt, LASERMINE_BEAM);
 }
+

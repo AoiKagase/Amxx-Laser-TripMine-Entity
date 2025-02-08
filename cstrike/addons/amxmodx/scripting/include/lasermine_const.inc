@@ -150,6 +150,7 @@ enum int:PLAYER_DEPLOY_STATE
 	STATE_DEPLOYING					,
 	STATE_PICKING					,
 	STATE_DEPLOYED					,
+	STATE_RELOAD					,
 }
 
 enum _:PICKUP_MODE
@@ -498,7 +499,7 @@ new const CVAR_CONFIGRATION	[E_CVAR_SETTING_LIST][][] =
 	{"_death_remove",			"[MISC] - Dead player remove mines. [0 = Disable, 1 = Enable]",
 			"1", 		"num"},			// Dead Player remove lasermine. 0 = off, 1 = on.
 	{"_activate_time",			"[MISC] - Waiting for put mines. [Seconds, 0 = no progress bar]",
-			"1", 		"num"},			// Waiting for put lasermine. (int:seconds. 0 = no progress bar.)
+			"0", 		"num"},			// Waiting for put lasermine. (int:seconds. 0 = no progress bar.)
 	{"_allow_pickup",			"[MISC] - Allow pickup mines. [0 = Disable, 1 = Owner, 2 = Allow Friendly, 3 = and Allow Enemy]", "1", 	"num"},			// allow pickup mine. (0 = disable, 1 = it's mine, 2 = allow friendly mine, 3 = allow enemy mine!)
 	{"_shield_difence",			"[MISC] - Allow Shield difence. [0 = Disable, 1 = Enable]",
 			"1", 		"num"},			// allow shiled difence.

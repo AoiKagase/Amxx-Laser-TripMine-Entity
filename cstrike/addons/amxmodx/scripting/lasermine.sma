@@ -1387,6 +1387,7 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 	*/
 	new szValue[MAX_RESOURCE_PATH_LENGTH];
 	ArrayGetString(gPathEntSprites[LASER], random_num(0, ArraySize(gPathEntSprites[LASER]) - 1), szValue, charsmax(szValue));
+	server_print(szValue);
 	return lm_draw_laser(iEnt, vEndOrigin, szValue, 0, 0, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 255.0);
 }
 
@@ -2475,6 +2476,7 @@ lm_load_resources()
 		console_print(0, "[LASERMINE] LOAD DEFAULTS");
 		ArrayPushString(gPathEntModels, "models/v_tripmine.mdl");
 		ArrayPushString(gPathEntModels, "models/p_tripmine.mdl");
+//		ArrayPushString(gPathEntModels, "models/w_tripmine.mdl");
 
 		ArrayPushString(gPathEntSound	[DEPLOY],			"weapons/mine_deploy.wav");
 		ArrayPushString(gPathEntSound	[CHARGE], 			"weapons/mine_charge.wav");
@@ -2515,6 +2517,11 @@ lm_load_resources()
 		ArrayPushString(gPathEntModels, "models/p_tripmine.mdl");
 	else
 		ArrayPushString(gPathEntModels, szValue);
+	// json_object_get_string(json, "w_model", szValue, charsmax(szValue));
+	// if (strlen(szValue) == 0 || equali(szValue, ""))
+	// 	ArrayPushString(gPathEntModels, "models/w_tripmine.mdl");
+	// else
+	// 	ArrayPushString(gPathEntModels, szValue);
 	// SOUNDS.
 	for (new E_SOUNDS:i = DEPLOY; i < E_SOUNDS; i++)
 	{
@@ -2553,7 +2560,7 @@ lm_load_resources()
 					load_default_sprites(i);
 				else
 					ArrayPushString(gPathEntSprites[i], szValue);
-//				console_print(0, "%s => %s", JSON_KEY_SPRITES[_:i], szValue);
+				console_print(0, "%s => %s", JSON_KEY_SPRITES[_:i], szValue);
 			}
 		}
 		else

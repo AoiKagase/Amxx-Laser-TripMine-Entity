@@ -405,15 +405,15 @@ new const JSON_KEY_SOUNDS[][]	=
 };
 new const JSON_KEY_SPRITES[][]	=
 {
-											"sprite.laser",
-											"sprite.explosion_a",
-											"sprite.explosion_b",
-											"sprite.explosion_water",
-											"sprite.explosion_blast",
-											"sprite.explosion_smoke",
-											"sprite.explosion_bubble",
-											"sprite.laser_hit_blood_splash",
-											"sprite.laser_hit_blood_spray",
+											"sprites.laser",
+											"sprites.explosion_a",
+											"sprites.explosion_b",
+											"sprites.explosion_water",
+											"sprites.explosion_blast",
+											"sprites.explosion_smoke",
+											"sprites.explosion_bubble",
+											"sprites.laser_hit_blood_splash",
+											"sprites.laser_hit_blood_spray",
 }
 
 new const CVAR_CONFIGRATION	[E_CVAR_SETTING_LIST][][] =

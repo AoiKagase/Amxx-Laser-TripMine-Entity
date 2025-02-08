@@ -1,6 +1,8 @@
 {
-	"model": "",
-	"sprite": {
+	"v_model": "",
+	"p_model": "",
+	"w_model": "",
+	"sprites": {
 		"laser":[""],
 		"explosion_a":[],
 		"explosion_b":[],

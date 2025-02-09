@@ -353,7 +353,7 @@ enum E_CVAR_SETTING_LIST
 #define cp_maximum_deployed(%1)		client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_DEPLOY],	CHAT_TAG)
 #define cp_have_max(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_HAVE],	CHAT_TAG)
 #define cp_many_ppl(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[MAX_PPL],		CHAT_TAG)
-#define cp_delay_time(%1,%2)		client_print_color(%1, %1, "%L", %1, LANG_KEY[DELAY_SEC],	CHAT_TAG, gCvar[CVAR_START_DELAY] - %2)
+#define cp_delay_time(%1,%2)		client_print_color(%1, %1, "%L", %1, LANG_KEY[DELAY_SEC],	CHAT_TAG, floatround(gCvar[CVAR_START_DELAY]) - %2)
 #define cp_must_wall(%1)			client_print_color(%1, %1, "%L", %1, LANG_KEY[PLANT_WALL],	CHAT_TAG)
 #define cp_sorry(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[SORRY_IMPL],	CHAT_TAG)
 #define cp_noround(%1)				client_print_color(%1, %1, "%L", %1, LANG_KEY[NOROUND], 	CHAT_TAG)
@@ -463,7 +463,7 @@ new const CVAR_CONFIGRATION	[E_CVAR_SETTING_LIST][][] =
 			"0,0,255", 	"string"},		// Team-Color for Counter-Terrorist. default:blue (R,G,B)
 
 	{"_laser_brightness",		"[LASER] - Laser line Brightness. [0 - 255]",
-			"255", 		"float"},		// laser line brightness. 0 to 255
+			"255.0",	"float"},		// laser line brightness. 0 to 255
 	{"_laser_width",			"[LASER] - Laser line width. [0 - 255]", 
 			"2", 		"float"},		// laser line width. 0 to 255
 	{"_laser_damage",			"[LASER] - Damage.", 

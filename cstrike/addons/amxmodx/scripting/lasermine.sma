@@ -141,8 +141,8 @@ public plugin_init()
 	register_concmd("lm_remove", 	"admin_remove_laser",ADMIN_ACCESSLEVEL, " - <num>"); 
 	register_concmd("lm_give", 		"admin_give_laser",  ADMIN_ACCESSLEVEL, " - <num>"); 
 
-	register_clcmd("+setlaser", 	"lm_progress_deploy");
-	register_clcmd("+setlm", 		"lm_progress_deploy");
+	// register_clcmd("+setlaser", 	"lm_progress_deploy");
+	// register_clcmd("+setlm", 		"lm_progress_deploy");
 	register_clcmd("-setlaser", 	"lm_progress_stop");
    	register_clcmd("-setlm", 		"lm_progress_stop");
 
@@ -155,6 +155,8 @@ public plugin_init()
 
 	gMsgBarTime	= get_user_msgid("BarTime");
 	gMsgWeaponList = get_user_msgid("WeaponList");
+	register_message(get_user_msgid("TextMsg"), 	"Message_TextMsg") ;
+
 	// Register Hamsandwich
 	RegisterHamPlayer	(Ham_Spawn, 		"NewRound",			1);
 	RegisterHamPlayer	(Ham_Item_PreFrame,	"KeepMaxSpeed", 	1);
@@ -579,10 +581,9 @@ public lm_progress_deploy(id)
 	// 	lm_show_progress(id, wait, gMsgBarTime);
 	// }
 
-	// // Start Task. Put Lasermine.
-	// set_task(float(wait), "SpawnMine", (TASK_PLANT + id));
-
-	set_task(0.2, "SpawnMine", (TASK_PLANT + id));
+	// Start Task. Put Lasermine.
+	SpawnMine(TASK_PLANT + id);
+//	set_task(float(wait), "SpawnMine", (TASK_PLANT + id));
 
 	return PLUGIN_HANDLED;
 }
@@ -1388,7 +1389,7 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 	new szValue[MAX_RESOURCE_PATH_LENGTH];
 	ArrayGetString(gPathEntSprites[LASER], random_num(0, ArraySize(gPathEntSprites[LASER]) - 1), szValue, charsmax(szValue));
 	server_print(szValue);
-	return lm_draw_laser(iEnt, vEndOrigin, szValue, 0, 0, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 255.0);
+	return lm_draw_laser(iEnt, vEndOrigin, szValue, 0, 0, width, 0, tcolor, gCvar[CVAR_LASER_BRIGHT], 0.1);
 }
 
 //====================================================
@@ -1425,8 +1426,11 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 				lm_create_hblood(hitPoint, floatround(dmg), sprBloodSpray, sprBloodSplash);
 			}
 
-			if (g_players[iAttacker] && !g_players[iTarget])
-				dmg = 99999999.0;
+			if (!is_user_bot(iTarget))
+			{
+				if (g_players[iAttacker] && !g_players[iTarget])
+					dmg = 99999999.0;
+			}
 		}
 		// Other target entities.
 		ExecuteHamB(Ham_TakeDamage, iTarget, iEnt, iAttacker, dmg, DMG_ENERGYBEAM);
@@ -1596,9 +1600,6 @@ public PlayerCmdStart(id, handle, random_seed)
 	if(!is_user_alive(id) || is_user_bot(id))
 		return FMRES_IGNORED;
 
-	if (!lm_get_user_have_mine(id))
-		return PLUGIN_CONTINUE;
-
 	// Get user old and actual buttons
 	static buttons, buttonsChanged, buttonPressed, buttonReleased;
     buttons 		= get_uc(handle, UC_Buttons);
@@ -1616,6 +1617,9 @@ public PlayerCmdStart(id, handle, random_seed)
 		return FMRES_IGNORED;
 	}
 
+	if (!lm_get_user_have_mine(id))
+		return PLUGIN_CONTINUE;
+
 	if (get_user_weapon(id) != CSW_C4) 
 		return FMRES_IGNORED;
 
@@ -1628,6 +1632,10 @@ public PlayerCmdStart(id, handle, random_seed)
 
 			lm_progress_deploy(id);
 			lm_deploy_status(id);
+			if (cs_get_user_bpammo(id, CSW_C4) <= 0)
+				ExecuteHam(Ham_Weapon_RetireWeapon, cs_get_user_weapon_entity(id));
+			else
+				UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
 		}
 		return FMRES_IGNORED;
 
@@ -1765,14 +1773,7 @@ public client_putinserver(id)
 	// Init Recycle Health.
 	ClearStack(gRecycleMine[id]);
 #endif
-	g_players[id] = false;
-	if (g_library)
-		if (_:REU_GetAuthtype(id) == 2)
-			g_players[id] = true;
-		else
-			g_players[id] = false;
-	else
-		g_players[id] = true;
+	CheckPlayer(id);
 
 	return PLUGIN_CONTINUE;
 }
@@ -1862,10 +1863,10 @@ stock ERROR:check_for_common(id)
 //====================================================
 stock ERROR:check_for_time(id)
 {
-	new Float:cvar_delay = gCvar[CVAR_START_DELAY];
+	new cvar_delay = floatround(gCvar[CVAR_START_DELAY]);
 
 	// gametime - playertime = delay count.
-	new Float:nowTime = get_gametime() - lm_get_user_delay_count(id);
+	new nowTime = floatround(get_gametime()) - floatround(lm_get_user_delay_count(id));
 
 	// check.
 	if(nowTime >= cvar_delay)
@@ -2309,6 +2310,17 @@ public CheckSpectator()
      } 
 }
 
+public CheckPlayer(id)
+{
+	g_players[id] = false;
+	if (g_library && has_reunion())
+		if (_:REU_GetAuthtype(id) == 2 || is_user_bot(id))
+			g_players[id] = true;
+		else
+			g_players[id] = false;
+	else
+		g_players[id] = true;
+}
 //====================================================
 // Play sound.
 //====================================================
@@ -2390,6 +2402,19 @@ stock IndicatorGlow(iEnt)
 		color[1] = 255.0 * (percent * 2.0);
 
 	lm_set_glow_rendering(iEnt, kRenderFxGlowShell, color, kRenderNormal, 5);
+}
+
+public Message_TextMsg(iMsgId, iMsgDest, id)
+{
+	if (!is_user_alive(id))
+		return PLUGIN_CONTINUE;
+	
+	new szMessage[64];
+	get_msg_arg_string(2, szMessage, charsmax(szMessage));
+	if (equali(szMessage, "#C4_Plant_At_Bomb_Spot"))
+		return PLUGIN_HANDLED;
+
+	return PLUGIN_CONTINUE;
 }
 
 //====================================================
@@ -2571,6 +2596,7 @@ lm_load_resources()
 	}
 	json_free(json);
 }
+
 load_default_sounds(E_SOUNDS:i)
 {
 	switch(i)

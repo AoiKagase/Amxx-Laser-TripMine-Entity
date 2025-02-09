@@ -1,9 +1,7 @@
 {
-	"v_model": "",
-	"p_model": "",
-	"w_model": "",
+	"v_model": "models/ltm/v_lasermine.mdl",
 	"sprites": {
-		"laser":[""],
+		"laser":["sprites/weapons/ltm/laser.spr"],
 		"explosion_a":[],
 		"explosion_b":[],
 		"explosion_water":[],
@@ -14,11 +12,23 @@
 		"laser_hit_blood_spray":[]
 	},
 	"sound":{
-		"deploy":[],
-		"charge":[],
-		"activate":[],
+		"deploy":[
+			"ltm/laser_deploy.wav"
+		],
+		"charge":[
+			"ltm/laser_charge.wav"
+		],
+		"activate":[
+			"ltm/laser_activate.wav"
+		],
 		"pickup":[],
-		"laser_hit":[],
+		"laser_hit":[
+			"ltm/laser_hit1.wav",
+			"ltm/laser_hit2.wav",
+			"ltm/laser_hit3.wav",
+			"ltm/laser_hit4.wav",
+			"ltm/laser_hit5.wav"
+		],
 		"shield_hit":[],
 		"break":[]
 	}

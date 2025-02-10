@@ -1767,7 +1767,6 @@ public client_putinserver(id)
 	lm_set_user_mine_deployed(id, int:0);
 	// reset hove mine.
 	lm_set_user_have_mine(id, int:0);
-	cs_set_user_bpammo(id, CSW_C4, lm_get_user_have_mine(id));
 
 #if AMXX_VERSION_NUM > 183
 	// Init Recycle Health.

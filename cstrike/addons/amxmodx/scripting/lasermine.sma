@@ -573,7 +573,9 @@ public lm_progress_stop(id)
 	gDeployingMines[id] = 0;
 
 	lm_hide_progress(id, gMsgBarTime);
-	delete_task(id);
+	
+	delete_task(TASK_PLANT + id);
+	delete_task(TASK_RELEASE + id);
 
 	return PLUGIN_HANDLED;
 }
@@ -1573,7 +1575,7 @@ public PlayerCmdStart(id, handle, random_seed)
 	}
 
 	if (!lm_get_user_have_mine(id))
-		return PLUGIN_CONTINUE;
+		return FMRES_IGNORED;
 
 	if (get_user_weapon(id) != CSW_C4) 
 		return FMRES_IGNORED;

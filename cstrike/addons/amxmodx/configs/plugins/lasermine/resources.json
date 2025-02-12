@@ -1,35 +1,76 @@
 {
-	"v_model": "models/ltm/v_lasermine.mdl",
-	"sprites": {
-		"laser":["sprites/weapons/ltm/laser.spr"],
-		"explosion_a":[],
-		"explosion_b":[],
-		"explosion_water":[],
-		"explosion_blast":[],
-		"explosion_smoke":[],
-		"explosion_bubble":[],
-		"laser_hit_blood_splash":[],
-		"laser_hit_blood_spray":[]
+	"ct": {
+		"models": {
+			"v_model": "models/ltm/v_lasermine.mdl"
+		},
+		"sprites": {
+			"laser":["sprites/weapons/ltm/laser.spr"],
+			"explosion_a":[],
+			"explosion_b":[],
+			"explosion_water":[],
+			"explosion_blast":[],
+			"explosion_smoke":[],
+			"explosion_bubble":[],
+			"laser_hit_blood_splash":[],
+			"laser_hit_blood_spray":[]
+		},
+		"sound":{
+			"deploy":[
+				"ltm/laser_deploy.wav"
+			],
+			"charge":[
+				"ltm/laser_charge.wav"
+			],
+			"activate":[
+				"ltm/laser_activate.wav"
+			],
+			"pickup":[],
+			"laser_hit":[
+				"ltm/laser_hit1.wav",
+				"ltm/laser_hit2.wav",
+				"ltm/laser_hit3.wav",
+				"ltm/laser_hit4.wav",
+				"ltm/laser_hit5.wav"
+			],
+			"shield_hit":[],
+			"break":[]
+		}
 	},
-	"sound":{
-		"deploy":[
-			"ltm/laser_deploy.wav"
-		],
-		"charge":[
-			"ltm/laser_charge.wav"
-		],
-		"activate":[
-			"ltm/laser_activate.wav"
-		],
-		"pickup":[],
-		"laser_hit":[
-			"ltm/laser_hit1.wav",
-			"ltm/laser_hit2.wav",
-			"ltm/laser_hit3.wav",
-			"ltm/laser_hit4.wav",
-			"ltm/laser_hit5.wav"
-		],
-		"shield_hit":[],
-		"break":[]
+	"tr": {
+		"models": {
+			"v_model": "models/ltm/v_lasermine.mdl"
+		},
+		"sprites": {
+			"laser":["sprites/weapons/ltm/laser.spr"],
+			"explosion_a":[],
+			"explosion_b":[],
+			"explosion_water":[],
+			"explosion_blast":[],
+			"explosion_smoke":[],
+			"explosion_bubble":[],
+			"laser_hit_blood_splash":[],
+			"laser_hit_blood_spray":[]
+		},
+		"sound":{
+			"deploy":[
+				"ltm/laser_deploy.wav"
+			],
+			"charge":[
+				"ltm/laser_charge.wav"
+			],
+			"activate":[
+				"ltm/laser_activate.wav"
+			],
+			"pickup":[],
+			"laser_hit":[
+				"ltm/laser_hit1.wav",
+				"ltm/laser_hit2.wav",
+				"ltm/laser_hit3.wav",
+				"ltm/laser_hit4.wav",
+				"ltm/laser_hit5.wav"
+			],
+			"shield_hit":[],
+			"break":[]
+		}
 	}
 }

@@ -161,6 +161,13 @@ enum _:PICKUP_MODE
 	ALLOW_ENEMY						,
 }
 
+enum E_MODELS
+{
+	V_WPN,
+	P_WPN,
+	W_WPN,
+};
+
 enum E_SOUNDS
 {
 	Array:DEPLOY					= 0,
@@ -393,27 +400,61 @@ new const LANG_KEY[][]		=
 };
 
 #define JSON_FILE							"plugins/lasermine/resources.json"
-new const JSON_KEY_SOUNDS[][]	=
+new const JSON_KEY_MODELS_CT[][]	=
 {
-											"sound.deploy",
-											"sound.charge",
-											"sound.activate",
-											"sound.pickup",
-											"sound.laser_hit",
-											"sound.shield_hit",
-											"sound.break",
+											"ct.models.v_models",
+											"ct.models.p_models",
+											"ct.models.w_models",
 };
-new const JSON_KEY_SPRITES[][]	=
+new const JSON_KEY_SOUNDS_CT[][]	=
 {
-											"sprites.laser",
-											"sprites.explosion_a",
-											"sprites.explosion_b",
-											"sprites.explosion_water",
-											"sprites.explosion_blast",
-											"sprites.explosion_smoke",
-											"sprites.explosion_bubble",
-											"sprites.laser_hit_blood_splash",
-											"sprites.laser_hit_blood_spray",
+											"ct.sound.deploy",
+											"ct.sound.charge",
+											"ct.sound.activate",
+											"ct.sound.pickup",
+											"ct.sound.laser_hit",
+											"ct.sound.shield_hit",
+											"ct.sound.break",
+};
+new const JSON_KEY_SPRITES_CT[][]	=
+{
+											"ct.sprites.laser",
+											"ct.sprites.explosion_a",
+											"ct.sprites.explosion_b",
+											"ct.sprites.explosion_water",
+											"ct.sprites.explosion_blast",
+											"ct.sprites.explosion_smoke",
+											"ct.sprites.explosion_bubble",
+											"ct.sprites.laser_hit_blood_splash",
+											"ct.sprites.laser_hit_blood_spray",
+}
+new const JSON_KEY_MODELS_TR[][]	=
+{
+											"tr.models.v_models",
+											"tr.models.p_models",
+											"tr.models.w_models",
+};
+new const JSON_KEY_SOUNDS_TR[][]	=
+{
+											"tr.sound.deploy",
+											"tr.sound.charge",
+											"tr.sound.activate",
+											"tr.sound.pickup",
+											"tr.sound.laser_hit",
+											"tr.sound.shield_hit",
+											"tr.sound.break",
+};
+new const JSON_KEY_SPRITES_TR[][]	=
+{
+											"tr.sprites.laser",
+											"tr.sprites.explosion_a",
+											"tr.sprites.explosion_b",
+											"tr.sprites.explosion_water",
+											"tr.sprites.explosion_blast",
+											"tr.sprites.explosion_smoke",
+											"tr.sprites.explosion_bubble",
+											"tr.sprites.laser_hit_blood_splash",
+											"tr.sprites.laser_hit_blood_spray",
 }
 
 new const CVAR_CONFIGRATION	[E_CVAR_SETTING_LIST][][] =

@@ -128,14 +128,15 @@ stock lm_resources_load()
 	for (new E_MODELS:i = V_WPN; i < E_MODELS; i++)
     {
 		szValue = "";
-		json_object_get_string(json, JSON_KEY_MODELS_CT[_:i], szValue, charsmax(szValue));
+		json_object_get_string(json, JSON_KEY_MODELS_CT[_:i], szValue, charsmax(szValue), true);
+		
 		if (strlen(szValue) == 0 || equali(szValue, ""))
 			load_default_models(i, CS_TEAM_CT);
 		else
 			ArrayPushString(gPathEntModelsCT, szValue);
 
 		szValue = "";
-		json_object_get_string(json, JSON_KEY_MODELS_TR[_:i], szValue, charsmax(szValue));
+		json_object_get_string(json, JSON_KEY_MODELS_TR[_:i], szValue, charsmax(szValue), true);
 		if (strlen(szValue) == 0 || equali(szValue, ""))
 			load_default_models(i, CS_TEAM_T);
 		else

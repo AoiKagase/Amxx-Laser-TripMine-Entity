@@ -53,6 +53,7 @@
 #define TASK_PLANT					15100
 #define TASK_RESET					15500
 #define TASK_RELEASE				15900
+#define TASK_RELOAD					16000
 
 //====================================================
 // ENUM AREA
@@ -402,9 +403,9 @@ new const LANG_KEY[][]		=
 #define JSON_FILE							"plugins/lasermine/resources.json"
 new const JSON_KEY_MODELS_CT[][]	=
 {
-											"ct.models.v_models",
-											"ct.models.p_models",
-											"ct.models.w_models",
+											"ct.models.v_model",
+											"ct.models.p_model",
+											"ct.models.w_model",
 };
 new const JSON_KEY_SOUNDS_CT[][]	=
 {
@@ -430,9 +431,9 @@ new const JSON_KEY_SPRITES_CT[][]	=
 }
 new const JSON_KEY_MODELS_TR[][]	=
 {
-											"tr.models.v_models",
-											"tr.models.p_models",
-											"tr.models.w_models",
+											"tr.models.v_model",
+											"tr.models.p_model",
+											"tr.models.w_model",
 };
 new const JSON_KEY_SOUNDS_TR[][]	=
 {

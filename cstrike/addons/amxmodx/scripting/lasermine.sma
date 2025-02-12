@@ -70,7 +70,7 @@ new Stack:gRecycleMine	[MAX_PLAYERS];
 	#include <lasermine_zombie>
 #pragma semicolon 1
 #endif
-#define RELOAD_TIME						0.4
+#define RELOAD_TIME						0.6
 enum E_FORWARD
 {
 	E_FWD_ONBUY_PRE,
@@ -573,9 +573,7 @@ public lm_progress_stop(id)
 	gDeployingMines[id] = 0;
 
 	lm_hide_progress(id, gMsgBarTime);
-	
-	delete_task(TASK_PLANT + id);
-	delete_task(TASK_RELEASE + id);
+	delete_task(id);
 
 	return PLUGIN_HANDLED;
 }
@@ -647,7 +645,7 @@ stock set_spawn_entity_setting(iEnt, uID, classname[])
 	// think rate. hmmm....
 	set_pev(iEnt, pev_nextthink, 		fCurrTime + 0.2 );
 	// Power up sound.
-	lm_play_sound(iEnt, 				SOUND_POWERUP);
+	lm_play_sound(iEnt, 				SOUND_POWERUP, lm_get_laser_team(iEnt));
 	// Cound up. deployed.
 	lm_set_user_mine_deployed(uID, 		lm_get_user_mine_deployed(uID) + int:1);
 	// Cound down. have ammo.
@@ -861,7 +859,7 @@ public RemoveMine(id)
 	}
 
 	// Play sound.
-	lm_play_sound(uID, SOUND_PICKUP);
+	lm_play_sound(uID, SOUND_PICKUP, cs_get_user_team(ownerID));
 
 	// Set Flag. end progress.
 	lm_set_user_deploy_state(uID, int:STATE_DEPLOYED);
@@ -993,7 +991,7 @@ public LaserThink(iEnt)
 		case EXPLOSE_THINK:
 		{
 			// Stopping sound.
-			lm_play_sound(iEnt, SOUND_STOP);
+			lm_play_sound(iEnt, SOUND_STOP, cs_get_user_team(iOwner));
 			// Effect Explosion.
 			lm_step_explosion(iEnt, iOwner);
 		}
@@ -1016,7 +1014,7 @@ lm_step_powerup(iEnt, Float:fCurrTime)
 		// next state.
 		set_pev(iEnt, LASERMINE_STEP, BEAMUP_THINK);
 		// activate sound.
-		lm_play_sound(iEnt, SOUND_ACTIVATE);
+		lm_play_sound(iEnt, SOUND_ACTIVATE, lm_get_laser_team(iEnt));
 	}
 
 	mine_glowing(iEnt);
@@ -1366,7 +1364,7 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 
 	if (gCvar[CVAR_DIFENCE_SHIELD] && hitGroup == HIT_SHIELD)
 	{
-		lm_play_sound(iTarget, SOUND_HIT_SHIELD);
+		lm_play_sound(iTarget, SOUND_HIT_SHIELD, team);
 		lm_draw_spark(hitPoint);
 		lm_hit_shield(iTarget, dmg);
 	}
@@ -1374,7 +1372,7 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 	{
 		if (IsPlayer(iTarget))
 		{
-			lm_play_sound(iTarget, SOUND_HIT);
+			lm_play_sound(iTarget, SOUND_HIT, team);
 			lm_set_user_lasthit(iTarget, hitGroup);
 			if (gCvar[CVAR_VIOLENCE_HBLOOD])
 			{
@@ -1475,7 +1473,7 @@ public lm_buy_lasermine(id)
 
 	cp_bought(id);
 
-	lm_play_sound(id, SOUND_PICKUP);
+	lm_play_sound(id, SOUND_PICKUP, cs_get_user_team(id));
 
 	show_ammo(id);
 	ExecuteForward(g_forward[E_FWD_ONBUY_POST], iRet, id, amount, cost); 
@@ -1558,11 +1556,12 @@ public PlayerCmdStart(id, handle, random_seed)
 		return FMRES_IGNORED;
 
 	// Get user old and actual buttons
-	static buttons, buttonsChanged, buttonPressed, buttonReleased;
+	static buttons, buttonsChanged, buttonPressed, buttonReleased, iOldButton;
     buttons 		= get_uc(handle, UC_Buttons);
     buttonsChanged 	= get_ent_data(id, "CBasePlayer", "m_afButtonLast") ^ buttons;
     buttonPressed 	= buttonsChanged & buttons;
     buttonReleased 	= buttonsChanged & ~buttons;
+	iOldButton 		= get_user_oldbutton(id);
 
 	if (buttonPressed & IN_USE)
 	{
@@ -1582,7 +1581,7 @@ public PlayerCmdStart(id, handle, random_seed)
 
 	if (buttonPressed & IN_ATTACK)
 	{
-		if (check_for_deploy(id))
+		if (!(iOldButton & IN_ATTACK) && check_for_deploy(id))
 		{
 			UTIL_PlayWeaponAnimation(id, TRIPMINE_ARM2);
 			// emit_sound(id, CHAN_WEAPON, ENT_SOUNDS[SND_CM_ATTACK], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
@@ -1599,13 +1598,16 @@ public PlayerCmdStart(id, handle, random_seed)
 	} else if (buttonReleased & IN_ATTACK) 
 	{
 		// emit_sound(id, CHAN_WEAPON, ENT_SOUNDS[SND_CM_DRAW], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+		static int:now_state;
+		now_state = lm_get_user_deploy_state(id);
 		lm_progress_stop(id);
+		lm_set_user_deploy_state(id, now_state);
 		lm_deploy_status(id);
 
 		if (cs_get_user_bpammo(id, CSW_C4) <= 0)
 			ExecuteHam(Ham_Weapon_RetireWeapon, cs_get_user_weapon_entity(id));
-		else
-			UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
+//		else
+			// UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
 
 		return FMRES_IGNORED;
 
@@ -1692,23 +1694,18 @@ public lm_deploy_status(id)
 		case STATE_DEPLOYED:
 		{
 			ExecuteHamB(Ham_CS_Player_ResetMaxSpeed, id);
-			set_task_ex(RELOAD_TIME, "Reload", TASK_PLANT + id);
-		}
-		case STATE_RELOAD:
-		{
-			lm_progress_stop(id);
-			lm_set_user_deploy_state(id, STATE_IDLE);
-			stats = STATE_IDLE;
 			UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
-		}		
+			lm_set_user_deploy_state(id, STATE_RELOAD);
+			set_task_ex(RELOAD_TIME, "Reload", TASK_RELOAD + id);
+		}
 	}
 	return stats;
 }
 
 public Reload(taskid)
 {
-	new id = taskid - TASK_PLANT;
-	lm_set_user_deploy_state(id, STATE_RELOAD);
+	new id = taskid - TASK_RELOAD;
+	lm_set_user_deploy_state(id, STATE_IDLE);
 }
 
 //====================================================
@@ -1783,6 +1780,7 @@ delete_task(id)
 		remove_task((TASK_RELEASE + id));
 
 	lm_set_user_deploy_state(id, STATE_IDLE);
+
 	return;
 }
 
@@ -2041,6 +2039,10 @@ stock bool:check_for_deploy(id)
 	if (check_for_onwall(id))
 		return false;
 
+	// IDLE?
+	if (lm_get_user_deploy_state(id) != STATE_IDLE)
+		return false;
+
 	return true;
 }
 
@@ -2280,10 +2282,9 @@ public CheckPlayer(id)
 //====================================================
 // Play sound.
 //====================================================
-stock lm_play_sound(iEnt, iSoundType)
+stock lm_play_sound(iEnt, iSoundType, CsTeams:team)
 {
 	new szValue[MAX_RESOURCE_PATH_LENGTH] = "";
-	new CsTeams:team = lm_get_laser_team(iEnt);
 
 	switch (iSoundType)
 	{
@@ -2490,8 +2491,8 @@ public OnPrimaryAttackPost(Weapon)
 	{
 //		UTIL_PlayWeaponAnimation(client, SEQ_SHOOT);
 //		emit_sound(client, CHAN_WEAPON, ENT_SOUNDS[SND_CM_ATTACK], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
-		set_ent_data_float(Weapon, "CBasePlayerWeapon", "m_flNextPrimaryAttack", 999.9);
 	}
+	set_ent_data_float(Weapon, "CBasePlayerWeapon", "m_flNextPrimaryAttack", 999.9);
 	return HAM_HANDLED;
 }
 
@@ -2567,7 +2568,7 @@ public _native_lm_give(iPlugin, iParams)
 	else
 		give_item(id, "weapon_c4");	
 
-	lm_play_sound(id, SOUND_PICKUP);
+	lm_play_sound(id, SOUND_PICKUP, cs_get_user_team(id));
 	return lm_get_user_have_mine(id);
 }
 
@@ -2598,7 +2599,7 @@ public _native_lm_set(iPlugin, iParams)
 	else
 		give_item(id, "weapon_c4");	
 
-	lm_play_sound(id, SOUND_PICKUP);
+	lm_play_sound(id, SOUND_PICKUP, cs_get_user_team(id));
 	return lm_get_user_have_mine(id);
 }
 

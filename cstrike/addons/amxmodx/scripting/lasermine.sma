@@ -132,9 +132,9 @@ public plugin_init()
 	register_concmd("lm_give", 		"admin_give_laser",  ADMIN_ACCESSLEVEL, " - <num>"); 
 
 	// register_clcmd("+setlaser", 	"lm_progress_deploy");
-	// register_clcmd("+setlm", 		"lm_progress_deploy");
-	register_clcmd("-setlaser", 	"lm_progress_stop");
-   	register_clcmd("-setlm", 		"lm_progress_stop");
+	// register_clcmd("+setlm", 	"lm_progress_deploy");
+	// register_clcmd("-setlaser", 	"lm_progress_stop");
+   	// register_clcmd("-setlm", 	"lm_progress_stop");
 
 	register_clcmd("say", 			"lm_say_lasermine");
 
@@ -194,15 +194,17 @@ public plugin_init()
 /// START Custom Weapon
 /// =======================================================================================
     register_clcmd		("weapons/ltm/weapon_lasermine", 	"SelectLasermine");
-    RegisterHam			(Ham_Item_AddToPlayer, 		"weapon_c4", 	"OnAddToPlayerC4",		.Post = true);
-	RegisterHam			(Ham_Item_ItemSlot, 		"weapon_c4", 	"OnItemSlotC4");
-	RegisterHam			(Ham_Item_Deploy, 			"weapon_c4", 	"OnSetModels",			.Post = true);
-	RegisterHam			(Ham_Weapon_PrimaryAttack, 	"weapon_c4", 	"OnPrimaryAttackPre");
-	RegisterHam			(Ham_Weapon_PrimaryAttack, 	"weapon_c4", 	"OnPrimaryAttackPost",	.Post = true);
-//	RegisterHam			(Ham_Weapon_SecondaryAttack,"weapon_c4", 	"OnSecondaryAttackPre");
-///	register_forward	(FM_EmitSound, 				"KnifeSound");
-	register_event		("CurWeapon", 				"weapon_change", "be", "1=1");
-	register_forward	(FM_UpdateClientData, 		"OnUpdateClientDataPost", ._post = true);
+    RegisterHam			(Ham_Item_AddToPlayer, 				"weapon_c4", 	"OnAddToPlayerC4",		.Post = true);
+	RegisterHam			(Ham_Item_ItemSlot, 				"weapon_c4", 	"OnItemSlotC4");
+	RegisterHam			(Ham_Item_Deploy, 					"weapon_c4", 	"OnSetDeployModels",	.Post = true);
+	RegisterHam			(Ham_Weapon_PrimaryAttack, 			"weapon_c4", 	"OnPrimaryAttackPre");
+	RegisterHam			(Ham_Weapon_PrimaryAttack, 			"weapon_c4", 	"OnPrimaryAttackPost",	.Post = true);
+	RegisterHam			(Ham_CS_Item_CanDrop, 				"weapon_c4", 	"OnC4Drop");
+//	RegisterHam			(Ham_Weapon_SecondaryAttack,		"weapon_c4", 	"OnSecondaryAttackPre");
+
+	register_event		("CurWeapon", 						"weapon_change", "be", "1=1");
+//	register_forward	(FM_SetModel, 						"OnWeaponBoxSetModel", 					._post = true);
+	register_forward	(FM_UpdateClientData, 				"OnUpdateClientDataPost", 				._post = true);
 /// =======================================================================================
 /// END Custom Weapon
 /// =======================================================================================
@@ -809,7 +811,7 @@ public RemoveMine(id)
 		return;
 	
 	new entityName[MAX_NAME_LENGTH];
-	entityName = lm_get_entity_class_name(target);
+	lm_get_entity_class_name(target, entityName, charsmax(entityName));
 
 	// Check. is Target Entity Lasermine?
 	if(!equali(entityName, ENT_CLASS_LASER))
@@ -908,7 +910,7 @@ bool:check_for_remove(id)
 		return false;
 	
 	new entityName[MAX_NAME_LENGTH];
-	entityName = lm_get_entity_class_name(target);
+	lm_get_entity_class_name(target, entityName, charsmax(entityName));
 
 	// is target lasermine?
 	if(!equali(entityName, ENT_CLASS_LASER))
@@ -953,7 +955,7 @@ public LaserThink(iEnt)
 		return HAM_IGNORED;
 
 	new entityName[MAX_NAME_LENGTH];
-	entityName = lm_get_entity_class_name(iEnt);
+	lm_get_entity_class_name(iEnt, entityName, charsmax(entityName));
 
 	// is this lasermine? no.
 	if (!equali(entityName, ENT_CLASS_LASER))
@@ -1168,9 +1170,11 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 		}
 	}
 
+	static arraysize;
+	arraysize = ArraySize(aTarget);
 	if (gCvar[CVAR_MODE] == MODE_TRIPMINE)
 	{
-		for (new n = 0; n < ArraySize(aTarget); n++)
+		for (new n = 0; n < arraysize; n++)
 		{
 			ArrayGetArray(aTarget, n, hPlayer);
 			if (IsPlayer(hPlayer[I_TARGET]))
@@ -1183,8 +1187,8 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 	}
 	else
 	{
-		new Float:vEndPosition[3];
-		for (new n = 0; n < ArraySize(aTarget); n++)
+		static Float:vEndPosition[3];
+		for (new n = 0; n < arraysize; n++)
 		{
 			ArrayGetArray(aTarget, n, hPlayer);
 			xs_vec_copy(hPlayer[V_POSITION], vEndPosition);
@@ -1200,7 +1204,7 @@ lm_step_beambreak(iEnt, Float:vEnd[3], Float:fCurrTime)
 		// Laser line damage mode. Once or Second.
 		if (gCvar[CVAR_LASER_DMG_MODE] != 0)
 		{
-			if (ArraySize(aTarget) > 0)
+			if (arraysize > 0)
 				set_pev(iEnt, LASERMINE_COUNT, (nextTime + gCvar[CVAR_LASER_DMG_DPS]));
 
 			// if change target. keep target id.
@@ -1352,9 +1356,9 @@ draw_laserline(iEnt, const Float:vEndOrigin[3])
 create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 {
 	// Damage.
-	new Float:dmg 	= gCvar[CVAR_LASER_DMG];
-	new iAttacker = pev(iEnt,LASERMINE_OWNER);
-	new CsTeams:team = lm_get_laser_team(iEnt);
+	static Float:dmg;	dmg 		= gCvar[CVAR_LASER_DMG];
+	static iAttacker;	iAttacker 	= pev(iEnt,LASERMINE_OWNER);
+	static CsTeams:team;team 		= lm_get_laser_team(iEnt);
 
 	if (!is_user_alive(iTarget))
 		return;
@@ -1376,8 +1380,8 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 			lm_set_user_lasthit(iTarget, hitGroup);
 			if (gCvar[CVAR_VIOLENCE_HBLOOD])
 			{
-				new sprBloodSpray  = lm_get_sprites_cell(BLOOD_SPRAY, team);
-				new sprBloodSplash = lm_get_sprites_cell(BLOOD_SPLASH, team);
+				static sprBloodSpray;  sprBloodSpray  = lm_get_sprites_cell(BLOOD_SPRAY, team);
+				static sprBloodSplash; sprBloodSplash = lm_get_sprites_cell(BLOOD_SPLASH, team);
 				lm_create_hblood(hitPoint, floatround(dmg), sprBloodSpray, sprBloodSplash);
 			}
 
@@ -1402,7 +1406,7 @@ create_laser_damage(iEnt, iTarget, hitGroup, Float:hitPoint[])
 public PlayerKilling(iVictim, inflictor, iAttacker, Float:damage, bits)
 {
 	static entityName[MAX_NAME_LENGTH];
-	entityName = lm_get_entity_class_name(inflictor);
+	lm_get_entity_class_name(inflictor, entityName, charsmax(entityName));
 	//
 	// Refresh Score info.
 	//
@@ -1579,6 +1583,16 @@ public PlayerCmdStart(id, handle, random_seed)
 	if (get_user_weapon(id) != CSW_C4) 
 		return FMRES_IGNORED;
 
+	if (buttonPressed & IN_ATTACK2)
+	{
+		UTIL_PlayWeaponAnimation(id, TRIPMINE_FIDGET);
+		return FMRES_IGNORED;
+	} else if (buttonReleased & IN_ATTACK2) 
+	{
+		UTIL_PlayWeaponAnimation(id, random_num(TRIPMINE_IDLE1, TRIPMINE_ARM1));
+		return FMRES_IGNORED;
+	}
+
 	if (buttonPressed & IN_ATTACK)
 	{
 		if (!(iOldButton & IN_ATTACK) && check_for_deploy(id))
@@ -1590,33 +1604,33 @@ public PlayerCmdStart(id, handle, random_seed)
 			lm_deploy_status(id);
 			if (cs_get_user_bpammo(id, CSW_C4) <= 0)
 				ExecuteHam(Ham_Weapon_RetireWeapon, cs_get_user_weapon_entity(id));
-			else
-				UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
+//			else
 		}
 		return FMRES_IGNORED;
 
 	} else if (buttonReleased & IN_ATTACK) 
 	{
-		// emit_sound(id, CHAN_WEAPON, ENT_SOUNDS[SND_CM_DRAW], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
-		static int:now_state;
-		now_state = lm_get_user_deploy_state(id);
-		lm_progress_stop(id);
-		lm_set_user_deploy_state(id, now_state);
-		lm_deploy_status(id);
+		if (iOldButton & IN_ATTACK)
+		{
+			// emit_sound(id, CHAN_WEAPON, ENT_SOUNDS[SND_CM_DRAW], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+			static int:now_state;
+			now_state = lm_get_user_deploy_state(id);
+			lm_progress_stop(id);
+			lm_set_user_deploy_state(id, now_state);
+			lm_deploy_status(id);
 
-		if (cs_get_user_bpammo(id, CSW_C4) <= 0)
-			ExecuteHam(Ham_Weapon_RetireWeapon, cs_get_user_weapon_entity(id));
-//		else
-			// UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
-
-		return FMRES_IGNORED;
-
+			if (cs_get_user_bpammo(id, CSW_C4) <= 0)
+				ExecuteHam(Ham_Weapon_RetireWeapon, cs_get_user_weapon_entity(id));
+	//		else
+				// UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
+			return FMRES_IGNORED;
+		}
 	} else if (buttons & IN_ATTACK)
 	{
-		if (int:lm_deploy_status(id) == STATE_IDLE)
-		{
-			set_uc(handle, UC_Buttons, buttons & ~IN_ATTACK);
-		}
+		// if (int:lm_deploy_status(id) == STATE_IDLE)
+		// {
+		// 	set_uc(handle, UC_Buttons, buttons & ~IN_ATTACK);
+		// }
 		return FMRES_IGNORED;
 	}
 	return FMRES_IGNORED;
@@ -1631,7 +1645,7 @@ public lm_deploy_status(id)
 		{
 			new Float:speed = lm_get_user_max_speed(id);
 			set_pdata_float(cs_get_user_weapon_entity(id), 35, 0.0);
-
+			UTIL_PlayWeaponAnimation(id, random_num(TRIPMINE_IDLE1, TRIPMINE_ARM1));
 			new bool:now_speed = (speed <= 2.0);
 			if (now_speed)
 				ExecuteHamB(Ham_CS_Player_ResetMaxSpeed, id);				
@@ -1705,6 +1719,8 @@ public lm_deploy_status(id)
 public Reload(taskid)
 {
 	new id = taskid - TASK_RELOAD;
+//	UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
+
 	lm_set_user_deploy_state(id, STATE_IDLE);
 }
 
@@ -2105,7 +2121,7 @@ public MinesShowInfo(Float:vStart[3], Float:vEnd[3], Conditions, id, iTrace)
 	{
 		if (lm_is_user_alive(iHit))
 		{
-			szName = lm_get_entity_class_name(iHit);
+			lm_get_entity_class_name(iHit, szName, charsmax(szName));
 
 			if (equali(szName, ENT_CLASS_LASER))
 			{
@@ -2131,7 +2147,7 @@ public MinesShowInfo(Float:vStart[3], Float:vEnd[3], Conditions, id, iTrace)
 public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 {
 	new entityName[MAX_NAME_LENGTH];
-	entityName = lm_get_entity_class_name(victim);
+	lm_get_entity_class_name(victim, entityName, charsmax(entityName));
 
 	// is this lasermine? no.
 	if (!equali(entityName, ENT_CLASS_LASER))
@@ -2181,7 +2197,7 @@ public MinesTakeDamage(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 public MinesTakeDamaged(victim, inflictor, attacker, Float:f_Damage, bit_Damage)
 {
 	new entityName[MAX_NAME_LENGTH];
-	entityName = lm_get_entity_class_name(victim);
+	lm_get_entity_class_name(victim, entityName, charsmax(entityName));
 
     // is this lasermine? no.
 	if (!equali(entityName, ENT_CLASS_LASER))
@@ -2377,7 +2393,7 @@ public Message_TextMsg(iMsgId, iMsgDest, id)
 }
 
 /// =======================================================================================
-/// START Custom Weapon Claymore
+/// START Custom Weapon Lasermine
 /// =======================================================================================
 public OnAddToPlayerC4(const item, const player)
 {
@@ -2408,7 +2424,12 @@ public SelectLasermine(const client)
 	if (!lm_get_user_have_mine(client))
 		return PLUGIN_CONTINUE;	
 
-    engclient_cmd(client, "weapon_c4"); 
+	if (cs_get_user_weapon(client) != CSW_C4)
+	{
+		engclient_cmd(client, "weapon_c4"); 
+		UTIL_PlayWeaponAnimation(client, TRIPMINE_DRAW);
+	}
+
 	return PLUGIN_CONTINUE;	
 } 
 
@@ -2428,7 +2449,7 @@ public OnItemSlotC4(const item)
 	return HAM_IGNORED;
 }
 
-public OnSetModels(const item)
+public OnSetDeployModels(const item)
 {
 	if(pev_valid(item) != 2)
 		return HAM_IGNORED;
@@ -2447,11 +2468,17 @@ public OnSetModels(const item)
 
 	lm_get_models(P_WPN, cs_get_user_team(client), szValue, charsmax(szValue));
 	set_pev(client, pev_weaponmodel2, 	szValue);
-
 	UTIL_PlayWeaponAnimation(client, TRIPMINE_DRAW);
+
 	// emit_sound(client, CHAN_WEAPON, ENT_SOUNDS[SND_CM_DRAW], VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
 
 	return HAM_IGNORED;
+}
+
+public OnC4Drop(const iEntity) 
+{
+	SetHamReturnInteger(0);
+	return HAM_SUPERCEDE;
 }
 
 public weapon_change(id)
@@ -2504,18 +2531,24 @@ public OnUpdateClientDataPost(Player, SendWeapons, CD_Handle)
 	if (!lm_get_user_have_mine(Player))
 		return FMRES_IGNORED;
 
-	set_cd(CD_Handle, CD_flNextAttack, halflife_time () + 0.001);
+	set_cd(CD_Handle, CD_flNextAttack, halflife_time () + RELOAD_TIME);
 	return FMRES_HANDLED;
 }
 
 stock UTIL_PlayWeaponAnimation(const Player, const Sequence)
 {
-	set_pev(Player, pev_weaponanim, Sequence);
-	
-	message_begin(MSG_ONE_UNRELIABLE, SVC_WEAPONANIM, .player = Player);
-	write_byte(Sequence);
-	write_byte(pev(Player, pev_body));
-	message_end();
+	if (cs_get_user_weapon(Player) == CSW_C4)
+	{
+		if (get_ent_data_float(Player, "CBasePlayerWeapon", "m_flTimeWeaponIdle") <= 0.0)
+		{
+			set_pev(Player, pev_weaponanim, Sequence);
+			
+			message_begin(MSG_ONE_UNRELIABLE, SVC_WEAPONANIM, .player = Player);
+			write_byte(Sequence);
+			write_byte(pev(Player, pev_body));
+			message_end();
+		}
+	}
 }
 
 //====================================================
@@ -2547,9 +2580,14 @@ public _native_lm_give(iPlugin, iParams)
 	new id		      = get_param(1);
 	new amount		  = get_param(2);
 	new bool:uselimit = bool:get_param(3);
+
+	return lm_give_mine(id, amount, uselimit);
+}
+
+lm_give_mine(const id, const amount = 1, bool:uselimit = true) 
+{
 	new have		  = lm_get_user_have_mine(id);
 	new cvar_maxhave  = gCvar[CVAR_MAX_HAVE];
-
 	if (uselimit)
 	{
 		if ((have + amount) <= cvar_maxhave)

@@ -45,11 +45,9 @@ stock Float:lm_get_user_health			(id)
 }
 stock bool:lm_is_user_godmode		(id) 				{ return (pev(id, pev_takedamage) == DAMAGE_NO); }
 stock bool:lm_is_user_alive			(id)				{ return (pev(id, pev_deadflag) == DEAD_NO);}
-stock lm_get_entity_class_name		(id)
+stock lm_get_entity_class_name		(id, entityname[], len)
 {
-	new entityName[MAX_NAME_LENGTH];
-	pev(id, pev_classname, entityName, charsmax(entityName));
-	return entityName;
+	pev(id, pev_classname, entityname, len);
 }
 
 //====================================================
@@ -349,7 +347,9 @@ stock lm_create_explosion(Float:vOrigin[3], const Float:fDamage, const Float:fRa
 //====================================================
 stock lm_stop_laserline(iEnt)
 {
-	if (equali(lm_get_entity_class_name(iEnt), ENT_CLASS_LASER))
+	new entityName[MAX_NAME_LENGTH];
+	lm_get_entity_class_name(iEnt, entityName, charsmax(entityName))
+	if (equali(entityName, ENT_CLASS_LASER))
 	{
 		new beam = pev(iEnt, LASERMINE_BEAM);
 		if (pev_valid(beam))
@@ -401,7 +401,7 @@ stock lm_create_explosion_damage(iEnt, iAttacker, Float:dmgMax, Float:radius)
 	else
 		falloff = 1.0;
 	
-	iClassName = lm_get_entity_class_name(iEnt);
+	lm_get_entity_class_name(iEnt, iClassName, charsmax(iClassName));
 	// Find monsters and players inside a specifiec radius
 	while((rEnt = engfunc(EngFunc_FindEntityInSphere, rEnt, vOrigin, radius)) != 0)
 	{
@@ -409,7 +409,7 @@ stock lm_create_explosion_damage(iEnt, iAttacker, Float:dmgMax, Float:radius)
 		if (!pev_valid(rEnt)) 
 			continue;
 
-		tClassName = lm_get_entity_class_name(rEnt);
+		lm_get_entity_class_name(rEnt, tClassName, charsmax(tClassName));
 		if (!equali(tClassName, iClassName))
 		{
 			// Entity is not a player or monster, ignore it
@@ -424,7 +424,7 @@ stock lm_create_explosion_damage(iEnt, iAttacker, Float:dmgMax, Float:radius)
 		if (!IsPlayer(rEnt))
 		{
 			new class[MAX_NAME_LENGTH];
-			class = lm_get_entity_class_name(rEnt);
+			lm_get_entity_class_name(rEnt, class, charsmax(class));
 			if (equali(class, ENT_CLASS_LASER))
 				target = pev(rEnt, LASERMINE_OWNER);
 			else

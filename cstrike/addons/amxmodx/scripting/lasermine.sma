@@ -1583,13 +1583,18 @@ public PlayerCmdStart(id, handle, random_seed)
 	if (get_user_weapon(id) != CSW_C4) 
 		return FMRES_IGNORED;
 
+	static weapon; weapon = cs_get_user_weapon_entity(id);
+	new Float:idle = get_ent_data_float(weapon, "CBasePlayerWeapon", "m_flTimeWeaponIdle");
+	if (idle <= 0.0 && lm_deploy_status(id) == _:STATE_IDLE)
+		UTIL_PlayWeaponAnimation(id, random_num(TRIPMINE_IDLE1, TRIPMINE_ARM1));
+
 	if (buttonPressed & IN_ATTACK2)
 	{
 		UTIL_PlayWeaponAnimation(id, TRIPMINE_FIDGET);
+		set_ent_data_float(weapon, "CBasePlayerWeapon", "m_flTimeWeaponIdle", 2.5);
 		return FMRES_IGNORED;
 	} else if (buttonReleased & IN_ATTACK2) 
 	{
-		UTIL_PlayWeaponAnimation(id, random_num(TRIPMINE_IDLE1, TRIPMINE_ARM1));
 		return FMRES_IGNORED;
 	}
 
@@ -2494,6 +2499,9 @@ public weapon_change(id)
 	{
 		lm_progress_stop(id);
 		lm_deploy_status(id);
+	} else 
+	{
+		UTIL_PlayWeaponAnimation(id, TRIPMINE_DRAW);
 	}
 }
 
@@ -2539,15 +2547,13 @@ stock UTIL_PlayWeaponAnimation(const Player, const Sequence)
 {
 	if (cs_get_user_weapon(Player) == CSW_C4)
 	{
-		if (get_ent_data_float(Player, "CBasePlayerWeapon", "m_flTimeWeaponIdle") <= 0.0)
-		{
-			set_pev(Player, pev_weaponanim, Sequence);
-			
-			message_begin(MSG_ONE_UNRELIABLE, SVC_WEAPONANIM, .player = Player);
-			write_byte(Sequence);
-			write_byte(pev(Player, pev_body));
-			message_end();
-		}
+		static weapon; weapon = cs_get_user_weapon_entity(Player);
+		set_pev(Player, pev_weaponanim, Sequence);
+	
+		message_begin(MSG_ONE_UNRELIABLE, SVC_WEAPONANIM, .player = Player);
+		write_byte(Sequence);
+		write_byte(pev(weapon, pev_body));
+		message_end();
 	}
 }
 

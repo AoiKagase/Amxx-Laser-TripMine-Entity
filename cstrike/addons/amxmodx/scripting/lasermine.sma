@@ -48,7 +48,7 @@
 //=====================================
 // AUTHOR NAME +ARUKARI- => SandStriker => Aoi.Kagase
 #define AUTHOR 						"Aoi.Kagase"
-#define VERSION 					"3.40"
+#define VERSION 					"3.41"
 
 //====================================================
 //  GLOBAL VARIABLES
@@ -1785,6 +1785,18 @@ public client_disconnected(id)
 public event_infect2(id)
 {
 	delete_task(id);
+	// remove all lasermine.
+	lm_remove_all_entity(id, ENT_CLASS_LASER);
+	// drop lasermine.
+    engclient_cmd(id, "drop", "weapon_c4")
+ 
+    new weapbox, bomb = fm_find_ent_by_class(-1, "weapon_c4")
+    if (bomb && (weapbox = pev(bomb, pev_owner)) > get_maxplayers()) {
+        dllfunc(DLLFunc_Think, weapbox) // will remove weaponbox + weapon_c4 entity pair
+        // remove blinking red bomb mark on the radar
+        message_begin(MSG_ALL, get_user_msgid("BombPickup"))
+        message_end()
+    }
 	return PLUGIN_CONTINUE;
 }
 #endif
